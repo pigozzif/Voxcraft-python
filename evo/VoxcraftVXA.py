@@ -15,7 +15,7 @@ class VXA:
                  Lattice_Dim=0.01,
                  RecordStepSize=100, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, VaryTempEnabled=1,
                  TempAmplitude=20, TempBase=25,
-                 TempEnabled=1, DMaxX=0, DMaxY=0, isPassable=1, NeuralWeights=None):
+                 TempEnabled=1, isPassable=1, NeuralWeights=None):
 
         root = etree.XML("<VXA></VXA>")
         root.set('Version', '1.1')
@@ -47,8 +47,6 @@ class VXA:
             self.NeuralWeights = ",".join([str(w) for w in NeuralWeights])
         else:
             self.NeuralWeights = ""
-        self.DMaxX = DMaxX
-        self.DMaxY = DMaxY
         self.isPassable = isPassable
 
         self.NextMaterialID = 1  # Material ID's start at 1, 0 denotes empty space
@@ -120,8 +118,6 @@ class VXA:
         etree.SubElement(gravity, "FloorEnabled").text = str(self.FloorEnabled)
 
         task = etree.SubElement(environment, "Task")
-        etree.SubElement(task, "X").text = str(self.DMaxX)
-        etree.SubElement(task, "Y").text = str(self.DMaxY)
         etree.SubElement(task, "Passable").text = str(self.isPassable)
 
         # VXC tags

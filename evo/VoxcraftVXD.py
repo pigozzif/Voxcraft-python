@@ -8,15 +8,16 @@ class VXD:
         root = etree.XML("<VXD></VXD>")
         self.tree = etree.ElementTree(root)
     
-    def set_tags(self, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, RecordStepSize=100):
+    def set_tags(self, record_history, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, RecordStepSize=100):
         root = self.tree.getroot()
 
-        history = etree.SubElement(root, "RecordHistory")
-        history.set('replace', 'VXA.Simulator.RecordHistory')
-        etree.SubElement(history, "RecordStepSize").text = str(RecordStepSize) #Capture image every 100 time steps
-        etree.SubElement(history, "RecordVoxel").text = str(RecordVoxel) # Add voxels to the visualization
-        etree.SubElement(history, "RecordLink").text = str(RecordLink) # Add links to the visualization
-        etree.SubElement(history, "RecordFixedVoxels").text = str(RecordFixedVoxels) 
+        if record_history:
+            history = etree.SubElement(root, "RecordHistory")
+            history.set('replace', 'VXA.Simulator.RecordHistory')
+            etree.SubElement(history, "RecordStepSize").text = str(RecordStepSize) #Capture image every 100 time steps
+            etree.SubElement(history, "RecordVoxel").text = str(RecordVoxel) # Add voxels to the visualization
+            etree.SubElement(history, "RecordLink").text = str(RecordLink) # Add links to the visualization
+            etree.SubElement(history, "RecordFixedVoxels").text = str(RecordFixedVoxels)
 
     def set_data(self, data):
         root = self.tree.getroot()
