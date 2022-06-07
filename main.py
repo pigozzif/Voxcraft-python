@@ -1,3 +1,4 @@
+import copy
 import random
 import numpy as np
 from time import time
@@ -11,7 +12,6 @@ from evo.algorithms import Optimizer
 from evo.utilities import natural_sort
 from evo.objectives import ObjectiveDict
 from evo.evaluation import evaluate_population
-from evo.mutation import create_new_children_through_mutation
 from evo.selection import pareto_selection
 
 
@@ -35,6 +35,74 @@ def parse_args():
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
     parser.add_argument("--time", default=47, type=int, help="maximumm hours for the ea")
     return parser.parse_args()
+
+
+def gaussian_mutation(pop, new_children=None, mu=0.0, std=0.35, max_mutation_attempts=1500):
+    """Create copies, with modification, of existing individuals in the population.
+    Parameters
+    ----------
+    pop : Population class
+        This provides the individuals to mutate.
+    new_children : a list of new children created outside this function (may be empty)
+        This is useful if creating new children through multiple functions, e.g. Crossover and Mutation.
+    mu : mean for the normal distribution
+    std : std for the normal distribution
+    max_mutation_attempts : int
+        Maximum number of invalid mutation attempts to allow before giving up on mutating a particular individual.
+    Returns
+    -------
+    new_children : list
+        A list of new individual SoftBots.
+    """
+    if new_children is None:
+        new_children = []
+
+    random.shuffle(pop.individuals)
+
+    while len(new_children) < pop.pop_size:
+        for ind in pop:
+
+            clone = copy.deepcopy(ind)
+
+            for rank, goal in pop.objective_dict.items():
+                setattr(clone, "parent_{}".format(goal["name"]), getattr(clone, goal["name"]))
+
+            clone.parent_genotype = ind.genotype
+            clone.parent_id = clone.id
+
+            for name, details in clone.genotype.to_phenotype_mapping.items():
+                details["old_state"] = copy.deepcopy(details["state"])
+
+            mutation_counter = 0
+            done = False
+            while not done:
+                mutation_counter += 1
+                candidate = copy.deepcopy(clone)
+
+                # perform mutation(s)
+                candidate.genotype.weights += np.random.normal(mu, std, candidate.genotype.weights.size)
+                candidate.genotype.express()
+
+                clone = copy.deepcopy(candidate)
+
+                if mutation_counter > max_mutation_attempts:
+                    print("Couldn't find a successful mutation in {} attempts!".format(max_mutation_attempts))
+                    break
+
+                # end while
+
+            # reset all objectives we calculate in VoxCad to unevaluated values
+            for rank, goal in pop.objective_dict.items():
+                if goal["tag"] is not None:
+                    setattr(clone, goal["name"], goal["worst_value"])
+
+            clone.fit_hist = []
+
+            clone.id = pop.max_id
+            pop.max_id += 1
+            new_children.append(clone)
+
+    return new_children
 
 
 class MyGenotype(Genotype):
@@ -93,7 +161,7 @@ def create_optimizer(args):
         my_pop.seed = args.seed
 
         # Setting up our optimization
-        my_optimization = Optimizer(my_pop, pareto_selection, create_new_children_through_mutation, evaluate_population)
+        my_optimization = Optimizer(my_pop, pareto_selection, gaussian_mutation, evaluate_population)
 
     else:
         successful_restart = False
