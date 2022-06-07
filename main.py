@@ -125,8 +125,6 @@ class MyPhenotype(Phenotype):
 
 
 def create_optimizer(args):
-    sub.call("mkdir data{}".format(args.seed), shell=True)
-    sub.call("cp base.vxa data{}/".format(args.seed), shell=True)
     if args.debug:
         print("DEBUG MODE")
         sub.call("rm a{}_id0_fit-1000000000.hist".format(args.seed), shell=True)
@@ -138,8 +136,6 @@ def create_optimizer(args):
         sub.call("cp /users/s/k/skriegma/sim/build/vx3_node_worker .", shell=True)
 
     sub.call("mkdir pickledPops{}".format(args.seed), shell=True)
-    sub.call("mkdir data{}".format(args.seed), shell=True)
-    sub.call("cp base.vxa data{}/".format(args.seed), shell=True)
     # Now specify the objectives for the optimization.
     # Creating an objectives dictionary
     my_objective_dict = ObjectiveDict()

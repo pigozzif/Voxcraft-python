@@ -284,7 +284,7 @@ class SoftBot(object):
         phenotype : Phenotype cls
             The physical manifestation of the genotype which defines an individual in simulation.
         """
-        self.genotype = genotype()  # initialize new random genome
+        self.genotype = genotype((6 + 4 + 1) * (4 + 2))  # initialize new random genome
         self.phenotype = phenotype(self.genotype)  # calc phenotype from genome
 
         self.id = max_id
