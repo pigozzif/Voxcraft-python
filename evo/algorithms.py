@@ -1,6 +1,6 @@
 import random
 import time
-import cPickle
+import pickle
 import numpy as np
 import subprocess as sub
 import os
@@ -37,7 +37,7 @@ class Optimizer(object):
         data = [self, random_state, numpy_random_state]
 
         with open('{0}/pickledPops{1}/Gen_{2}.pickle'.format(directory, self.pop.seed, gen), 'wb') as handle:
-            cPickle.dump(data, handle, protocol=cPickle.HIGHEST_PROTOCOL)
+            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def run(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every, directory="."):
 

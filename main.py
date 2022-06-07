@@ -2,7 +2,7 @@ import copy
 import random
 import numpy as np
 from time import time
-import cPickle
+import pickle
 import subprocess as sub
 from glob import glob
 import argparse
@@ -171,7 +171,7 @@ def create_optimizer(args):
                 pickled_pops = glob("pickledPops{}/*".format(args.seed))
                 last_gen = natural_sort(pickled_pops, reverse=True)[pickle_idx]
                 with open(last_gen, 'rb') as handle:
-                    [optimizer, random_state, numpy_random_state] = cPickle.load(handle)
+                    [optimizer, random_state, numpy_random_state] = pickle.load(handle)
                 successful_restart = True
 
                 my_pop = optimizer.pop

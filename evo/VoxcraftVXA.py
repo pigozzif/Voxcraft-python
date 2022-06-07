@@ -1,13 +1,12 @@
 import numpy as np
 from lxml import etree
-import os
 
 '''
 Does not yet include signaling parameters
 '''
 
 
-class VXA:
+class VXA(object):
 
     def __init__(self, HeapSize=0.1, EnableCilia=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8,
                  SlowDampingZ=0.01,
