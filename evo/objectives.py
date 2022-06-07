@@ -1,4 +1,4 @@
-from utilities import xml_format
+from evo.utilities import xml_format
 
 
 class ObjectiveDict(dict):

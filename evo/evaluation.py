@@ -5,7 +5,7 @@ from lxml import etree
 import subprocess as sub
 import numpy as np
 
-from utilities import make_one_shape_only
+from evo.utilities import make_one_shape_only
 from VoxcraftVXA import VXA
 from VoxcraftVXD import VXD
 
