@@ -117,8 +117,8 @@ def evaluate_population(pop, record_history=False):
     if record_history:
         N = 1  # only evaluate the best ind in the pop
 
-    # clear old .vxd robot files from the data directory
-    sub.call("rm data{}/*.vxd".format(seed), shell=True)
+    # clear old robot files from the data directory
+    sub.call("rm data{}/*".format(seed), shell=True)
 
     # remove old sim output.xml if we are saving new stats
     if not record_history:
@@ -179,7 +179,8 @@ def evaluate_population(pop, record_history=False):
         for r_num, r_label in enumerate(['a', 'b', 'c']):
             for p_num, p_label in enumerate(["passable", "impassable"]):
                 sub.call("mkdir data{}".format(str(seed) + str(r_label)), shell=True)
-                sub.call("cp base.vxa data{}".format(str(seed) + str(r_label)), shell=True)
+                sub.call("cp " + "data" + str(seed) + "/bot_{:04d}".format(ind.id) + r_label + p_label + ".vxa" +
+                         " data{}".format(str(seed) + str(r_label)), shell=True)
                 sub.call('cp data' + str(seed) + '/bot_{:04d}'.format(ind.id) + '{}.vxd'.format(
                     r_label + p_label) + ' data{}'.format(
                     str(seed) + str(r_label)), shell=True)
