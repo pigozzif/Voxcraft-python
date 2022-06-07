@@ -6,8 +6,8 @@ import subprocess as sub
 import numpy as np
 
 from evo.utilities import make_one_shape_only
-from VoxcraftVXA import VXA
-from VoxcraftVXD import VXD
+from evo.VoxcraftVXA import VXA
+from evo.VoxcraftVXD import VXD
 
 
 def zoom(a, mag):
