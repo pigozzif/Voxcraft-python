@@ -24,12 +24,13 @@ class VXD(object):
 
         X_Voxels, Y_Voxels, Z_Voxels = data.shape
         body_flatten = np.zeros((X_Voxels * Y_Voxels, Z_Voxels), dtype=np.int8)
-        for z in range(Z_Voxels):
-            k = 0
-            for y in range(Y_Voxels):
-                for x in range(X_Voxels):
-                    body_flatten[k, z] = data[x, y, z]
-                    k += 1
+        for i in range(Z_Voxels):
+            #k = 0
+            #for y in range(Y_Voxels):
+            #    for x in range(X_Voxels):
+            #        body_flatten[k, z] = data[x, y, z]
+            #        k += 1
+            body_flatten[:,i] = data[:,:,i].flatten()
         structure = etree.SubElement(root, "Structure")
         structure.set('replace', 'VXA.VXC.Structure')
         structure.set('Compression', 'ASCII_READABLE')
