@@ -7,12 +7,12 @@ import subprocess as sub
 from glob import glob
 import argparse
 
-from evo.softbot import Genotype, Phenotype, Population
-from evo.algorithms import Optimizer
-from evo.utilities import natural_sort
-from evo.objectives import ObjectiveDict
-from evo.evaluation import evaluate_population
-from evo.selection import pareto_selection
+from voxcraftevo.representations.softbot import Genotype, Phenotype, Population
+from voxcraftevo.evo.algorithms import Optimizer
+from voxcraftevo.utils.utilities import natural_sort
+from voxcraftevo.evo.objectives import ObjectiveDict
+from voxcraftevo.fitness.evaluation import evaluate_population
+from voxcraftevo.evo.selection import pareto_selection
 
 
 # actuation +/- 50%

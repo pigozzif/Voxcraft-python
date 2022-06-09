@@ -5,7 +5,7 @@ from networkx import DiGraph
 from copy import deepcopy
 from collections import OrderedDict
 
-from evo.utilities import neg_abs, neg_square, sqrt_abs, neg_sqrt_abs, neg_sign, normalize, sigmoid
+from ..utils.utilities import neg_abs, neg_square, sqrt_abs, neg_sqrt_abs, neg_sign, normalize, sigmoid
 
 
 class OrderedGraph(DiGraph):

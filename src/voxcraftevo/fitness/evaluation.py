@@ -5,9 +5,9 @@ from lxml import etree
 import subprocess as sub
 import numpy as np
 
-from evo.utilities import make_one_shape_only
-from evo.VoxcraftVXA import VXA
-from evo.VoxcraftVXD import VXD
+from ..utils.utilities import make_one_shape_only
+from ..configs.VXA import VXA
+from ..configs.VXD import VXD
 
 
 def zoom(a, mag):

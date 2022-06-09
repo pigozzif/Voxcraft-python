@@ -4,8 +4,8 @@ from copy import deepcopy
 import math
 import abc
 
-from evo.networks import Network
-from evo.utilities import sigmoid, xml_format, dominates
+from ..representations.networks import Network
+from ..utils.utilities import sigmoid, xml_format, dominates
 
 
 class Genotype(object):
