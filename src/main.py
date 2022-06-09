@@ -80,7 +80,7 @@ def gaussian_mutation(pop, new_children=None, mu=0.0, std=0.35, max_mutation_att
                 candidate = copy.deepcopy(clone)
 
                 # perform mutation(s)
-                candidate.genotype.weights += np.random.normal(mu, std, candidate.genotype.weights.size)
+                candidate.genotype.weights += np.random.normal(mu, std, len(candidate.genotype.weights))
                 candidate.genotype.express()
 
                 clone = copy.deepcopy(candidate)
@@ -136,6 +136,7 @@ def create_optimizer(args):
         sub.call("cp /users/s/k/skriegma/sim/build/vx3_node_worker .", shell=True)
 
     sub.call("mkdir pickledPops{}".format(args.seed), shell=True)
+    sub.call("mkdir output", shell=True)
     # Now specify the objectives for the optimization.
     # Creating an objectives dictionary
     my_objective_dict = ObjectiveDict()

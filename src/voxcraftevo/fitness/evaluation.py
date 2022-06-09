@@ -69,7 +69,7 @@ def evaluate_population(pop, record_history=False):
 
     # remove old sim output.xml if we are saving new stats
     if not record_history:
-        sub.call("rm output{}.xml".format(seed), shell=True)
+        sub.call("rm output{0}_{1}.xml".format(seed, pop.gen), shell=True)
 
     num_evaluated_this_gen = 0
 
@@ -144,11 +144,13 @@ def evaluate_population(pop, record_history=False):
         print("Launching {0} voxelyze calls, out of {1} individuals".format(num_evaluated_this_gen, len(pop)))
 
         while True:
+            root = etree.parse("output{0}.xml".format(seed)).getroot()
+            break
             try:
-                sub.call("cd executables; ./voxcraft-sim -i ../data{0} -o ../output{1}.xml".format(seed, seed), shell=True)
+                sub.call("cd executables; ./voxcraft-sim -i ../data{0} -o ../output{1}_{2}.xml".format(seed, seed, pop.gen), shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
-                root = etree.parse("output{}.xml".format(seed)).getroot()
+                root = etree.parse("output{0}_{1}.xml".format(seed, pop.gen)).getroot()
                 break
 
             except IOError:
@@ -166,6 +168,7 @@ def evaluate_population(pop, record_history=False):
                 for r_num, r_label in enumerate(['a', 'b', 'c']):
                     for p_num, p_label in enumerate(["passable", "impassable"]):
                         body_length = get_body_length(r_label)
+                        print(root.findall("detail/bot_{:04d}".format(ind.id) + r_label + p_label + "/fitness_score"))
                         ind.fit_hist += [float(
                             root.findall("detail/bot_{:04d}".format(ind.id) + r_label + p_label + "/fitness_score")[
                                 0].text) / body_length]
