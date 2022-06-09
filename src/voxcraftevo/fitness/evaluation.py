@@ -131,7 +131,7 @@ def evaluate_population(pop, record_history=False):
                     r_label + p_label) + ' data{}'.format(
                     str(seed) + str(r_label)), shell=True)
                 sub.call(
-                    "cd executables; ./voxcraft-sim -i data{0} > {0}_id{1}_fit{2}.hist".format(
+                    "cd executables; ./voxcraft-sim -i ../data{0} > ../{0}_id{1}_fit{2}.hist".format(
                         str(seed) + str(r_label) + str(p_label),
                         pop[0].id,
                         int(100 * pop[0].fitness)), shell=True)
@@ -145,7 +145,7 @@ def evaluate_population(pop, record_history=False):
 
         while True:
             try:
-                sub.call("cd executables; ./voxcraft-sim -i data{0} -o output{1}.xml".format(seed, seed), shell=True)
+                sub.call("cd executables; ./voxcraft-sim -i ../data{0} -o ../output{1}.xml".format(seed, seed), shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
                 root = etree.parse("output{}.xml".format(seed)).getroot()
