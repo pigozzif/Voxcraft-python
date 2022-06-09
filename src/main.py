@@ -131,7 +131,7 @@ def create_optimizer(args):
         sub.call("rm -r pickledPops{0} && rm -r data{0}".format(args.seed), shell=True)
 
     if args.reload:
-        sub.call("rm voxcraft-sim && rm vx3_node_worker", shell=True)
+        sub.call("rm ./executables/voxcraft-sim && rm ./executables/vx3_node_worker", shell=True)
         sub.call("cp /users/s/k/skriegma/sim/build/voxcraft-sim .", shell=True)
         sub.call("cp /users/s/k/skriegma/sim/build/vx3_node_worker .", shell=True)
 
