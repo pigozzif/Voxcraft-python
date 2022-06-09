@@ -149,7 +149,7 @@ def evaluate_population(pop, record_history=False):
             # Then there's two inds with the same md5, age, and fitness (because one will overwrite the other).
             # We can adjust mutations so this is impossible
             # or just don't evaluate th new yet duplicate design.
-
+    sub.call("mkdir data{}".format(str(seed)), shell=True)
     # evaluate new designs
     for r_num, r_label in enumerate(['a', 'b', 'c']):
         for p_num, p_label in enumerate(["passable", "impassable"]):
@@ -178,7 +178,6 @@ def evaluate_population(pop, record_history=False):
         print("Recording the history of the run champ")
         for r_num, r_label in enumerate(['a', 'b', 'c']):
             for p_num, p_label in enumerate(["passable", "impassable"]):
-                sub.call("mkdir data{}".format(str(seed) + str(r_label)), shell=True)
                 sub.call("cp " + "data" + str(seed) + "/bot_{:04d}".format(ind.id) + r_label + p_label + ".vxa" +
                          " data{}".format(str(seed) + str(r_label)), shell=True)
                 sub.call('cp data' + str(seed) + '/bot_{:04d}'.format(ind.id) + '{}.vxd'.format(
