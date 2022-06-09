@@ -42,9 +42,13 @@ def create_world(record_history, seed, ind, r_label, p_label):
     aperture_size = round(body_length * (0.75 if p_label == "passable" else 0.25))
     world[:, body_length * 2, :] = immovable
     world[:, body_length * 3, :] = immovable
-    world[math.floor(body_length * 1.5) - int(aperture_size / 2) - 1, body_length * 2: body_length * 3 + 1, :] = immovable
-    world[math.floor(body_length * 1.5) + int(aperture_size / 2) + 1, body_length * 2: body_length * 3 + 1, :] = immovable
-    world[math.floor(body_length * 1.5) - int(aperture_size / 2): math.floor(body_length * 1.5) + int(aperture_size / 2) + 1, body_length * 2: body_length * 3 + 1, :] = 0
+    world[math.floor(body_length * 1.5) - int(aperture_size / 2) - 1, body_length * 2: body_length * 3 + 1,
+    :] = immovable
+    world[math.floor(body_length * 1.5) + int(aperture_size / 2) + 1, body_length * 2: body_length * 3 + 1,
+    :] = immovable
+    world[
+    math.floor(body_length * 1.5) - int(aperture_size / 2): math.floor(body_length * 1.5) + int(aperture_size / 2) + 1,
+    body_length * 2: body_length * 3 + 1, :] = 0
     world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = special
 
     vxd = VXD()
@@ -127,9 +131,10 @@ def evaluate_population(pop, record_history=False):
                     r_label + p_label) + ' data{}'.format(
                     str(seed) + str(r_label)), shell=True)
                 sub.call(
-                    "./executables/voxcraft-sim -i data{0} > {0}_id{1}_fit{2}.hist".format(str(seed) + str(r_label) + str(p_label),
-                                                                               pop[0].id,
-                                                                               int(100 * pop[0].fitness)), shell=True)
+                    "cd executables; ./voxcraft-sim -i data{0} > {0}_id{1}_fit{2}.hist".format(
+                        str(seed) + str(r_label) + str(p_label),
+                        pop[0].id,
+                        int(100 * pop[0].fitness)), shell=True)
                 sub.call("rm -r data{}".format(str(seed) + str(r_label) + str(p_label)), shell=True)
 
     else:  # normally, we will just want to update fitness and not save the trajectory of every voxel
@@ -140,7 +145,7 @@ def evaluate_population(pop, record_history=False):
 
         while True:
             try:
-                sub.call("./executables/voxcraft-sim -i data{0} -o output{1}.xml".format(seed, seed), shell=True)
+                sub.call("cd executables; ./voxcraft-sim -i data{0} -o output{1}.xml".format(seed, seed), shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
                 root = etree.parse("output{}.xml".format(seed)).getroot()
