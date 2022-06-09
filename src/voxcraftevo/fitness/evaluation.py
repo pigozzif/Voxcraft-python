@@ -5,64 +5,8 @@ from lxml import etree
 import subprocess as sub
 import numpy as np
 
-from ..utils.utilities import make_one_shape_only
 from ..configs.VXA import VXA
 from ..configs.VXD import VXD
-
-
-def zoom(a, mag):
-    mag = int(mag)
-    new = np.zeros((a.shape[0] * mag, a.shape[1] * mag, a.shape[2] * mag), dtype=np.int8)
-    for x in range(a.shape[0]):
-        for y in range(a.shape[1]):
-            for z in range(a.shape[2]):
-                new[x * mag:(x + 1) * mag, y * mag:(y + 1) * mag, z * mag:(z + 1) * mag] = a[x, y, z]
-    return new
-
-
-def blockify(structure, block):
-    workspace = np.tile(block, (structure.shape[0],) * 3)
-    mask = zoom(structure.astype(np.int8), workspace.shape[0] / structure.shape[0])
-    workspace *= mask > 0
-    return workspace
-
-
-def is_block_valid(block, n_recursions):
-    if np.sum(block > 0) < block.shape[0]:
-        return False
-
-    bots = [block]
-    for n in range(n_recursions):
-        # bots += [double(bots[-1])]
-        bots += [blockify(bots[-1], bots[0])]
-
-    if np.sum(make_one_shape_only(bots[-1])) != np.sum(bots[-1] > 0):
-        return False
-
-    return True
-
-
-def is_body_valid(body):
-    if np.sum(body > 0) < body.shape[0]:
-        return False
-
-    if np.sum(make_one_shape_only(body)) != np.sum(body > 0):
-        return False
-
-    return True
-
-
-def body_func(data, n_recursions):
-    # print data
-    block = make_one_shape_only(np.greater(data, 0))
-    block = block.astype(np.int8)
-    block[block > 0] = data[block > 0]
-
-    bots = [block]
-    for n in range(n_recursions):
-        bots += [blockify(bots[-1], bots[0])]
-
-    return bots[-1]
 
 
 def get_body_length(r_label):
@@ -98,14 +42,9 @@ def create_world(record_history, seed, ind, r_label, p_label):
     aperture_size = round(body_length * (0.75 if p_label == "passable" else 0.25))
     world[:, body_length * 2, :] = immovable
     world[:, body_length * 3, :] = immovable
-    world[math.floor(body_length * 1.5) - int(aperture_size / 2) - 1, body_length * 2: body_length * 3 + 1,
-    :] = immovable
-    world[math.floor(body_length * 1.5) + int(aperture_size / 2) + 1, body_length * 2: body_length * 3 + 1,
-    :] = immovable
-    world[
-    math.floor(body_length * 1.5) - int(aperture_size / 2): math.floor(body_length * 1.5) + int(aperture_size / 2) + 1,
-    body_length * 2: body_length * 3 + 1, :] = 0
-
+    world[math.floor(body_length * 1.5) - int(aperture_size / 2) - 1, body_length * 2: body_length * 3 + 1, :] = immovable
+    world[math.floor(body_length * 1.5) + int(aperture_size / 2) + 1, body_length * 2: body_length * 3 + 1, :] = immovable
+    world[math.floor(body_length * 1.5) - int(aperture_size / 2): math.floor(body_length * 1.5) + int(aperture_size / 2) + 1, body_length * 2: body_length * 3 + 1, :] = 0
     world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = special
 
     vxd = VXD()
