@@ -87,22 +87,22 @@ def create_world(record_history, seed, ind, r_label, p_label):
     special = vxa.add_material(RGBA=(255, 255, 255, 255), E=5e10, RHO=1e8, isFixed=1)
     vxa.write(base_name + ".vxa")
 
-    world = np.zeros((body_length * 3, body_length * 4, body_length))
+    world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
     start = math.floor(body_length * 1.5)
     half_thickness = math.floor(body_length / 6)
     world[start - half_thickness: start + half_thickness + 1, body_length: body_length * 2, :half_thickness + 1] = soft
     world[body_length: body_length * 2, start - half_thickness: start + half_thickness + 1, :half_thickness + 1] = soft
 
-    wall_size = round(body_length * (0.25 if p_label == "passable" else 0.75)) - 1
-    world[:body_length + wall_size, body_length * 2, :] = immovable
-    world[body_length * 2 - wall_size:, body_length * 2, :] = immovable
-    world[:body_length + wall_size, body_length * 3, :] = immovable
-    world[body_length * 2 - wall_size:, body_length * 3, :] = immovable
-    world[body_length + wall_size, body_length * 2: body_length * 3, :] = immovable
-    world[body_length * 2 - wall_size, body_length * 2: body_length * 3, :] = immovable
+    aperture_size = round(body_length * (0.75 if p_label == "passable" else 0.25))
+    world[:, body_length * 2, :] = immovable
+    world[:, body_length * 3, :] = immovable
+    world[math.floor(body_length * 1.5) - int(aperture_size / 2) - 1, body_length * 2: body_length * 3 + 1, :] = immovable
+    world[math.floor(body_length * 1.5) + int(aperture_size / 2) + 1, body_length * 2: body_length * 3 + 1, :] = immovable
+    world[math.floor(body_length * 1.5) - int(aperture_size / 2): math.floor(body_length * 1.5) + int(aperture_size / 2) + 1,
+    body_length * 2: body_length * 3 + 1, :] = 0
 
-    world[math.floor(body_length * 1.5), body_length * 4 - 1, 0] = special
+    world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = special
 
     vxd = VXD()
     vxd.set_data(world)
