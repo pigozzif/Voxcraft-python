@@ -144,8 +144,6 @@ def evaluate_population(pop, record_history=False):
         print("Launching {0} voxelyze calls, out of {1} individuals".format(num_evaluated_this_gen, len(pop)))
 
         while True:
-            root = etree.parse("output{0}.xml".format(seed)).getroot()
-            break
             try:
                 sub.call("cd executables; ./voxcraft-sim -i ../data{0} -o ../output{1}_{2}.xml".format(seed, seed, pop.gen), shell=True)
                 # sub.call waits for the process to return
