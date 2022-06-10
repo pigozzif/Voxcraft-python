@@ -165,11 +165,10 @@ def evaluate_population(pop, record_history=False):
 
                 for r_num, r_label in enumerate(['a', 'b', 'c']):
                     for p_num, p_label in enumerate(["passable", "impassable"]):
-                        body_length = get_body_length(r_label)
                         print(root.findall("detail/bot_{:04d}".format(ind.id) + r_label + p_label + "/fitness_score"))
                         ind.fit_hist += [float(
                             root.findall("detail/bot_{:04d}".format(ind.id) + r_label + p_label + "/fitness_score")[
-                                0].text) / body_length]
+                                0].text)]
 
                 ind.fitness = np.min(ind.fit_hist)
                 print("Assigning ind {0} fitness {1}".format(ind.id, ind.fitness))
