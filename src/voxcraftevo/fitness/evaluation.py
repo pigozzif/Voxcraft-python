@@ -30,7 +30,7 @@ def create_world(record_history, seed, ind, r_label, p_label):
     immovable_right = vxa.add_material(RGBA=(0, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1)
     # special = vxa.add_material(RGBA=(255, 255, 255, 255), E=5e10, RHO=1e8, isFixed=1)
     soft = vxa.add_material(RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5, CTE=0.01)
-    vxa.write("./data/base.vxa")
+    vxa.write(base_name + ".vxa")
 
     world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
