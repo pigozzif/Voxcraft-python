@@ -2,10 +2,6 @@ import numpy as np
 import itertools
 import re
 import zlib
-from scipy.ndimage.measurements import label
-from collections import defaultdict
-import scipy.ndimage as ndimage
-from scipy.spatial.distance import directed_hausdorff
 
 
 def identity(x):
@@ -68,10 +64,6 @@ def proportion_equal_to(x, keys):
     return np.mean(count_occurrences(x, keys))
 
 
-def nested_dict():
-    return defaultdict(nested_dict)
-
-
 def normalize(x):
     x -= np.min(x)
     x /= np.max(x)
@@ -79,11 +71,6 @@ def normalize(x):
     x *= 2
     x -= 1
     return x
-
-
-def hausdorff_dist(a, b):
-    a, b = np.argwhere(a), np.argwhere(b)
-    return max(directed_hausdorff(a, b)[0], directed_hausdorff(b, a)[0])
 
 
 def compressed_size(a):
@@ -250,119 +237,6 @@ def count_occurrences(x, keys):
     for a in keys:
         active = np.logical_or(active, x == a)
     return active.sum()
-
-
-def one_muscle(output_state):
-    return make_one_shape_only(output_state) * 3
-
-
-def muscle_fat(output_state, empty_less_than=-0.3, fat_greater_than=0.3, muscle_id=3, fat_id=1):
-    # doesn't check for one shape only
-    empty = np.less_equal(output_state, empty_less_than)
-    fat = np.greater_equal(output_state, fat_greater_than)
-    mat = muscle_id * np.ones(output_state.shape, dtype=int)
-    mat[fat] = fat_id
-    mat[empty] = 0
-    return make_one_shape_only(mat) * mat
-
-
-def contiguous_material(output_state, *args, **kwargs):
-    return make_one_shape_only(output_state) * output_state
-
-
-def discretize_material(output_state, num_materials=4, *args, **kwargs):
-    """Discretize outputs into bins, one for each material."""
-    bins = np.linspace(-1, 1, num=num_materials + 1)
-    return make_one_shape_only(output_state) * np.digitize(output_state, bins)
-
-
-def make_material_tree(this_softbot, *args, **kwargs):
-    mapping = this_softbot.to_phenotype_mapping
-    material = mapping["Data"]
-
-    if material["dependency_order"] is not None:
-        for dependency_name in material["dependency_order"]:
-            for network in this_softbot:
-                if dependency_name in network.graph.nodes():
-                    mapping.dependencies[dependency_name]["state"] = network.graph.node[dependency_name]["state"] > 0
-
-    if material["dependency_order"] is not None:
-        for dependency_name in reversed(material["dependency_order"]):
-            if mapping.dependencies[dependency_name]["material_if_true"] is not None:
-                material["state"][mapping.get_dependency(dependency_name, True)] = \
-                    mapping.dependencies[dependency_name]["material_if_true"]
-
-            if mapping.dependencies[dependency_name]["material_if_false"] is not None:
-                material["state"][mapping.get_dependency(dependency_name, False)] = \
-                    mapping.dependencies[dependency_name]["material_if_false"]
-
-    return make_one_shape_only(material["state"]) * material["state"]
-
-
-def make_material_tree_single_muscle_patches(this_softbot, *args, **kwargs):
-    mapping = this_softbot.to_phenotype_mapping
-    material = mapping["Data"]
-
-    # for name, details in mapping.items():
-    #     if details["dependency_order"] is not None:
-    for dependency_name in material["dependency_order"]:
-        for network in this_softbot:
-            if dependency_name in network.graph.nodes():
-                mapping.dependencies[dependency_name]["state"] = network.graph.node[dependency_name]["state"] > 0
-
-    # for name, details in mapping.items():
-    #     if details["dependency_order"] is not None:
-    for dependency_name in reversed(material["dependency_order"]):
-        if mapping.dependencies[dependency_name]["material_if_true"] is not None:
-            tmpState = mapping.get_dependency(dependency_name, True)
-            if dependency_name == "muscleType":
-                tmpState = make_one_shape_only(tmpState)
-            material["state"][tmpState] = mapping.dependencies[dependency_name]["material_if_true"]
-
-        if mapping.dependencies[dependency_name]["material_if_false"] is not None:
-            tmpState = mapping.get_dependency(dependency_name, False)
-            if dependency_name == "muscleType":
-                tmpState = make_one_shape_only(tmpState)
-                material["state"][ndimage.morphology.binary_dilation(tmpState)] = "1"
-                # print "tmpState:"
-                # print tmpState
-                # print "dilated:"
-                # print ndimage.morphology.binary_dilation(tmpState)
-            material["state"][tmpState] = mapping.dependencies[dependency_name]["material_if_false"]
-
-    # return details["state"]
-    return make_one_shape_only(material["state"]) * material["state"]
-
-
-def make_one_shape_only(output_state):
-    """Find the largest continuous arrangement of True elements after applying boolean mask.
-    Avoids multiple disconnected softbots in simulation counted as a single individual.
-    Parameters
-    ----------
-    output_state : numpy.ndarray
-        Network output
-    Returns
-    -------
-    part_of_ind : bool
-        True if component of individual
-    """
-    if np.sum(output_state) == 0:
-        return output_state
-
-    # find coordinates
-    array = output_state > 0
-    labeled, ncomponents = label(array)
-
-    largest_count = 0
-    largest_label = 0
-    for n in range(ncomponents + 1):
-        this_count = np.sum(labeled == n)
-        vox_count = np.sum(array[labeled == n])
-        if (this_count > largest_count) and (vox_count > 0):
-            largest_label = n
-            largest_count = this_count
-
-    return labeled == largest_label
 
 
 def count_neighbors(output_state, mask=None):
