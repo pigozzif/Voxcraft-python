@@ -4,7 +4,6 @@ from copy import deepcopy
 import math
 import abc
 
-from ..representations.networks import Network
 from ..utils.utilities import sigmoid, xml_format, dominates
 
 
@@ -23,108 +22,6 @@ class Genotype(object):
     @abc.abstractmethod
     def express(self):
         pass
-
-
-class CPPNGenotype(Genotype):
-    """A container for multiple networks, 'genetic code' copied with modification to produce offspring."""
-
-    def __init__(self, orig_size_xyz, world_size):
-
-        """
-        Parameters
-        ----------
-        orig_size_xyz : 3-tuple (x, y, z)
-            Defines the original 3 dimensions for the cube of voxels corresponding to possible networks outputs. The
-            maximum number of SofBot voxel components is x*y*z, a full cube.
-        """
-        super().__init__()
-        self.networks = []
-        self.all_networks_outputs = []
-        self.to_phenotype_mapping = GenotypeToPhenotypeMap()
-        self.orig_size_xyz = orig_size_xyz
-        self.world_size = world_size
-
-    def __iter__(self):
-        """Iterate over the networks. Use the expression 'for n in network'."""
-        return iter(self.networks)
-
-    def __len__(self):
-        """Return the number of networks in the genotype. Use the expression 'len(network)'."""
-        return len(self.networks)
-
-    def __getitem__(self, n):
-        """Return network n.  Use the expression 'network[n]'."""
-        return self.networks[n]
-
-    def add_network(self, network, num_consecutive_mutations=1, freeze=False):
-        """Append a new network to this list of networks.
-        Parameters
-        ----------
-        freeze : bool
-            This indicator is used to prevent mutations to a network while freeze == True
-        switch : bool
-            For learning trials
-        num_consecutive_mutations : int
-            Uses this many (random) steps per mutation.
-        """
-        assert isinstance(network, Network)
-        network.freeze = freeze
-        network.num_consecutive_mutations = num_consecutive_mutations
-        self.networks += [network]
-        self.all_networks_outputs.extend(network.output_node_names)
-
-    def express(self):
-        """Calculate the genome networks outputs, the physical properties of each voxel for simulation"""
-
-        for network in self:
-            for name in network.graph.nodes():
-                network.graph.node[name]["evaluated"] = False  # flag all nodes as unevaluated
-
-            network.set_input_node_states(self.orig_size_xyz)  # reset the inputs
-
-            for name in network.output_node_names:
-                network.graph.node[name]["state"] = np.zeros(self.orig_size_xyz)  # clear old outputs
-                network.graph.node[name]["state"] = self.calc_node_state(network, name)  # calculate new outputs
-
-        for network in self:
-            for name in network.output_node_names:
-                if name in self.to_phenotype_mapping:
-                    if not network.direct_encoding:
-                        self.to_phenotype_mapping[name]["state"] = network.graph.node[name]["state"]
-                    else:
-                        self.to_phenotype_mapping[name]["state"] = network.values
-
-        for name, details in self.to_phenotype_mapping.items():
-            if name not in self.all_networks_outputs:
-                details["state"] = np.ones(self.orig_size_xyz, dtype=details["output_type"]) * -999
-                if details["dependency_order"] is not None:
-                    for dependency_name in details["dependency_order"]:
-                        self.to_phenotype_mapping.dependencies[dependency_name]["state"] = None
-
-        for name, details in self.to_phenotype_mapping.items():
-            if details["dependency_order"] is not None:
-                details["state"] = details["func"](self)
-
-    def calc_node_state(self, network, node_name):
-        """Propagate input values through the network"""
-        if network.graph.node[node_name]["evaluated"]:
-            return network.graph.node[node_name]["state"]
-
-        network.graph.node[node_name]["evaluated"] = True
-        input_edges = network.graph.in_edges(nbunch=[node_name])
-        new_state = np.zeros(self.orig_size_xyz)
-
-        for edge in input_edges:
-            node1, node2 = edge
-            new_state += self.calc_node_state(network, node1) * network.graph.edge[node1][node2]["weight"]
-
-        network.graph.node[node_name]["state"] = new_state
-
-        if node_name in self.to_phenotype_mapping:
-            if self.to_phenotype_mapping[node_name]["dependency_order"] is None:
-                return self.to_phenotype_mapping[node_name]["func"](new_state)
-
-        return network.graph.node[node_name]["function"](new_state)
 
 
 class GenotypeToPhenotypeMap(object):
