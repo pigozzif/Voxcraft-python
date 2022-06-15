@@ -103,16 +103,10 @@ class VXA(object):
         etree.SubElement(thermal, "TempAmplitude").text = str(self.TempAmplitude)
         etree.SubElement(thermal, "TempBase").text = str(self.TempBase)
 
-        neural = etree.SubElement(environment, "Neural")
-        etree.SubElement(neural, "NeuralWeights").text = self.NeuralWeights
-
         gravity = etree.SubElement(environment, "Gravity")
         etree.SubElement(gravity, "GravEnabled").text = str(self.GravEnabled)
         etree.SubElement(gravity, "GravAcc").text = str(self.GravAcc)
         etree.SubElement(gravity, "FloorEnabled").text = str(self.FloorEnabled)
-
-        task = etree.SubElement(environment, "Task")
-        etree.SubElement(task, "Passable").text = str(self.isPassable)
 
         # VXC tags
         vxc = etree.SubElement(root, "VXC")
