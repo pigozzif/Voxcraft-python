@@ -14,7 +14,7 @@ class VXA(object):
                  Lattice_Dim=0.01,
                  RecordStepSize=100, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, VaryTempEnabled=1,
                  TempAmplitude=20, TempBase=25,
-                 TempEnabled=1, isPassable=1, NeuralWeights=None):
+                 TempEnabled=1):
 
         root = etree.XML("<VXA></VXA>")
         root.set('Version', '1.1')
@@ -42,11 +42,6 @@ class VXA(object):
         self.TempAmplitude = TempAmplitude
         self.TempBase = TempBase
         self.TempEnabled = TempEnabled
-        if NeuralWeights is not None:
-            self.NeuralWeights = ",".join([str(w) for w in NeuralWeights])
-        else:
-            self.NeuralWeights = ""
-        self.isPassable = isPassable
 
         self.NextMaterialID = 1  # Material ID's start at 1, 0 denotes empty space
 

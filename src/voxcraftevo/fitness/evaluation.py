@@ -23,14 +23,13 @@ def get_body_length(r_label):
 def create_world(record_history, seed, ind, r_label, p_label):
     base_name = "data" + str(seed) + "/bot_{:04d}".format(ind.id) + r_label + p_label
 
-    vxa = VXA(TempAmplitude=14.4714, TempPeriod=0.2, TempBase=0, NeuralWeights=ind.genotype.weights,
-              isPassable=p_label != "impassable")
+    vxa = VXA(TempAmplitude=14.4714, TempPeriod=0.2, TempBase=0)
     body_length = get_body_length(r_label)
     immovable_left = vxa.add_material(RGBA=(50, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1)
     immovable_right = vxa.add_material(RGBA=(0, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1)
     # special = vxa.add_material(RGBA=(255, 255, 255, 255), E=5e10, RHO=1e8, isFixed=1)
     soft = vxa.add_material(RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5, CTE=0.01)
-    vxa.write(base_name + ".vxa")
+    vxa.write("data{}/base.vxa".format(str(seed)))
 
     world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
@@ -59,7 +58,7 @@ def create_world(record_history, seed, ind, r_label, p_label):
 
     # world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = special
 
-    vxd = VXD()
+    vxd = VXD(NeuralWeights=ind.genotype.weights, isPassable=p_label != "impassable")
     vxd.set_data(world)
     vxd.set_tags(record_history=record_history, RecordVoxel=1)
     vxd.write(base_name + ".vxd")

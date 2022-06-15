@@ -4,12 +4,23 @@ from lxml import etree
 
 class VXD(object):
 
-    def __init__(self):
+    def __init__(self, isPassable=1, NeuralWeights=None):
         root = etree.XML("<VXD></VXD>")
         self.tree = etree.ElementTree(root)
+        if NeuralWeights is not None:
+            self.NeuralWeights = ",".join([str(w) for w in NeuralWeights])
+        else:
+            self.NeuralWeights = ""
+        self.isPassable = isPassable
 
     def set_tags(self, record_history, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, RecordStepSize=100):
         root = self.tree.getroot()
+
+        neural = etree.SubElement(root, "Controller")
+        etree.SubElement(neural, "NeuralWeights").text = self.NeuralWeights
+
+        task = etree.SubElement(root, "Task")
+        etree.SubElement(task, "Passable").text = str(self.isPassable)
 
         if record_history:
             history = etree.SubElement(root, "RecordHistory")
