@@ -130,10 +130,13 @@ def create_optimizer(args):
         sub.call("rm a{}_id0_fit-1000000000.hist".format(args.seed), shell=True)
         sub.call("rm -r pickledPops{0} && rm -r data{0}".format(args.seed), shell=True)
 
-    if args.reload:
+    if not args.reload and not args.debug:
         sub.call("rm ./executables/voxcraft-sim && rm ./executables/vx3_node_worker", shell=True)
-        sub.call("cp /users/s/k/skriegma/sim/build/voxcraft-sim .", shell=True)
-        sub.call("cp /users/s/k/skriegma/sim/build/vx3_node_worker .", shell=True)
+        sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/voxcraft-sim .", shell=True)
+        sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker .", shell=True)
+        sub.call("rm -rf output", shell=True)
+        sub.call("rm -rf pickledPops{}".format(args.seed), shell=True)
+        sub.call("rm -rf data{}".format(args.seed), shell=True)
 
     sub.call("mkdir pickledPops{}".format(args.seed), shell=True)
     sub.call("mkdir output", shell=True)

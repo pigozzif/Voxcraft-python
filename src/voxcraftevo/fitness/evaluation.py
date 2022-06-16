@@ -9,6 +9,10 @@ from ..configs.VXA import VXA
 from ..configs.VXD import VXD
 
 
+def get_file_name(*args):
+    return ".".join([args])
+
+
 def get_body_length(r_label):
     if r_label == "a":
         return 3
@@ -21,7 +25,7 @@ def get_body_length(r_label):
 
 
 def create_world(record_history, seed, ind, r_label, p_label):
-    base_name = "data" + str(seed) + "/bot_{:04d}".format(ind.id) + r_label + p_label
+    base_name = "data" + str(seed) + "/" + get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
 
     vxa = VXA(TempAmplitude=14.4714, TempPeriod=0.2, TempBase=0)
     body_length = get_body_length(r_label)
@@ -132,10 +136,9 @@ def evaluate_population(pop, record_history=False):
         print("Recording the history of the run champ")
         for r_num, r_label in enumerate(['b']):
             for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
-                sub.call("cp " + "data" + str(seed) + "/bot_{:04d}".format(ind.id) + r_label + p_label + ".vxa" +
+                sub.call("cp " + "data" + str(seed) + get_file_name("/bot_{:04d}".format(ind.id), r_label, p_label) + ".vxa" +
                          " data{}".format(str(seed) + str(r_label)), shell=True)
-                sub.call('cp data' + str(seed) + '/bot_{:04d}'.format(ind.id) + '{}.vxd'.format(
-                    r_label + p_label) + ' data{}'.format(
+                sub.call('cp data' + str(seed) + "detail/" + get_file_name("bot_{:04d}".format(ind.id), r_label, p_label) + '.vxd' + ' data{}'.format(
                     str(seed) + str(r_label)), shell=True)
                 sub.call(
                     "cd executables; ./voxcraft-sim -i ../data{0} > ../{0}_id{1}_fit{2}.hist".format(
@@ -174,9 +177,9 @@ def evaluate_population(pop, record_history=False):
 
                 for r_num, r_label in enumerate(['b']):
                     for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
-                        print(root.findall("detail/bot_{:04d}".format(ind.id) + r_label + p_label + "/fitness_score"))
+                        print(root.findall("detail/" + get_file_name("bot_{:04d}".format(ind.id), r_label, p_label) + "/fitness_score"))
                         ind.fit_hist += [float(
-                            root.findall("detail/bot_{:04d}".format(ind.id) + r_label + p_label + "/fitness_score")[
+                            root.findall("detail/" + get_file_name("bot_{:04d}".format(ind.id), r_label, p_label) + "/fitness_score")[
                                 0].text)]
 
                 ind.fitness = np.min(ind.fit_hist)
