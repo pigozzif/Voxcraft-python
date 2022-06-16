@@ -132,8 +132,8 @@ def create_optimizer(args):
 
     if not args.reload and not args.debug:
         sub.call("rm ./executables/voxcraft-sim && rm ./executables/vx3_node_worker", shell=True)
-        sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/voxcraft-sim .", shell=True)
-        sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker .", shell=True)
+        sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/voxcraft-sim ./executables", shell=True)
+        sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker ./executables", shell=True)
         sub.call("rm -rf output", shell=True)
         sub.call("rm -rf pickledPops{}".format(args.seed), shell=True)
         sub.call("rm -rf data{}".format(args.seed), shell=True)
