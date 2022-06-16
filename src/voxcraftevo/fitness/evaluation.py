@@ -10,7 +10,7 @@ from ..configs.VXD import VXD
 
 
 def get_file_name(*args):
-    return ".".join([args])
+    return ".".join(list(args))
 
 
 def get_body_length(r_label):
