@@ -10,7 +10,7 @@ from ..configs.VXD import VXD
 
 
 def get_file_name(*args):
-    return "-".join(list(args))
+    return "".join(list(args))
 
 
 def parse_fitness(root, bot_id):
