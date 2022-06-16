@@ -119,7 +119,7 @@ def evaluate_population(pop, record_history=False):
     sub.call("mkdir data{}".format(str(seed)), shell=True)
     # evaluate new designs
     for r_num, r_label in enumerate(['b']):
-        for p_num, p_label in enumerate(["passable_left", "pssable_right", "impassable"]):
+        for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
             for n, ind in enumerate(pop[:N]):
 
                 # don't evaluate if invalid
