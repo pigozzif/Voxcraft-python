@@ -10,7 +10,16 @@ from ..configs.VXD import VXD
 
 
 def get_file_name(*args):
-    return ".".join(list(args))
+    return "-".join(list(args))
+
+
+def parse_fitness(root, bot_id):
+    detail = root.findall("detail/")
+    for d in detail:
+        print(d.tag, bot_id)
+        if d.tag == bot_id:
+            return d.findall("fitness_score")[0]
+    raise IndexError
 
 
 def get_body_length(r_label):
@@ -79,8 +88,8 @@ def evaluate_population(pop, record_history=False):
     sub.call("rm data{}/*".format(seed), shell=True)
 
     # remove old sim output.xml if we are saving new stats
-    if not record_history:
-        sub.call("rm output{0}_{1}.xml".format(seed, pop.gen), shell=True)
+    # if not record_history:
+    #     sub.call("rm output{0}_{1}.xml".format(seed, pop.gen), shell=True)
 
     num_evaluated_this_gen = 0
 
@@ -177,10 +186,9 @@ def evaluate_population(pop, record_history=False):
 
                 for r_num, r_label in enumerate(['b']):
                     for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
-                        print(root.findall("detail/" + get_file_name("bot_{:04d}".format(ind.id), r_label, p_label) + "/fitness_score"))
+                        print(parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)))
                         ind.fit_hist += [float(
-                            root.findall("detail/" + get_file_name("bot_{:04d}".format(ind.id), r_label, p_label) + "/fitness_score")[
-                                0].text)]
+                            parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text)]
 
                 ind.fitness = np.min(ind.fit_hist)
                 print("Assigning ind {0} fitness {1}".format(ind.id, ind.fitness))
