@@ -16,7 +16,6 @@ def get_file_name(*args):
 def parse_fitness(root, bot_id):
     detail = root.findall("detail/")
     for d in detail:
-        sub.call("echo " + d.tag + " " + str(bot_id), shell=True)
         if d.tag == bot_id:
             return d.findall("fitness_score")[0]
     raise IndexError
@@ -143,6 +142,7 @@ def evaluate_population(pop, record_history=False):
     # ok let's finally evaluate all the robots in the data directory
     if record_history:  # just save history, don't assign fitness
         sub.call("echo Recording the history of the run champ", shell=True)
+        sub.call("rm histories/*", shell=True)
         for r_num, r_label in enumerate(['b']):
             for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
                 sub.call("mkdir data{}".format(str(seed) + get_file_name(r_label, p_label)), shell=True)

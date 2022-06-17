@@ -99,8 +99,8 @@ def pareto_tournament_selection(population):
             print("(fit) {1} dominated by {0}".format(ind0.fitness, ind1.fitness))
             print("(age) {1} dominated by {0}".format(ind0.age, ind1.age))
             population.pop(inds[1])
-        # else:
-        #     population.pop(random.choice(inds))
+        else:
+            population.pop(random.choice(inds))
 
     population.sort_by_objectives()
 
