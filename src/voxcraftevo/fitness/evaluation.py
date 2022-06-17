@@ -1,5 +1,6 @@
 import hashlib
 import math
+import sys
 
 from lxml import etree
 import subprocess as sub
@@ -159,7 +160,8 @@ def evaluate_population(pop, record_history=False):
 
     else:  # normally, we will just want to update fitness and not save the trajectory of every voxel
 
-        print("GENERATION {}".format(pop.gen))
+        print(("GENERATION {}".format(pop.gen)))
+        sys.stderr.write("GENERATION {}".format(pop.gen))
 
         print("Launching {0} voxelyze calls, out of {1} individuals".format(num_evaluated_this_gen, len(pop)))
 
