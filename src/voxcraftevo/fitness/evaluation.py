@@ -171,7 +171,7 @@ def evaluate_population(pop, record_history=False):
                 sub.call("echo WE ARE HERE!", shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
-                root = etree.parse("../output/output{0}_{1}.xml".format(seed, pop.gen)).getroot()
+                root = etree.parse("./output/output{0}_{1}.xml".format(seed, pop.gen)).getroot()
                 break
 
             except IOError:
