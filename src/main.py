@@ -84,6 +84,7 @@ def gaussian_mutation(pop, new_children=None, mu=0.0, std=0.35, max_mutation_att
                 candidate.genotype.express()
 
                 clone = copy.deepcopy(candidate)
+                done = True
 
                 if mutation_counter > max_mutation_attempts:
                     print("Couldn't find a successful mutation in {} attempts!".format(max_mutation_attempts))
