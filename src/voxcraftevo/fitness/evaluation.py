@@ -146,10 +146,10 @@ def evaluate_population(pop, record_history=False):
         for r_num, r_label in enumerate(['b']):
             for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
                 sub.call("mkdir data{}".format(str(seed) + get_file_name(r_label, p_label)), shell=True)
-                sub.call("cp data{0}/base.vxa data{0}".format(str(seed) + get_file_name(r_label, p_label)), shell=True)
-                sub.call("cp data" + str(seed) + get_file_name("/bot_{:04d}".format(ind.id), r_label,
-                                                               p_label) + ".vxd" + " data{}".format(
-                    str(seed) + "-" + str(r_label) + "-" + p_label), shell=True)
+                sub.call("cp data{0}/base.vxa data{1}/".format(str(seed), str(seed) + get_file_name(r_label, p_label)), shell=True)
+                sub.call(
+                    'cp data' + str(seed) + '/' + get_file_name("bot_{:04d}".format(ind.id), r_label, p_label) + ".vxd" + " data{}".format(
+                        str(seed) + get_file_name(r_label, p_label)), shell=True)
                 sub.call("cd executables; ./voxcraft-sim -i ../data{0} > ../histories/{0}_id{1}_fit{2}.hist -f".format(
                     str(seed) + get_file_name(r_label, p_label), pop[0].id,
                     int(100 * pop[0].fitness)),
