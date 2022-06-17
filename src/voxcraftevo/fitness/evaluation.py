@@ -89,8 +89,8 @@ def evaluate_population(pop, record_history=False):
     sub.call("rm data{}/*.vxd".format(seed), shell=True)
 
     # remove old sim output.xml if we are saving new stats
-    if not record_history:
-        sub.call("rm ../output/output{0}_{1}.xml".format(seed, pop.gen), shell=True)
+    # if not record_history:
+    #     sub.call("rm ../output/output{0}_{1}.xml".format(seed, pop.gen), shell=True)
 
     num_evaluated_this_gen = 0
 
@@ -152,7 +152,7 @@ def evaluate_population(pop, record_history=False):
                 sub.call("cp data" + str(seed) + get_file_name("/bot_{:04d}".format(ind.id), r_label,
                                                                p_label) + ".vxd" + " data{}".format(
                     str(seed) + "-" + str(r_label) + "-" + p_label), shell=True)
-                sub.call("cd executables; ./voxcraft-sim -i ../data{0} > ../histories/{0}_id{1}_fit{2}.hist".format(
+                sub.call("cd executables; ./voxcraft-sim -i ../data{0} > ../histories/{0}_id{1}_fit{2}.hist -f".format(
                     str(seed) + get_file_name(r_label, p_label), pop[0].id,
                     int(100 * pop[0].fitness)),
                     shell=True)
@@ -161,14 +161,13 @@ def evaluate_population(pop, record_history=False):
     else:  # normally, we will just want to update fitness and not save the trajectory of every voxel
 
         print(("GENERATION {}".format(pop.gen)))
-        sys.stderr.write("GENERATION {}".format(pop.gen))
 
         print("Launching {0} voxelyze calls, out of {1} individuals".format(num_evaluated_this_gen, len(pop)))
 
         while True:
             try:
                 sub.call(
-                    "cd executables; ./voxcraft-sim -i ../data{0} -o ../output/output{0}_{1}.xml".format(seed, pop.gen),
+                    "cd executables; ./voxcraft-sim -i ../data{0} -o ../output/output{0}_{1}.xml -f".format(seed, pop.gen),
                     shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
