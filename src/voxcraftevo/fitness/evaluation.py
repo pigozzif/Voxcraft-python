@@ -174,11 +174,11 @@ def evaluate_population(pop, record_history=False):
                 break
 
             except IOError:
-                print("Dang it! There was an IOError. I'll re-simulate this batch again...")
+                sub.call("echo Dang it! There was an IOError. I'll re-simulate this batch again...", shell=True)
                 pass
 
             except IndexError:
-                print("Shoot! There was an IndexError. I'll re-simulate this batch again...")
+                sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                 pass
 
         for ind in pop:
