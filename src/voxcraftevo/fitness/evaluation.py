@@ -119,7 +119,6 @@ def evaluate_population(pop, record_history=False):
     sub.call("mkdir data{}".format(str(seed)), shell=True)
     # sub.call("rm -rf executables/workspace", shell=True)
     # evaluate new designs
-    print("WE ARE HERE")
     for r_num, r_label in enumerate(['b']):
         for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
             for n, ind in enumerate(pop[:N]):
@@ -130,7 +129,7 @@ def evaluate_population(pop, record_history=False):
                         if goal["name"] != "age":
                             setattr(ind, goal["name"], goal["worst_value"])
 
-                    print("Skipping invalid individual")
+                    sub.call("echo Skipping invalid individual", shell=True)
 
                 # if it's a new valid design, or if we are recording history, create a vxd
                 # new designs are evaluated with teammates from the entire population (new and old).
@@ -142,9 +141,8 @@ def evaluate_population(pop, record_history=False):
                     create_world(record_history, seed, ind, r_label, p_label)
 
     # ok let's finally evaluate all the robots in the data directory
-    print("WE ARE ALSO HERE")
     if record_history:  # just save history, don't assign fitness
-        print("Recording the history of the run champ")
+        sub.call("echo Recording the history of the run champ", shell=True)
         for r_num, r_label in enumerate(['b']):
             for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
                 sub.call("mkdir data{}".format(str(seed) + get_file_name(r_label, p_label)), shell=True)
@@ -160,10 +158,10 @@ def evaluate_population(pop, record_history=False):
 
     else:  # normally, we will just want to update fitness and not save the trajectory of every voxel
 
-        message = "GENERATION {}".format(pop.gen)
-        sub.call("echo " + message, shell=True)
+        sub.call("echo " + "GENERATION {}".format(pop.gen), shell=True)
 
-        print("Launching {0} voxelyze calls, out of {1} individuals".format(num_evaluated_this_gen, len(pop)))
+        sub.call("echo Launching {0} voxelyze calls, out of {1} individuals".format(num_evaluated_this_gen, len(pop)),
+                 shell=True)
 
         while True:
             try:
@@ -189,12 +187,12 @@ def evaluate_population(pop, record_history=False):
 
                 for r_num, r_label in enumerate(['b']):
                     for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
-                        print(parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)))
+                        sub.call("echo " + parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)), shell=True)
                         ind.fit_hist += [float(
                             parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text)]
 
                 ind.fitness = np.min(ind.fit_hist)
-                print("Assigning ind {0} fitness {1}".format(ind.id, ind.fitness))
+                sub.call("echo Assigning ind {0} fitness {1}".format(ind.id, ind.fitness), shell=True)
 
                 pop.already_evaluated[ind.md5] = [getattr(ind, details["name"])
                                                   for rank, details in
