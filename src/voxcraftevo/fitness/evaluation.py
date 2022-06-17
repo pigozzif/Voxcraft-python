@@ -74,7 +74,7 @@ def create_world(record_history, seed, ind, r_label, p_label):
 
     vxd = VXD(NeuralWeights=ind.genotype.weights, isPassable=p_label != "impassable")
     vxd.set_data(world)
-    vxd.set_tags(record_history=record_history, RecordVoxel=record_history)
+    vxd.set_tags(RecordVoxel=record_history, RecordFixedVoxels=record_history, RecordStepSize=100 if record_history else 0)
     vxd.write(base_name + ".vxd")
 
 
