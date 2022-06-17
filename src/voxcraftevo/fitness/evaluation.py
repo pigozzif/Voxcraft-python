@@ -89,8 +89,8 @@ def evaluate_population(pop, record_history=False):
     sub.call("rm data{}/*.vxd".format(seed), shell=True)
 
     # remove old sim output.xml if we are saving new stats
-    # if not record_history:
-    #     sub.call("rm output{0}_{1}.xml".format(seed, pop.gen), shell=True)
+    if not record_history:
+        sub.call("rm output{0}_{1}.xml".format(seed, pop.gen), shell=True)
 
     num_evaluated_this_gen = 0
 
@@ -155,7 +155,7 @@ def evaluate_population(pop, record_history=False):
                 sub.call("cd executables; ./voxcraft-sim -i ../data{0} > ../histories/{0}_id{1}_fit{2}.hist".format(
                     str(seed) + get_file_name(r_label, p_label), pop[0].id,
                     int(100 * pop[0].fitness)),
-                         shell=True)
+                    shell=True)
                 sub.call("rm -r data{}".format(str(seed) + get_file_name(r_label, p_label)), shell=True)
 
     else:  # normally, we will just want to update fitness and not save the trajectory of every voxel
