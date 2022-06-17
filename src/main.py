@@ -147,6 +147,8 @@ def create_optimizer(args):
     # Adding an objective named "fitness", which we want to maximize.
     # This information is returned by Voxelyze in a fitness .xml file, with a tag named "distance"
     my_objective_dict.add_objective(name="fitness", maximize=True, tag="<fitness_score>")
+    # Add an objective to minimize the age of solutions: promotes diversity
+    my_objective_dict.add_objective(name="age", maximize=False, tag=None)
 
     if args.debug:
         # quick test to make sure evaluation is working properly:
