@@ -10,7 +10,7 @@ from ..configs.VXD import VXD
 
 
 def get_file_name(*args):
-    return "".join(list(args))
+    return "-".join(list(args))
 
 
 def parse_fitness(root, bot_id):
@@ -85,7 +85,7 @@ def evaluate_population(pop, record_history=False):
         N = 1  # only evaluate the best ind in the pop
 
     # clear old robot files from the data directory
-    sub.call("rm -rf data{}/*".format(seed), shell=True)
+    sub.call("rm data{}/*.vxd".format(seed), shell=True)
 
     # remove old sim output.xml if we are saving new stats
     # if not record_history:
@@ -145,16 +145,16 @@ def evaluate_population(pop, record_history=False):
         print("Recording the history of the run champ")
         for r_num, r_label in enumerate(['b']):
             for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
-                sub.call("cp " + "data" + str(seed) + get_file_name("/bot_{:04d}".format(ind.id), r_label, p_label) + ".vxa" +
-                         " data{}".format(str(seed) + str(r_label)), shell=True)
-                sub.call('cp data' + str(seed) + "detail/" + get_file_name("bot_{:04d}".format(ind.id), r_label, p_label) + '.vxd' + ' data{}'.format(
-                    str(seed) + str(r_label)), shell=True)
-                sub.call(
-                    "cd executables; ./voxcraft-sim -i ../data{0} > ../{0}_id{1}_fit{2}.hist".format(
-                        str(seed) + str(r_label) + str(p_label),
-                        pop[0].id,
-                        int(100 * pop[0].fitness)), shell=True)
-                sub.call("rm -r data{}".format(str(seed) + str(r_label) + str(p_label)), shell=True)
+                sub.call("mkdir data{}".format(str(seed) + get_file_name(r_label, p_label)), shell=True)
+                sub.call("cp data{0}/base.vxa data{0}".format(str(seed) + get_file_name(r_label, p_label)), shell=True)
+                sub.call("cp data" + str(seed) + get_file_name("/bot_{:04d}".format(ind.id), r_label,
+                                                               p_label) + ".vxd" + " data{}".format(
+                    str(seed) + "-" + str(r_label) + "-" + p_label), shell=True)
+                sub.call("cd executables; ./voxcraft-sim -i ../data{0} > {0}_id{1}_fit{2}.hist".format(
+                    str(seed) + get_file_name(r_label, p_label), pop[0].id,
+                    int(100 * pop[0].fitness)),
+                         shell=True)
+                sub.call("rm -r data{}".format(str(seed) + get_file_name(r_label, p_label)), shell=True)
 
     else:  # normally, we will just want to update fitness and not save the trajectory of every voxel
 
@@ -165,11 +165,12 @@ def evaluate_population(pop, record_history=False):
         while True:
             try:
                 sub.call(
-                    "cd executables; ./voxcraft-sim -i ../data{0} -o ../output/output{1}_{2}.xml".format(seed, seed, pop.gen),
+                    "cd executables; ./voxcraft-sim -i ../data{0} -o ../output/output{1}_{2}.xml".format(seed, seed,
+                                                                                                         pop.gen),
                     shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
-                root = etree.parse("./output/output{0}_{1}.xml".format(seed, pop.gen)).getroot()
+                root = etree.parse("../output/output{0}_{1}.xml".format(seed, pop.gen)).getroot()
                 break
 
             except IOError:
