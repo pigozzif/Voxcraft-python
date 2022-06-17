@@ -90,7 +90,7 @@ def evaluate_population(pop, record_history=False):
 
     # remove old sim output.xml if we are saving new stats
     if not record_history:
-        sub.call("rm output{0}_{1}.xml".format(seed, pop.gen), shell=True)
+        sub.call("rm ../output/output{0}_{1}.xml".format(seed, pop.gen), shell=True)
 
     num_evaluated_this_gen = 0
 
