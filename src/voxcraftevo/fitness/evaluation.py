@@ -85,7 +85,7 @@ def evaluate_population(pop, record_history=False):
         N = 1  # only evaluate the best ind in the pop
 
     # clear old robot files from the data directory
-    sub.call("rm data{}/*".format(seed), shell=True)
+    sub.call("rm -rf data{}/*".format(seed), shell=True)
 
     # remove old sim output.xml if we are saving new stats
     # if not record_history:
@@ -165,11 +165,11 @@ def evaluate_population(pop, record_history=False):
         while True:
             try:
                 sub.call(
-                    "cd executables; ./voxcraft-sim -i ../data{0} -o ../output{1}_{2}.xml".format(seed, seed, pop.gen),
+                    "cd executables; ./voxcraft-sim -i ../data{0} -o ../output/output{1}_{2}.xml".format(seed, seed, pop.gen),
                     shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
-                root = etree.parse("output{0}_{1}.xml".format(seed, pop.gen)).getroot()
+                root = etree.parse("./output/output{0}_{1}.xml".format(seed, pop.gen)).getroot()
                 break
 
             except IOError:
