@@ -117,6 +117,7 @@ def evaluate_population(pop, record_history=False):
             # We can adjust mutations so this is impossible
             # or just don't evaluate th new yet duplicate design.
     sub.call("mkdir data{}".format(str(seed)), shell=True)
+    sub.call("rm -rf executables/workspace", shell=True)
     # evaluate new designs
     for r_num, r_label in enumerate(['b']):
         for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
@@ -150,7 +151,7 @@ def evaluate_population(pop, record_history=False):
                 sub.call("cp data" + str(seed) + get_file_name("/bot_{:04d}".format(ind.id), r_label,
                                                                p_label) + ".vxd" + " data{}".format(
                     str(seed) + "-" + str(r_label) + "-" + p_label), shell=True)
-                sub.call("cd executables; ./voxcraft-sim -i ../data{0} > {0}_id{1}_fit{2}.hist".format(
+                sub.call("cd executables; ./voxcraft-sim -i ../data{0} > ../histories/{0}_id{1}_fit{2}.hist".format(
                     str(seed) + get_file_name(r_label, p_label), pop[0].id,
                     int(100 * pop[0].fitness)),
                          shell=True)
@@ -165,8 +166,7 @@ def evaluate_population(pop, record_history=False):
         while True:
             try:
                 sub.call(
-                    "cd executables; ./voxcraft-sim -i ../data{0} -o ../output/output{1}_{2}.xml".format(seed, seed,
-                                                                                                         pop.gen),
+                    "cd executables; ./voxcraft-sim -i ../data{0} -o ../output/output{0}_{1}.xml".format(seed, pop.gen),
                     shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
