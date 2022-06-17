@@ -160,7 +160,8 @@ def evaluate_population(pop, record_history=False):
 
     else:  # normally, we will just want to update fitness and not save the trajectory of every voxel
 
-        print("GENERATION {}".format(pop.gen))
+        message = "GENERATION {}".format(pop.gen)
+        sub.call("echo " + message, shell=True)
 
         print("Launching {0} voxelyze calls, out of {1} individuals".format(num_evaluated_this_gen, len(pop)))
 
