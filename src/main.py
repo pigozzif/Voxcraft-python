@@ -205,3 +205,20 @@ if __name__ == "__main__":
     # finally, record the history of best robot at end of evolution so we can play it back in VoxCad
     optimizer.pop.individuals = [optimizer.pop.individuals[0]]
     evaluate_population(optimizer.pop, record_history=True)
+    #my_objective_dict = ObjectiveDict()
+
+    # Adding an objective named "fitness", which we want to maximize.
+    # This information is returned by Voxelyze in a fitness .xml file, with a tag named "distance"
+    #my_objective_dict.add_objective(name="fitness", maximize=True, tag="<fitness_score>")
+    # Add an objective to minimize the age of solutions: promotes diversity
+    #my_objective_dict.add_objective(name="age", maximize=False, tag=None)
+    #my_pop = Population(my_objective_dict, MyGenotype, MyPhenotype, pop_size=args.popsize)
+    #my_pop.seed = args.seed
+    #new_children = gaussian_mutation(my_pop)
+    #for p in my_pop:
+    #    print(p.md5)
+    #print("=======")
+    #for child in new_children:
+    #    print(child.md5)
+    #print("=======")
+    #print(my_pop.already_evaluated)

@@ -110,7 +110,6 @@ def evaluate_population(pop, record_history=False):
                     ind.fit_hist) == 0:  # line 141 mutations.py clears fit_hist for new designs
                 # print "dupe: ", ind.id
                 ind.duplicate = True
-
             # It's still possible to get duplicates in generation 0.
             # Then there's two inds with the same md5, age, and fitness (because one will overwrite the other).
             # We can adjust mutations so this is impossible

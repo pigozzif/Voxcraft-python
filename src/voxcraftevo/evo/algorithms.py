@@ -82,10 +82,10 @@ class Optimizer(object):
             # combine children and parents for selection
             print("Now creating new population")
             self.pop.append(new_children)
-            for _ in range(self.num_rand_inds):
-                print("Random individual added to population")
-                self.pop.add_random_individual()
-            print("New population size is %d" % len(self.pop))
+            # for _ in range(self.num_rand_inds):
+            #     print("Random individual added to population")
+            #     self.pop.add_random_individual()
+            # print("New population size is %d" % len(self.pop))
 
             # evaluate fitness
             print("Starting fitness evaluation")
