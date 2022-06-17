@@ -16,7 +16,7 @@ def get_file_name(*args):
 def parse_fitness(root, bot_id):
     detail = root.findall("detail/")
     for d in detail:
-        print(d.tag, bot_id)
+        sub.call("echo " + d.tag + " " + str(bot_id), shell=True)
         if d.tag == bot_id:
             return d.findall("fitness_score")[0]
     raise IndexError
@@ -188,7 +188,7 @@ def evaluate_population(pop, record_history=False):
 
                 for r_num, r_label in enumerate(['b']):
                     for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
-                        sub.call("echo " + parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)), shell=True)
+                        sub.call("echo " + str(parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text), shell=True)
                         ind.fit_hist += [float(
                             parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text)]
 
