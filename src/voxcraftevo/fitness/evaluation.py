@@ -1,6 +1,5 @@
 import hashlib
 import math
-import sys
 
 from lxml import etree
 import subprocess as sub
