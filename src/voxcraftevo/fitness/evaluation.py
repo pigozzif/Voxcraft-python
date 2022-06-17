@@ -118,8 +118,9 @@ def evaluate_population(pop, record_history=False):
             # We can adjust mutations so this is impossible
             # or just don't evaluate th new yet duplicate design.
     sub.call("mkdir data{}".format(str(seed)), shell=True)
-    sub.call("rm -rf executables/workspace", shell=True)
+    # sub.call("rm -rf executables/workspace", shell=True)
     # evaluate new designs
+    print("WE ARE HERE")
     for r_num, r_label in enumerate(['b']):
         for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
             for n, ind in enumerate(pop[:N]):
@@ -142,7 +143,7 @@ def evaluate_population(pop, record_history=False):
                     create_world(record_history, seed, ind, r_label, p_label)
 
     # ok let's finally evaluate all the robots in the data directory
-
+    print("WE ARE ALSO HERE")
     if record_history:  # just save history, don't assign fitness
         print("Recording the history of the run champ")
         for r_num, r_label in enumerate(['b']):
@@ -160,7 +161,7 @@ def evaluate_population(pop, record_history=False):
 
     else:  # normally, we will just want to update fitness and not save the trajectory of every voxel
 
-        print(("GENERATION {}".format(pop.gen)))
+        print("GENERATION {}".format(pop.gen))
 
         print("Launching {0} voxelyze calls, out of {1} individuals".format(num_evaluated_this_gen, len(pop)))
 
