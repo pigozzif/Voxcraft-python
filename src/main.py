@@ -154,7 +154,7 @@ def create_optimizer(args):
         my_pop.seed = args.seed
         evaluate_population(my_pop, record_history=True)
         exit()
-
+    print("MIDDLE POINT")
     if len(glob("pickledPops{}/Gen_*.pickle".format(args.seed))) == 0:
         # Initializing a population of SoftBots
         my_pop = Population(my_objective_dict, MyGenotype, MyPhenotype, pop_size=args.popsize)
@@ -195,7 +195,9 @@ def create_optimizer(args):
 
 if __name__ == "__main__":
     args = parse_args()
+    print("START")
     optimizer = create_optimizer(args)
+    print('AFTER OPTIMIZER')
     start_time = time()
     optimizer.run(max_hours_runtime=args.time, max_gens=args.gens,
                   checkpoint_every=args.checkpoint, save_hist_every=args.history)
