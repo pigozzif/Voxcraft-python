@@ -118,7 +118,7 @@ def evaluate_population(pop, record_history=False):
     # sub.call("rm -rf executables/workspace", shell=True)
     # evaluate new designs
     for r_num, r_label in enumerate(['b']):
-        for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
+        for p_num, p_label in enumerate(["passable_left"]):#, "passable_right", "impassable"]):
             for n, ind in enumerate(pop[:N]):
 
                 # don't evaluate if invalid
@@ -143,7 +143,7 @@ def evaluate_population(pop, record_history=False):
         sub.call("echo Recording the history of the run champ", shell=True)
         sub.call("rm histories/*", shell=True)
         for r_num, r_label in enumerate(['b']):
-            for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
+            for p_num, p_label in enumerate(["passable_left"]):#, "passable_right", "impassable"]):
                 sub.call("mkdir data{}".format(str(seed) + get_file_name(r_label, p_label)), shell=True)
                 sub.call("cp data{0}/base.vxa data{1}/".format(str(seed), str(seed) + get_file_name(r_label, p_label)), shell=True)
                 sub.call(
@@ -182,11 +182,11 @@ def evaluate_population(pop, record_history=False):
                 pass
 
         for ind in pop:
-
+            sub.call("echo we are at individual {}".format(ind.id))
             if ind.phenotype.is_valid() and ind.md5 not in pop.already_evaluated:
-
+                sub.call("echo we are at individual {} and it's valid".format(ind.id))
                 for r_num, r_label in enumerate(['b']):
-                    for p_num, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
+                    for p_num, p_label in enumerate(["passable_left"]):#, "passable_right", "impassable"]):
                         sub.call("echo " + str(parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text), shell=True)
                         ind.fit_hist += [float(
                             parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text)]

@@ -304,13 +304,13 @@ class Population(object):
         individuals : list of/or SoftBot
             A list of individual SoftBots to append or a single SoftBot to append
         """
-        if type(individuals) == list:
+        if isinstance(individuals, list):
             for n in range(len(individuals)):
-                if type(individuals[n]) != SoftBot:
+                if not isinstance(individuals[n], SoftBot):
                     raise TypeError("Non-SoftBot added to the population")
             self.individuals += individuals
 
-        elif type(individuals) == SoftBot:
+        elif isinstance(individuals, SoftBot):
             self.individuals += [individuals]
 
     def sort(self, key, reverse=False):
