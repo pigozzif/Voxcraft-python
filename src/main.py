@@ -33,7 +33,7 @@ def parse_args():
     parser.add_argument("--popsize", default=4, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
-    parser.add_argument("--time", default=47, type=int, help="maximumm hours for the ea")
+    parser.add_argument("--time", default=48, type=int, help="maximumm hours for the ea")
     return parser.parse_args()
 
 

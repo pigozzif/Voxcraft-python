@@ -53,8 +53,8 @@ def create_world(record_history, seed, ind, r_label, p_label):
 
     aperture_size = round(body_length * (0.25 if p_label == "impassable" else 0.75))
     half = math.floor(body_length * 1.5)
-    world[:half, body_length * 2, :] = immovable_left
-    world[half:, body_length * 2, :] = immovable_right
+    # world[:half, body_length * 2, :] = immovable_left
+    # world[half:, body_length * 2, :] = immovable_right
 
     left_bank = half - int(aperture_size / 2) - 1
     right_bank = half + int(aperture_size / 2) + 1
@@ -64,9 +64,9 @@ def create_world(record_history, seed, ind, r_label, p_label):
     elif p_label == "passable_right":
         left_bank += math.ceil(aperture_size / 2)
         right_bank += math.ceil(aperture_size / 2)
-    world[left_bank, body_length * 2: body_length * 3 + 1, :] = immovable_left
-    world[right_bank, body_length * 2: body_length * 3 + 1, :] = immovable_right
-    world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
+    # world[left_bank, body_length * 2: body_length * 3 + 1, :] = immovable_left
+    # world[right_bank, body_length * 2: body_length * 3 + 1, :] = immovable_right
+    # world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
 
     # world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = special
 
@@ -182,9 +182,9 @@ def evaluate_population(pop, record_history=False):
                 pass
 
         for ind in pop:
-            sub.call("echo we are at individual {}".format(ind.id))
+            sub.call("echo we are at individual {}".format(ind.id), shell=True)
             if ind.phenotype.is_valid() and ind.md5 not in pop.already_evaluated:
-                sub.call("echo we are at individual {} and it's valid".format(ind.id))
+                sub.call("echo we are at individual {} and it's valid".format(ind.id), shell=True)
                 for r_num, r_label in enumerate(['b']):
                     for p_num, p_label in enumerate(["passable_left"]):#, "passable_right", "impassable"]):
                         sub.call("echo " + str(parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text), shell=True)
