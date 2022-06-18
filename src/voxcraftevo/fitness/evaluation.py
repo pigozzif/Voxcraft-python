@@ -168,6 +168,7 @@ def evaluate_population(pop, record_history=False):
                     "cd executables; ./voxcraft-sim -i ../data{0} -o ../output/output{0}_{1}.xml -f".format(seed, pop.gen),
                     shell=True)
                 sub.call("echo WE ARE HERE!", shell=True)
+                sub.call("already evaluated: {}".format(pop.already_evaluated), shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
                 root = etree.parse("./output/output{0}_{1}.xml".format(seed, pop.gen)).getroot()
