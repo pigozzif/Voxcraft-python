@@ -181,7 +181,7 @@ def evaluate_population(pop, record_history=False):
             except IndexError:
                 sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                 pass
-        sub.call("already evaluated: {}".format(pop.already_evaluated), shell=True)
+        sub.call("echo already evaluated: {}".format(pop.already_evaluated), shell=True)
         for ind in pop:
             sub.call("echo we are at individual {}".format(ind.id), shell=True)
             if ind.phenotype.is_valid() and ind.md5 not in pop.already_evaluated:
