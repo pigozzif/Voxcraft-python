@@ -46,8 +46,6 @@ class Solver(object):
             return s / 3600.0
 
     def save_checkpoint(self, pop):
-        sub.call("mkdir {}".format(self.pickle_dir), shell=True)
-
         random_state = random.getstate()
         numpy_random_state = np.random.get_state()
         data = [self, random_state, numpy_random_state]
