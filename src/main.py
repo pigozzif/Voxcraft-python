@@ -26,8 +26,6 @@ def set_seed(seed):
 def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
-    parser.add_argument("--debug", default=0, type=int, help="debug")
-    parser.add_argument("--reload", default=0, type=int, help="reload experiment")
     parser.add_argument("--gens", default=501, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=4, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
@@ -69,7 +67,7 @@ class MyFitness(FitnessFunction):
 
     def create_vxd(self, ind, directory, record_history):
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(["impassable"]):
+            for _, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
                 base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label))
                 body_length = self.get_body_length(r_label)
                 world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
@@ -110,14 +108,12 @@ class MyFitness(FitnessFunction):
         root = etree.parse(output_file).getroot()
         values = []
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(["impassable"]):  # , "passable_right", "impassable"]):
-                # sub.call("echo " + str(self.parse_fitness(root, get_file_name("bot_{:04d}".format(ind.id), r_label,
-                # p_label)).text), shell=True)
+            for _, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
                 values.append(float(
                     self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text))
 
         ind.fitness = np.min(values)
-        sub.call("echo Assigning ind {0} fitness {1}".format(ind.id, ind.fitness), shell=True)
+        # sub.call("echo Assigning ind {0} fitness {1}".format(ind.id, ind.fitness), shell=True)
 
     def save_histories(self, best, input_directory, output_directory):
         self.create_vxd(best, input_directory, True)

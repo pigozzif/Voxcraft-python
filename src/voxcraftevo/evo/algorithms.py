@@ -92,7 +92,6 @@ class EvolutionarySolver(Solver):
                 sub.call("cd executables; ./voxcraft-sim -i {0} -o {1} -f".format(os.path.join("..", self.data_dir),
                                                                                   os.path.join("..", output_file)),
                          shell=True)
-                sub.call("echo WE ARE HERE!", shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
                 break
