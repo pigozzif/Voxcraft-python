@@ -44,7 +44,7 @@ class Solver(object):
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def save_best(self, best):
-        if self.best_so_far == best:
+        if self.best_so_far is not None and self.best_so_far == best:
             return
         sub.call("rm histories/*", shell=True)
         sub.call("rm data{}/*.vxd".format(self.seed), shell=True)
