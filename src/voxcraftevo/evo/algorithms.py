@@ -1,4 +1,5 @@
 import abc
+import os
 import random
 import time
 import pickle
@@ -62,11 +63,10 @@ class EvolutionarySolver(Solver):
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
         sub.call("echo Launching {0} voxelyze individuals, out of {1} individuals".format(num_evaluated, len(self.pop)),
                  shell=True)
-        output_file = "./output/output{0}_{1}.xml".format(self.seed, self.pop.gen)
+        output_file = "output/output{0}_{1}.xml".format(self.seed, self.pop.gen)
         while True:
             try:
-                sub.call("cd executables; ./voxcraft-sim -i ../data{0} -o {1} -f".format(self.seed, output_file),
-                         shell=True)
+                sub.call("cd executables; ./voxcraft-sim -i ../data{0} -o {1} -f".format(self.seed, os.path.join("..", output_file)), shell=True)
                 sub.call("echo WE ARE HERE!", shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
