@@ -6,6 +6,7 @@ import pickle
 import numpy as np
 import subprocess as sub
 
+from .operators.operator import GeneticOperator
 from .selection.selector import Selector
 from ..representations.population import Population
 from ..utils.utilities import weighted_random_by_dct
@@ -134,7 +135,7 @@ class GeneticAlgorithm(EvolutionarySolver):
         super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap)
         self.survival_selector = Selector.create_selector(survival_selector, **kwargs)
         self.parent_selector = Selector.create_selector(parent_selector, **kwargs)
-        self.genetic_operators = genetic_operators
+        self.genetic_operators = {GeneticOperator.create_genetic_operator(k, **kwargs): v for k, v in genetic_operators.items()}
         self.offspring_size = offspring_size
         self.overlapping = overlapping
 

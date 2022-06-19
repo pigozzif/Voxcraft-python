@@ -15,6 +15,14 @@ class GeneticOperator(object):
     def get_arity(self):
         pass
 
+    @classmethod
+    def create_genetic_operator(cls, name, **kwargs):
+        if name == "gaussian_mut":
+            return GaussianMutation(mu=kwargs["mu"], sigma=kwargs["sigma"])
+        elif name == "geometric_cx":
+            return GeometricCrossover(upper=kwargs["upper"], lower=kwargs["lower"])
+        raise ValueError("Invalid genetic operator name: {}".format(name))
+
 
 class GaussianMutation(GeneticOperator):
 

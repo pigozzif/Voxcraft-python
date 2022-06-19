@@ -150,8 +150,9 @@ if __name__ == "__main__":
                                genotype_factory=lambda: np.array([random.random() * 2 - 1 for _ in range(13 * 12)]),
                                solution_mapper=lambda x: x,
                                survival_selector="worst", parent_selector="tournament", fitness_func=MyFitness(),
-                               remap=False, genetic_operators={GaussianMutation(0.0, 0.35): 1.0},
-                               offspring_size=arguments.popsize // 2, overlapping=True, kwargs={"tournament_size": 5})
+                               remap=False, genetic_operators={"gaussian_mut": 1.0},
+                               offspring_size=arguments.popsize // 2, overlapping=True,
+                               kwargs={"tournament_size": 5, "mu": 0.0, "sigma": 0.35})
     evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
                   save_hist_every=arguments.history)
     # optimizer = create_optimizer(arguments)
