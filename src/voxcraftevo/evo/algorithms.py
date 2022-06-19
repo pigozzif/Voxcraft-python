@@ -59,7 +59,6 @@ class EvolutionarySolver(Solver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, **kwargs):
         super().__init__(seed, fitness_func)
-        print(kwargs)
         self.pop_size = pop_size
         # self.stop_condition = stop_condition # TODO
         self.remap = remap
@@ -111,12 +110,12 @@ class EvolutionarySolver(Solver):
 
             # checkpoint population
             if self.pop.gen % checkpoint_every == 0:  # and self.pop.gen > 0:
-                sub.call("Saving checkpoint at generation {0}".format(self.pop.gen + 1), shell=True)
+                sub.call("echo Saving checkpoint at generation {0}".format(self.pop.gen + 1), shell=True)
                 self.save_checkpoint(directory, self.pop)
 
             # save history of best individual so far
             if self.pop.gen % save_hist_every == 0:
-                sub.call("Saving history of run champ at generation {0}".format(self.pop.gen + 1), shell=True)
+                sub.call("echo Saving history of run champ at generation {0}".format(self.pop.gen + 1), shell=True)
                 self.save_best(self.pop.get_best())
             # update population stats
             self.pop.gen += 1
