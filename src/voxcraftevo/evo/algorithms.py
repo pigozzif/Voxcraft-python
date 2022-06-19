@@ -79,7 +79,7 @@ class EvolutionarySolver(Solver):
 
     def evaluate_individuals(self):
         num_evaluated = 0
-        for ind in self.pop.individuals:
+        for ind in self.pop:
             if not ind.evaluated:
                 self.fitness_func.create_vxd(ind, self.data_dir, False)
                 num_evaluated += 1
@@ -104,7 +104,7 @@ class EvolutionarySolver(Solver):
             except IndexError:
                 sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                 pass
-        for ind in self.pop.individuals:
+        for ind in self.pop:
             if not ind.evaluated:
                 self.fitness_func.get_fitness(ind, output_file)
                 if not self.remap:
