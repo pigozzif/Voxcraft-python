@@ -145,14 +145,13 @@ class GeneticAlgorithm(EvolutionarySolver):
         children_genotypes = []
         while len(children_genotypes) < self.offspring_size:
             operator = weighted_random_by_dct(self.genetic_operators)
-            parents = [parent.genotype for parent in self.parent_selector.select(self.pop.individuals,
-                                                                                 operator.get_arity())]
+            parents = [parent.genotype for parent in self.parent_selector.select(self.pop, operator.get_arity())]
             children_genotypes.append(operator.apply(parents))
         return children_genotypes
 
     def trim_population(self):
         while len(self.pop) > self.pop_size:
-            self.pop.individuals.remove(self.survival_selector.select(self.pop.individuals))
+            self.pop.individuals.remove(self.survival_selector.select(self.pop))
 
     def evolve(self):
         # apply genetic operators
