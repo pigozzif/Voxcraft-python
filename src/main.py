@@ -130,8 +130,8 @@ if __name__ == "__main__":
     arguments = parse_args()
     set_seed(arguments.seed)
 
-    sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/voxcraft-sim ./executables", shell=True)
-    sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker ./executables", shell=True)
+    # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/voxcraft-sim ./executables", shell=True)
+    # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker ./executables", shell=True)
     sub.call("rm -rf output", shell=True)
     sub.call("rm -rf pickledPops{}".format(arguments.seed), shell=True)
     sub.call("rm -rf data{}".format(arguments.seed), shell=True)
