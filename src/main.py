@@ -118,7 +118,7 @@ class MyFitness(FitnessFunction):
                 values.append(float(
                     self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text))
 
-        ind.fitness = np.min(ind.fit_hist)
+        ind.fitness = np.min(values)
         sub.call("echo Assigning ind {0} fitness {1}".format(ind.id, ind.fitness), shell=True)
 
     def save_histories(self, best, input_directory, output_directory):
