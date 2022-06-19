@@ -50,6 +50,7 @@ class EvolutionarySolver(Solver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, **kwargs):
         super().__init__(seed)
+        print(kwargs)
         self.pop_size = pop_size
         # self.stop_condition = stop_condition # TODO
         self.fitness_func = fitness_func
@@ -135,7 +136,7 @@ class GeneticAlgorithm(EvolutionarySolver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, survival_selector, parent_selector,
                  fitness_func, remap, genetic_operators, offspring_size, overlapping, **kwargs):
-        super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap)
+        super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, **kwargs)
         self.survival_selector = Selector.create_selector(survival_selector, **kwargs)
         self.parent_selector = Selector.create_selector(parent_selector, **kwargs)
         self.genetic_operators = {GeneticOperator.create_genetic_operator(k, **kwargs): v for k, v in genetic_operators.items()}

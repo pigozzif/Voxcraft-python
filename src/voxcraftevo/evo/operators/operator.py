@@ -18,9 +18,9 @@ class GeneticOperator(object):
     @classmethod
     def create_genetic_operator(cls, name, **kwargs):
         if name == "gaussian_mut":
-            return GaussianMutation(mu=kwargs["mu"], sigma=kwargs["sigma"])
+            return GaussianMutation(mu=kwargs["kwargs"]["mu"], sigma=kwargs["kwargs"]["sigma"])
         elif name == "geometric_cx":
-            return GeometricCrossover(upper=kwargs["upper"], lower=kwargs["lower"])
+            return GeometricCrossover(upper=kwargs["kwargs"]["upper"], lower=kwargs["kwargs"]["lower"])
         raise ValueError("Invalid genetic operator name: {}".format(name))
 
 
