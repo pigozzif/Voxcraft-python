@@ -140,14 +140,13 @@ if __name__ == "__main__":
     sub.call("rm -rf output", shell=True)
     sub.call("rm -rf pickledPops{}".format(arguments.seed), shell=True)
     sub.call("rm -rf data{}".format(arguments.seed), shell=True)
-    sub.call("mkdir output", shell=True)
-    sub.call("mkdir pickledPops{}".format(arguments.seed), shell=True)
-    sub.call("mkdir data{}".format(arguments.seed), shell=True)
 
     evolver = GeneticAlgorithm(seed=arguments.seed, pop_size=arguments.popsize, genotype_factory="uniform_float",
                                solution_mapper="direct", survival_selector="worst", parent_selector="tournament",
                                fitness_func=MyFitness(), remap=False, genetic_operators={"gaussian_mut": 1.0},
-                               offspring_size=arguments.popsize // 2, overlapping=True,
+                               offspring_size=arguments.popsize // 2, overlapping=True, data_dir="data"+arguments.seed,
+                               hist_dir="history"+arguments.seed, pickle_dir="pickledPops"+arguments.seed,
+                               output_dir="output",
                                kwargs={"tournament_size": 5, "mu": 0.0, "sigma": 0.35, "n": 13 * 12, "range": (-1, 1)})
     evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
                   save_hist_every=arguments.history)
