@@ -12,6 +12,14 @@ class Selector(object):
     def select_individual(self, population):
         pass
 
+    @classmethod
+    def create_selector(cls, name, **kwargs):
+        if name == "worst":
+            return WorstSelector()
+        elif name == "tournament":
+            return TournamentSelector(kwargs["tournament_size"])
+        raise ValueError("Invalid selector name: {}".format(name))
+
 
 class WorstSelector(Selector):
 

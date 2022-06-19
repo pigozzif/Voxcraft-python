@@ -6,6 +6,7 @@ import pickle
 import numpy as np
 import subprocess as sub
 
+from .selection.selector import Selector
 from ..representations.population import Population
 from ..utils.utilities import weighted_random_by_dct
 
@@ -44,7 +45,7 @@ class Solver(object):
 
 class EvolutionarySolver(Solver):
 
-    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap):
+    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, **kwargs):
         super().__init__(seed)
         self.pop_size = pop_size
         # self.stop_condition = stop_condition # TODO
@@ -129,10 +130,10 @@ class EvolutionarySolver(Solver):
 class GeneticAlgorithm(EvolutionarySolver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, survival_selector, parent_selector,
-                 fitness_func, remap, genetic_operators, offspring_size, overlapping):
+                 fitness_func, remap, genetic_operators, offspring_size, overlapping, **kwargs):
         super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap)
-        self.survival_selector = survival_selector
-        self.parent_selector = parent_selector
+        self.survival_selector = Selector.create_selector(survival_selector, **kwargs)
+        self.parent_selector = Selector.create_selector(parent_selector, **kwargs)
         self.genetic_operators = genetic_operators
         self.offspring_size = offspring_size
         self.overlapping = overlapping
