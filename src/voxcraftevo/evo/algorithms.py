@@ -166,7 +166,7 @@ class GeneticAlgorithm(EvolutionarySolver):
 
     def trim_population(self):
         while len(self.pop) > self.pop_size:
-            self.pop.individuals.remove(self.survival_selector.select(self.pop, 1))
+            self.pop.individuals.remove(self.survival_selector.select(self.pop, 1)[0])
 
     def evolve(self):
         # apply genetic operators
