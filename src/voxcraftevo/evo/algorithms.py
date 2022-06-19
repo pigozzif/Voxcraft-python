@@ -1,22 +1,19 @@
+import abc
 import random
 import time
 import pickle
 import numpy as np
 import subprocess as sub
-import os
+
+from ..representations.population import Population
+from ..utils.utilities import weighted_random_by_dct
 
 
-class Optimizer(object):
-    def __init__(self, pop, selection_func, mutation_func, evaluation_func, num_rand_inds=1):
-        self.pop = pop
-        self.select = selection_func
-        self.mutate = mutation_func
-        self.evaluate = evaluation_func
-        self.num_rand_inds = num_rand_inds
-        self.continued_from_checkpoint = False
+class Solver(object):
+
+    def __init__(self, seed):
+        self.seed = seed
         self.start_time = None
-        self.max_fitness = 1e10
-        self.autosuspended = False
 
     def elapsed_time(self, units="s"):
         if self.start_time is None:
@@ -29,78 +26,137 @@ class Optimizer(object):
         elif units == "h":
             return s / 3600.0
 
-    def save_checkpoint(self, directory, gen):
-        sub.call("mkdir {0}/pickledPops{1}".format(directory, self.pop.seed), shell=True)
+    def save_checkpoint(self, directory, pop):
+        sub.call("mkdir {0}/pickledPops{1}".format(directory, self.seed), shell=True)
 
         random_state = random.getstate()
         numpy_random_state = np.random.get_state()
         data = [self, random_state, numpy_random_state]
 
-        with open('{0}/pickledPops{1}/Gen_{2}.pickle'.format(directory, self.pop.seed, gen), 'wb') as handle:
+        with open('{0}/pickledPops{1}/Gen_{2}.pickle'.format(directory, self.seed, pop.gen), 'wb') as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def run(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every, directory="."):
+    @abc.abstractmethod
+    def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every, directory="."):
+        pass
 
+
+class EvolutionarySolver(Solver):
+
+    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap):
+        super().__init__(seed)
+        self.pop_size = pop_size
+        # self.stop_condition = stop_condition # TODO
+        self.fitness_func = fitness_func
+        self.remap = remap
+        self.continued_from_checkpoint = False
+        self.pop = Population(pop_size, genotype_factory, solution_mapper)
+        self.best_so_far = None
+
+    def evaluate_individuals(self):
+        num_evaluated = 0
+        for ind in self.pop.individuals:
+            if not ind.evaluated:
+                self.fitness_func.create_vxd(ind, "data{}".format(self.seed), False)
+                num_evaluated += 1
+        sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
+        sub.call("echo Launching {0} voxelyze individuals, out of {1} individuals".format(num_evaluated, len(self.pop)),
+                 shell=True)
+        output_file = "./output/output{0}_{1}.xml".format(self.seed, self.pop.gen)
+        while True:
+            try:
+                sub.call("cd executables; ./voxcraft-sim -i ../data{0} -o {1} -f".format(self.seed, output_file),
+                         shell=True)
+                sub.call("echo WE ARE HERE!", shell=True)
+                # sub.call waits for the process to return
+                # after it does, we collect the results output by the simulator
+                break
+
+            except IOError:
+                sub.call("echo Dang it! There was an IOError. I'll re-simulate this batch again...", shell=True)
+                pass
+
+            except IndexError:
+                sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
+                pass
+        for ind in self.pop.individuals:
+            if not ind.evaluated:
+                self.fitness_func.get_fitness(ind, output_file)
+                if not self.remap:
+                    ind.evaluated = True
+
+    def save_best(self):
+        best = self.pop.get_best()
+        if self.best_so_far == best:
+            return
+        sub.call("rm histories/*", shell=True)
+        sub.call("rm data{}/*.vxd".format(self.seed), shell=True)
+        sub.call("Saving history of run champ at generation {0}".format(self.pop.gen + 1), shell=True)
+        self.fitness_func.save_histories(best, "data{}".format(self.seed), "histories")
+
+    def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every, directory="."):
         self.start_time = time.time()
-
-        if self.autosuspended:
-            sub.call("rm %s/AUTOSUSPENDED" % directory, shell=True)
+        self.fitness_func.create_vxa("data{}".format(str(self.seed)))
 
         if not self.continued_from_checkpoint:  # generation zero
-            self.evaluate(self.pop)
-            self.select(self.pop)  # only produces dominated_by stats, no selection happening (population not replaced)
+            self.evaluate_individuals()
 
-        while self.pop.gen < max_gens:
+        # iterate until stop conditions met
+        while self.pop.gen < max_gens and self.elapsed_time(units="h") <= max_hours_runtime:
+            sub.call("rm data{}/*.vxd".format(self.seed), shell=True)
 
+            # checkpoint population
             if self.pop.gen % checkpoint_every == 0:  # and self.pop.gen > 0:
-                print("Saving checkpoint at generation {0}".format(self.pop.gen + 1))
-                self.save_checkpoint(directory, self.pop.gen)
+                sub.call("Saving checkpoint at generation {0}".format(self.pop.gen + 1), shell=True)
+                self.save_checkpoint(directory, self.pop)
 
+            # save history of best individual so far
             if self.pop.gen % save_hist_every == 0:
-                if not os.path.isfile(
-                        "a{0}_id{1}_fit{2}.hist".format(self.pop.seed, self.pop[0].id, int(100 * self.pop[0].fitness))):
-                    print("Saving history of run champ at generation {0}".format(self.pop.gen + 1))
-                    self.evaluate(self.pop, record_history=True)
-
-            if self.elapsed_time(units="h") > max_hours_runtime or self.pop.best_fit_so_far == self.max_fitness:
-                self.autosuspended = True
-                print("Autosuspending at generation {0}".format(self.pop.gen + 1))
-                self.save_checkpoint(directory, self.pop.gen)
-                # keep going but checkpoint every gen at this point
-                # break
-
+                self.save_best()
+            # update population stats
             self.pop.gen += 1
-
-            # update ages
             self.pop.update_ages()
 
-            # mutation
-            print("Mutation starts")
-            new_children = self.mutate(self.pop)
-            print("Mutation ends: successfully generated %d new children." % (len(new_children)))
+            # update evolution
+            self.evolve()
+        self.save_checkpoint(directory, self.pop)
 
-            # combine children and parents for selection
-            print("Now creating new population")
-            self.pop.append(new_children)
-            # for _ in range(self.num_rand_inds):
-            #     print("Random individual added to population")
-            #     self.pop.add_random_individual()
-            # print("New population size is %d" % len(self.pop))
+    @abc.abstractmethod
+    def evolve(self):
+        pass
 
-            # evaluate fitness
-            print("Starting fitness evaluation")
-            eval_timer = time.time()
 
-            self.evaluate(self.pop)
-            print("Fitness evaluation finished in {} seconds".format(time.time() - eval_timer))
+class GeneticAlgorithm(EvolutionarySolver):
 
-            # perform selection by pareto fronts
-            new_population = self.select(self.pop)
+    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, survival_selector, parent_selector,
+                 fitness_func, remap, genetic_operators, offspring_size, overlapping):
+        super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap)
+        self.survival_selector = survival_selector
+        self.parent_selector = parent_selector
+        self.genetic_operators = genetic_operators
+        self.offspring_size = offspring_size
+        self.overlapping = overlapping
 
-            # replace population with selection
-            self.pop.individuals = new_population
-            print("Population size reduced to %d" % len(self.pop))
+    def build_offspring(self):
+        children_genotypes = []
+        while len(children_genotypes) < self.offspring_size:
+            operator = weighted_random_by_dct(self.genetic_operators)
+            parents = [parent.genotype for parent in self.parent_selector.select(self.pop.individuals,
+                                                                                 operator.get_arity())]
+            children_genotypes.append(operator.apply(parents))
+        return children_genotypes
 
-        if not self.autosuspended:  # print end of run stats
-            print("Finished {0} generations".format(self.pop.gen + 1))
-            print("DONE!")
+    def trim_population(self):
+        while len(self.pop) > self.pop_size:
+            self.pop.individuals.remove(self.survival_selector.select(self.pop.individuals))
+
+    def evolve(self):
+        # apply genetic operators
+        if not self.overlapping:
+            self.pop.clear()
+        for child_genotype in self.build_offspring():
+            self.pop.add_individual(child_genotype)
+        # evaluate individuals
+        self.evaluate_individuals()
+        # apply selection
+        self.trim_population()
