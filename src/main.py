@@ -11,8 +11,6 @@ import math
 from voxcraftevo.configs.VXA import VXA
 from voxcraftevo.configs.VXD import VXD
 from voxcraftevo.evo.algorithms import GeneticAlgorithm
-from voxcraftevo.evo.operators.operator import GaussianMutation
-from voxcraftevo.evo.selection.selector import WorstSelector, TournamentSelector
 from voxcraftevo.fitness.evaluation import FitnessFunction
 
 
@@ -146,13 +144,11 @@ if __name__ == "__main__":
     sub.call("mkdir pickledPops{}".format(arguments.seed), shell=True)
     sub.call("mkdir data{}".format(arguments.seed), shell=True)
 
-    evolver = GeneticAlgorithm(seed=arguments.seed, pop_size=arguments.popsize,
-                               genotype_factory=lambda: np.array([random.random() * 2 - 1 for _ in range(13 * 12)]),
-                               solution_mapper=lambda x: x,
-                               survival_selector="worst", parent_selector="tournament", fitness_func=MyFitness(),
-                               remap=False, genetic_operators={"gaussian_mut": 1.0},
+    evolver = GeneticAlgorithm(seed=arguments.seed, pop_size=arguments.popsize, genotype_factory="uniform_float",
+                               solution_mapper="direct", survival_selector="worst", parent_selector="tournament",
+                               fitness_func=MyFitness(), remap=False, genetic_operators={"gaussian_mut": 1.0},
                                offspring_size=arguments.popsize // 2, overlapping=True,
-                               kwargs={"tournament_size": 5, "mu": 0.0, "sigma": 0.35})
+                               kwargs={"tournament_size": 5, "mu": 0.0, "sigma": 0.35, "n": 13 * 12, "range": (-1, 1)})
     evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
                   save_hist_every=arguments.history)
     # optimizer = create_optimizer(arguments)

@@ -8,6 +8,8 @@ import subprocess as sub
 
 from .operators.operator import GeneticOperator
 from .selection.selector import Selector
+from ..representations.factory import GenotypeFactory
+from ..representations.mapper import SolutionMapper
 from ..representations.population import Population
 from ..utils.utilities import weighted_random_by_dct
 
@@ -53,7 +55,8 @@ class EvolutionarySolver(Solver):
         self.fitness_func = fitness_func
         self.remap = remap
         self.continued_from_checkpoint = False
-        self.pop = Population(pop_size, genotype_factory, solution_mapper)
+        self.pop = Population(pop_size, GenotypeFactory.create_factory(genotype_factory, **kwargs),
+                              SolutionMapper.create_mapper(solution_mapper, **kwargs))
         self.best_so_far = None
 
     def evaluate_individuals(self):
