@@ -16,9 +16,11 @@ from ..utils.utilities import weighted_random_by_dct
 
 class Solver(object):
 
-    def __init__(self, seed):
+    def __init__(self, seed, fitness_func):
         self.seed = seed
+        self.fitness_func = fitness_func
         self.start_time = None
+        self.best_so_far = None
 
     def elapsed_time(self, units="s"):
         if self.start_time is None:
@@ -41,6 +43,13 @@ class Solver(object):
         with open('{0}/pickledPops{1}/Gen_{2}.pickle'.format(directory, self.seed, pop.gen), 'wb') as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+    def save_best(self, best):
+        if self.best_so_far == best:
+            return
+        sub.call("rm histories/*", shell=True)
+        sub.call("rm data{}/*.vxd".format(self.seed), shell=True)
+        self.fitness_func.save_histories(best, "data{}".format(self.seed), "histories")
+
     @abc.abstractmethod
     def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every, directory="."):
         pass
@@ -49,16 +58,14 @@ class Solver(object):
 class EvolutionarySolver(Solver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, **kwargs):
-        super().__init__(seed)
+        super().__init__(seed, fitness_func)
         print(kwargs)
         self.pop_size = pop_size
         # self.stop_condition = stop_condition # TODO
-        self.fitness_func = fitness_func
         self.remap = remap
         self.continued_from_checkpoint = False
         self.pop = Population(pop_size, GenotypeFactory.create_factory(genotype_factory, **kwargs),
                               SolutionMapper.create_mapper(solution_mapper, **kwargs))
-        self.best_so_far = None
 
     def evaluate_individuals(self):
         num_evaluated = 0
@@ -91,15 +98,6 @@ class EvolutionarySolver(Solver):
                 if not self.remap:
                     ind.evaluated = True
 
-    def save_best(self):
-        best = self.pop.get_best()
-        if self.best_so_far == best:
-            return
-        sub.call("rm histories/*", shell=True)
-        sub.call("rm data{}/*.vxd".format(self.seed), shell=True)
-        sub.call("Saving history of run champ at generation {0}".format(self.pop.gen + 1), shell=True)
-        self.fitness_func.save_histories(best, "data{}".format(self.seed), "histories")
-
     def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every, directory="."):
         self.start_time = time.time()
         self.fitness_func.create_vxa("data{}".format(str(self.seed)))
@@ -118,7 +116,8 @@ class EvolutionarySolver(Solver):
 
             # save history of best individual so far
             if self.pop.gen % save_hist_every == 0:
-                self.save_best()
+                sub.call("Saving history of run champ at generation {0}".format(self.pop.gen + 1), shell=True)
+                self.save_best(self.pop.get_best())
             # update population stats
             self.pop.gen += 1
             self.pop.update_ages()
