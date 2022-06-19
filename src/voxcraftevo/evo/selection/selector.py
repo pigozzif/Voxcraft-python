@@ -34,5 +34,5 @@ class TournamentSelector(Selector):
         self.size = size
 
     def select_individual(self, population):
-        contenders = np.random.choice(population.individuals, self.size)
+        contenders = np.random.choice([x for x in population], self.size)
         return sorted(contenders, key=lambda x: x.fitness, reverse=True)[0]

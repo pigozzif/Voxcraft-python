@@ -127,8 +127,7 @@ class MyFitness(FitnessFunction):
                     os.path.join("..", input_directory),
                     os.path.join("..", output_directory, "{0}_id{1}_fit{2}.hist".format(input_directory[4:],
                                                                                         file.split(".")[0],
-                                                                                        best.fitness))),
-                    shell=True)
+                                                                                        best.fitness))), shell=True)
 
 
 if __name__ == "__main__":

@@ -57,8 +57,8 @@ class Solver(object):
         if self.best_so_far is not None and self.best_so_far == best:
             return
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
         self.fitness_func.save_histories(best, self.data_dir, self.hist_dir)
+        sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
 
     @abc.abstractmethod
     def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every):
@@ -166,7 +166,7 @@ class GeneticAlgorithm(EvolutionarySolver):
 
     def trim_population(self):
         while len(self.pop) > self.pop_size:
-            self.pop.individuals.remove(self.survival_selector.select(self.pop, 1)[0])
+            self.pop.remove_individual(self.survival_selector.select(self.pop, 1)[0])
 
     def evolve(self):
         # apply genetic operators
