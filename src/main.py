@@ -123,8 +123,8 @@ class MyFitness(FitnessFunction):
         self.create_vxd(best, input_directory, True)
         for file in os.listdir(input_directory):
             if file.endswith("vxd"):
-                sub.call("cd executables; ./voxcraft-sim -i ../{0} > {1} -f".format(
-                    input_directory,
+                sub.call("cd executables; ./voxcraft-sim -i {0} > {1} -f".format(
+                    os.path.join("..", input_directory),
                     os.path.join("..", output_directory, "{0}_id{1}_fit{2}.hist".format(input_directory[4:],
                                                                                         file.split(".")[0],
                                                                                         best.fitness))),
@@ -144,9 +144,9 @@ if __name__ == "__main__":
     evolver = GeneticAlgorithm(seed=arguments.seed, pop_size=arguments.popsize, genotype_factory="uniform_float",
                                solution_mapper="direct", survival_selector="worst", parent_selector="tournament",
                                fitness_func=MyFitness(), remap=False, genetic_operators={"gaussian_mut": 1.0},
-                               offspring_size=arguments.popsize // 2, overlapping=True, data_dir="data"+arguments.seed,
-                               hist_dir="history"+arguments.seed, pickle_dir="pickledPops"+arguments.seed,
-                               output_dir="output",
+                               offspring_size=arguments.popsize // 2, overlapping=True,
+                               data_dir="data{}".format(arguments.seed), hist_dir="history{}".format(arguments.seed),
+                               pickle_dir="pickledPops{}".format(arguments.seed), output_dir="output",
                                kwargs={"tournament_size": 5, "mu": 0.0, "sigma": 0.35, "n": 13 * 12, "range": (-1, 1)})
     evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
                   save_hist_every=arguments.history)
