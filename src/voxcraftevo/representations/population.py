@@ -28,6 +28,7 @@ class Population(object):
         for _ in range(pop_size):
             self.add_random_individual()
         self.gen = 0
+        self._i = 0
 
     def __str__(self):
         return "Population[size={0},best={1}]".format(len(self), self.get_best())
@@ -37,6 +38,16 @@ class Population(object):
 
     def __getitem__(self, item):
         return self.individuals[item]
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._i >= len(self):
+            self._i = 0
+            raise StopIteration
+        self._i += 1
+        return self.individuals[self._i - 1]
 
     def add_random_individual(self):
         genotype = self.genotype_factory()
