@@ -122,7 +122,7 @@ class EvolutionarySolver(Solver):
             # update population stats
             self.pop.gen += 1
             self.pop.update_ages()
-
+            self.best_so_far = self.pop.get_best()
             # update evolution
             self.evolve()
         self.save_checkpoint(directory, self.pop)
