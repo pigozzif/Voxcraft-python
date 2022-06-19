@@ -84,7 +84,7 @@ class EvolutionarySolver(Solver):
                 self.fitness_func.create_vxd(ind, self.data_dir, False)
                 num_evaluated += 1
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
-        sub.call("echo Launching {0} voxelyze individuals, out of {1} individuals".format(num_evaluated, len(self.pop)),
+        sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".format(num_evaluated, len(self.pop)),
                  shell=True)
         output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
         while True:

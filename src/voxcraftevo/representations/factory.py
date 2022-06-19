@@ -13,7 +13,7 @@ class GenotypeFactory(object):
     @classmethod
     def create_factory(cls, name, **kwargs):
         if name == "uniform_float":
-            return UniformFloatFactory(n=kwargs["kwargs"]["n"], r=kwargs["kwargs"]["range"])
+            return UniformFloatFactory(n=kwargs["n"], r=kwargs["range"])
         raise ValueError("Invalid genotype factory name: {}".format(name))
 
 

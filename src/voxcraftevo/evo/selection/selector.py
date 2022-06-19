@@ -17,7 +17,7 @@ class Selector(object):
         if name == "worst":
             return WorstSelector()
         elif name == "tournament":
-            return TournamentSelector(kwargs["kwargs"]["tournament_size"])
+            return TournamentSelector(kwargs["tournament_size"])
         raise ValueError("Invalid selector name: {}".format(name))
 
 
