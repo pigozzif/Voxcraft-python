@@ -20,7 +20,7 @@ class VXD(object):
         etree.SubElement(neural, "NeuralWeights").text = self.NeuralWeights
 
         task = etree.SubElement(root, "Task")
-        etree.SubElement(task, "Passable").text = str(self.isPassable)
+        etree.SubElement(task, "Passable").text = "1" if self.isPassable else 0
 
         history = etree.SubElement(root, "RecordHistory")
         history.set('replace', 'VXA.Simulator.RecordHistory')
