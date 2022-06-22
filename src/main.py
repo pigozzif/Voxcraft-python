@@ -8,7 +8,7 @@ import subprocess as sub
 import argparse
 import math
 
-from src.voxcraftevo.evo.objectives import ObjectiveDict
+from voxcraftevo.evo.objectives import ObjectiveDict
 from voxcraftevo.configs.VXA import VXA
 from voxcraftevo.configs.VXD import VXD
 from voxcraftevo.evo.algorithms import GeneticAlgorithm

@@ -1,4 +1,5 @@
 import dataclasses
+import numpy as np
 
 
 @dataclasses.dataclass
@@ -75,3 +76,6 @@ class Population(object):
     def get_best(self):
         self.sort()
         return self[0]
+
+    def sample(self, n):
+        return np.random.choice(self, size=n)

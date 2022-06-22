@@ -1,7 +1,5 @@
 import abc
 
-import numpy as np
-
 
 class Selector(object):
 
@@ -34,5 +32,5 @@ class TournamentSelector(Selector):
         self.size = size
 
     def select_individual(self, population):
-        contenders = np.random.choice([x for x in population], self.size)
-        return sorted(contenders, key=lambda x: x.fitness, reverse=True)[0]
+        contenders = population.sample(n=self.size)
+        return sorted(contenders, key=lambda x: x.fitness["fitness"], reverse=True)[0]
