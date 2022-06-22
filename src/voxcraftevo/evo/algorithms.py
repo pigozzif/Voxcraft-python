@@ -54,7 +54,7 @@ class Solver(object):
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def save_best(self, best):
-        if self.best_so_far is not None and self.best_so_far == best:
+        if self.best_so_far is not None and self.best_so_far.id == best.id:
             return
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
         self.fitness_func.save_histories(best, self.data_dir, self.hist_dir)
@@ -167,8 +167,10 @@ class GeneticAlgorithm(EvolutionarySolver):
         return children_genotypes
 
     def trim_population(self):
+        print("BEFORE: " + str({ind.id: ind.fitness["fitness"] for ind in self.pop}))
         while len(self.pop) > self.pop_size:
             self.pop.remove_individual(self.survival_selector.select(self.pop, 1)[0])
+        print("AFTER: " + str({ind.id: ind.fitness["fitness"] for ind in self.pop}))
 
     def evolve(self):
         # apply genetic operators

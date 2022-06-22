@@ -1,12 +1,18 @@
 import dataclasses
+from functools import total_ordering
+
 import numpy as np
+
+from voxcraftevo.evo.selection.comparator import Comparator
 
 
 @dataclasses.dataclass
+@total_ordering
 class Individual(object):
     id: int
     genotype: object
     solution: object
+    comparator: Comparator
     fitness: dict = None
     age: int = 0
     evaluated: bool = False
@@ -15,15 +21,19 @@ class Individual(object):
         return "Individual[id={0},age={1},fitness={2}]".format(self.id, self.age, self.fitness)
 
     def __eq__(self, other):
-        return self.id == other.id
+        return self.comparator.compare(self, other) == 0
+
+    def __lt__(self, other):
+        return self.comparator.compare(self, other) == -1
 
 
 class Population(object):
 
-    def __init__(self, pop_size, genotype_factory, solution_mapper, objectives_dict):
+    def __init__(self, pop_size, genotype_factory, solution_mapper, objectives_dict, comparator="lexicase"):
         self.genotype_factory = genotype_factory
         self.solution_mapper = solution_mapper
         self.objectives_dict = objectives_dict
+        self.comparator = Comparator.create_comparator(comparator, objectives_dict)
         self._individuals = []
         self._max_id = 0
         # init random population (generation 0)
@@ -48,7 +58,7 @@ class Population(object):
         self.add_individual(genotype)
 
     def add_individual(self, genotype):
-        self._individuals.append(Individual(self._max_id, genotype, self.solution_mapper(genotype)))
+        self._individuals.append(Individual(self._max_id, genotype, self.solution_mapper(genotype), self.comparator))
         self._max_id += 1
 
     def remove_individual(self, ind):
@@ -65,13 +75,7 @@ class Population(object):
         self._individuals.sort(key=lambda x: x.fitness[key], reverse=reverse)
 
     def sort(self):
-        for ind in self:
-            if ind.fitness is None:
-                raise RuntimeError("Sorting a population with non-evaluated individuals")
-
-        for rank in reversed(range(len(self.objectives_dict))):
-            goal = self.objectives_dict[rank]
-            self.sort_by_objective(key=goal["name"], reverse=goal["maximize"])
+        self._individuals.sort(reverse=True)
 
     def get_best(self):
         self.sort()

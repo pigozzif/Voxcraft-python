@@ -10,5 +10,11 @@ class SolutionMapper(object):
     @classmethod
     def create_mapper(cls, name, **kwargs):
         if name == "direct":
-            return lambda x: x
+            return DirectMapper()
         raise ValueError("Invalid mapper name: {}".format(name))
+
+
+class DirectMapper(SolutionMapper):
+
+    def __call__(self, genotype):
+        return genotype
