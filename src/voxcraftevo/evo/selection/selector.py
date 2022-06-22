@@ -4,7 +4,7 @@ import abc
 class Selector(object):
 
     def select(self, population, n):
-        return [self.select_individual(population) for _ in range(n)]
+        return [self.select_individual(population=population) for _ in range(n)]
 
     @abc.abstractmethod
     def select_individual(self, population):
@@ -33,4 +33,4 @@ class TournamentSelector(Selector):
 
     def select_individual(self, population):
         contenders = population.sample(n=self.size)
-        return sorted(contenders, key=lambda x: x.fitness["fitness"], reverse=True)[0]
+        return sorted(contenders, reverse=True)[0]

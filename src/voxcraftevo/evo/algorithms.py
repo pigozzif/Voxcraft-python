@@ -57,7 +57,7 @@ class Solver(object):
         if self.best_so_far is not None and self.best_so_far.id == best.id:
             return
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        self.fitness_func.save_histories(best, self.data_dir, self.hist_dir)
+        self.fitness_func.save_histories(best=best, input_directory=self.data_dir, output_directory=self.hist_dir)
         sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
 
     @abc.abstractmethod
@@ -71,22 +71,22 @@ class EvolutionarySolver(Solver):
                  pickle_dir, output_dir, **kwargs):
         super().__init__(seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir)
         self.pop_size = pop_size
-        # self.stop_condition = stop_condition # TODO
         self.remap = remap
         self.continued_from_checkpoint = False
-        self.pop = Population(pop_size, GenotypeFactory.create_factory(genotype_factory, **kwargs),
-                              SolutionMapper.create_mapper(solution_mapper, **kwargs),
-                              self.fitness_func.create_objectives_dict())
+        self.pop = Population(pop_size=pop_size,
+                              genotype_factory=GenotypeFactory.create_factory(genotype_factory, **kwargs),
+                              solution_mapper=SolutionMapper.create_mapper(solution_mapper, **kwargs),
+                              objectives_dict=self.fitness_func.create_objectives_dict())
 
     def evaluate_individuals(self):
         num_evaluated = 0
         for ind in self.pop:
             if not ind.evaluated:
-                self.fitness_func.create_vxd(ind, self.data_dir, False)
+                self.fitness_func.create_vxd(ind=ind, directory=self.data_dir, record_history=False)
                 num_evaluated += 1
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
-        sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".format(num_evaluated, len(self.pop)),
-                 shell=True)
+        sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".
+                 format(num_evaluated, len(self.pop)), shell=True)
         output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
         while True:
             try:
@@ -106,13 +106,13 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = self.fitness_func.get_fitness(ind, output_file)
+                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
                 if not self.remap:
                     ind.evaluated = True
 
     def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every):
         self.start_time = time.time()
-        self.fitness_func.create_vxa(self.data_dir)
+        self.fitness_func.create_vxa(directory=self.data_dir)
 
         if not self.continued_from_checkpoint:  # generation zero
             self.evaluate_individuals()
@@ -124,7 +124,7 @@ class EvolutionarySolver(Solver):
             # checkpoint population
             if self.pop.gen % checkpoint_every == 0:  # and self.pop.gen > 0:
                 sub.call("echo Saving checkpoint at generation {0}".format(self.pop.gen + 1), shell=True)
-                self.save_checkpoint(self.pop)
+                self.save_checkpoint(pop=self.pop)
 
             # save history of best individual so far
             # if self.pop.gen % save_hist_every == 0:
@@ -136,9 +136,9 @@ class EvolutionarySolver(Solver):
             self.best_so_far = self.pop.get_best()
             # update evolution
             self.evolve()
-        self.save_checkpoint(self.pop)
+        self.save_checkpoint(pop=self.pop)
         sub.call("echo Saving history of run champ at generation {0}".format(self.pop.gen + 1), shell=True)
-        self.save_best(self.pop.get_best())
+        self.save_best(best=self.pop.get_best())
 
     @abc.abstractmethod
     def evolve(self):
@@ -152,24 +152,26 @@ class GeneticAlgorithm(EvolutionarySolver):
                  output_dir, **kwargs):
         super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, data_dir, hist_dir,
                          pickle_dir, output_dir, **kwargs)
-        self.survival_selector = Selector.create_selector(survival_selector, **kwargs)
-        self.parent_selector = Selector.create_selector(parent_selector, **kwargs)
-        self.genetic_operators = {GeneticOperator.create_genetic_operator(k, **kwargs): v for k, v in genetic_operators.items()}
+        self.survival_selector = Selector.create_selector(name=survival_selector, **kwargs)
+        self.parent_selector = Selector.create_selector(name=parent_selector, **kwargs)
+        self.genetic_operators = {GeneticOperator.create_genetic_operator(name=k, **kwargs): v for k, v in
+                                  genetic_operators.items()}
         self.offspring_size = offspring_size
         self.overlapping = overlapping
 
     def build_offspring(self):
         children_genotypes = []
         while len(children_genotypes) < self.offspring_size:
-            operator = weighted_random_by_dct(self.genetic_operators)
-            parents = [parent.genotype for parent in self.parent_selector.select(self.pop, operator.get_arity())]
+            operator = weighted_random_by_dct(dct=self.genetic_operators)
+            parents = [parent.genotype for parent in self.parent_selector.select(population=self.pop,
+                                                                                 n=operator.get_arity())]
             children_genotypes.append(operator.apply(parents))
         return children_genotypes
 
     def trim_population(self):
         print("BEFORE: " + str({ind.id: ind.fitness["fitness"] for ind in self.pop}))
         while len(self.pop) > self.pop_size:
-            self.pop.remove_individual(self.survival_selector.select(self.pop, 1)[0])
+            self.pop.remove_individual(self.survival_selector.select(population=self.pop, n=1)[0])
         print("AFTER: " + str({ind.id: ind.fitness["fitness"] for ind in self.pop}))
 
     def evolve(self):
@@ -177,7 +179,7 @@ class GeneticAlgorithm(EvolutionarySolver):
         if not self.overlapping:
             self.pop.clear()
         for child_genotype in self.build_offspring():
-            self.pop.add_individual(child_genotype)
+            self.pop.add_individual(genotype=child_genotype)
         # evaluate individuals
         self.evaluate_individuals()
         # apply selection

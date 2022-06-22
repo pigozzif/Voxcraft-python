@@ -21,10 +21,10 @@ class Individual(object):
         return "Individual[id={0},age={1},fitness={2}]".format(self.id, self.age, self.fitness)
 
     def __eq__(self, other):
-        return self.comparator.compare(self, other) == 0
+        return self.comparator.compare(ind1=self, ind2=other) == 0
 
     def __lt__(self, other):
-        return self.comparator.compare(self, other) == -1
+        return self.comparator.compare(ind1=self, ind2=other) == -1
 
 
 class Population(object):

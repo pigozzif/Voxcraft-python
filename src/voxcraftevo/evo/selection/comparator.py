@@ -24,7 +24,7 @@ class LexicaseComparator(Comparator):
     def compare(self, ind1, ind2):
         for rank in reversed(range(len(self.objective_dict))):
             goal = self.objective_dict[rank]
-            d = dominates(ind1, ind2, goal["name"], goal["maximize"])  # ind1 dominates ind2?
+            d = dominates(ind1=ind1, ind2=ind2, attribute_name=goal["name"], maximize=goal["maximize"])
             if d == 1:
                 return 1
             elif d == -1:

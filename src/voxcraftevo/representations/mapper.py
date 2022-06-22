@@ -14,7 +14,7 @@ class SolutionMapper(object):
         raise ValueError("Invalid mapper name: {}".format(name))
 
 
-class DirectMapper(SolutionMapper):
+class DirectMapper(SolutionMapper):  # a lambda would work, but non-trivial to pickle
 
     def __call__(self, genotype):
         return genotype
