@@ -75,7 +75,8 @@ class EvolutionarySolver(Solver):
         self.remap = remap
         self.continued_from_checkpoint = False
         self.pop = Population(pop_size, GenotypeFactory.create_factory(genotype_factory, **kwargs),
-                              SolutionMapper.create_mapper(solution_mapper, **kwargs))
+                              SolutionMapper.create_mapper(solution_mapper, **kwargs),
+                              self.fitness_func.create_objectives_dict())
 
     def evaluate_individuals(self):
         num_evaluated = 0
@@ -105,7 +106,7 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                self.fitness_func.get_fitness(ind, output_file)
+                ind.fitness = self.fitness_func.get_fitness(ind, output_file)
                 if not self.remap:
                     ind.evaluated = True
 

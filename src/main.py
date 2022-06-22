@@ -8,6 +8,7 @@ import subprocess as sub
 import argparse
 import math
 
+from src.voxcraftevo.evo.objectives import ObjectiveDict
 from voxcraftevo.configs.VXA import VXA
 from voxcraftevo.configs.VXD import VXD
 from voxcraftevo.evo.algorithms import GeneticAlgorithm
@@ -56,6 +57,11 @@ class MyFitness(FitnessFunction):
             return 27
         else:
             raise ValueError("Unknown body size: {}".format(r_label))
+
+    def create_objectives_dict(self):
+        objective_dict = ObjectiveDict()
+        objective_dict.add_objective(name="fitness", maximize=True, tag="<fitness_score>")
+        return objective_dict
 
     def create_vxa(self, directory):
         vxa = VXA(TempAmplitude=14.4714, TempPeriod=0.2, TempBase=0)
@@ -112,8 +118,7 @@ class MyFitness(FitnessFunction):
                 values.append(float(
                     self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text))
 
-        ind.fitness = np.min(values)
-        # sub.call("echo Assigning ind {0} fitness {1}".format(ind.id, ind.fitness), shell=True)
+        return {"fitness": min(values)}
 
     def save_histories(self, best, input_directory, output_directory):
         self.create_vxd(best, input_directory, True)

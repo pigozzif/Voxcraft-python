@@ -12,6 +12,10 @@ class FitnessFunction(object):
         raise IndexError
 
     @abc.abstractmethod
+    def create_objectives_dict(self):
+        pass
+
+    @abc.abstractmethod
     def create_vxa(self, directory):
         pass
 

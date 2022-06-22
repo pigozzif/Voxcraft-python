@@ -6,7 +6,7 @@ class Individual(object):
     id: int
     genotype: object
     solution: object
-    fitness: float = None
+    fitness: dict = None
     age: int = 0
     evaluated: bool = False
 
@@ -19,16 +19,16 @@ class Individual(object):
 
 class Population(object):
 
-    def __init__(self, pop_size, genotype_factory, solution_mapper):
+    def __init__(self, pop_size, genotype_factory, solution_mapper, objectives_dict):
         self.genotype_factory = genotype_factory
         self.solution_mapper = solution_mapper
+        self.objectives_dict = objectives_dict
         self._individuals = []
         self._max_id = 0
         # init random population (generation 0)
         for _ in range(pop_size):
             self.add_random_individual()
         self.gen = 0
-        self._i = 0
 
     def __str__(self):
         return "Population[size={0},best={1}]".format(len(self), self.get_best())
@@ -40,14 +40,7 @@ class Population(object):
         return self._individuals[item]
 
     def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self._i >= len(self):
-            self._i = 0
-            raise StopIteration
-        self._i += 1
-        return self._individuals[self._i - 1]
+        return iter(self._individuals)
 
     def add_random_individual(self):
         genotype = self.genotype_factory()
@@ -67,8 +60,17 @@ class Population(object):
         for ind in self:
             ind.age += 1
 
+    def sort_by_objective(self, key, reverse):
+        self._individuals.sort(key=lambda x: x.fitness[key], reverse=reverse)
+
     def sort(self):
-        self._individuals.sort(key=lambda x: x.fitness, reverse=True)
+        for ind in self:
+            if ind.fitness is None:
+                raise RuntimeError("Sorting a population with non-evaluated individuals")
+
+        for rank in reversed(range(len(self.objectives_dict))):
+            goal = self.objectives_dict[rank]
+            self.sort_by_objective(key=goal["name"], reverse=goal["maximize"])
 
     def get_best(self):
         self.sort()
