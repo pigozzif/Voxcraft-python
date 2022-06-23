@@ -17,7 +17,7 @@ from ..utils.utilities import weighted_random_by_dct
 
 class Solver(object):
 
-    def __init__(self, seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir):
+    def __init__(self, seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir):
         self.seed = seed
         self.fitness_func = fitness_func
         self.start_time = None
@@ -34,6 +34,9 @@ class Solver(object):
         self.output_dir = output_dir
         if not os.path.isdir(self.output_dir):
             sub.call("mkdir {}".format(output_dir), shell=True)
+        self.executables_dir = executables_dir
+        if not os.path.isdir(executables_dir):
+            sub.call("mkdir {}".format(executables_dir), shell=True)
 
     def elapsed_time(self, units="s"):
         if self.start_time is None:
@@ -69,8 +72,9 @@ class Solver(object):
 class EvolutionarySolver(Solver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, genetic_operators,
-                 data_dir, hist_dir, pickle_dir, output_dir, comparator="lexicase", genotype_filter=None, **kwargs):
-        super().__init__(seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir)
+                 data_dir, hist_dir, pickle_dir, output_dir, executables_dir, comparator="lexicase",
+                 genotype_filter=None, **kwargs):
+        super().__init__(seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir)
         self.pop_size = pop_size
         self.remap = remap
         self.continued_from_checkpoint = False
@@ -98,8 +102,9 @@ class EvolutionarySolver(Solver):
         output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
         while True:
             try:
-                sub.call("cd executables; ./voxcraft-sim -i {0} -o {1}".format(os.path.join("..", self.data_dir),
-                                                                               os.path.join("..", output_file)),
+                sub.call("{0} -i {1} -o {2}".format(os.path.join(self.executables_dir, "voxcraft-sim"),
+                                                    self.data_dir,
+                                                    output_file),
                          shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
@@ -157,10 +162,9 @@ class GeneticAlgorithm(EvolutionarySolver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, survival_selector, parent_selector,
                  fitness_func, offspring_size, overlapping, remap, genetic_operators, data_dir, hist_dir, pickle_dir,
-                 output_dir, **kwargs):
+                 output_dir, executables_dir, **kwargs):
         super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, genetic_operators,
-                         data_dir, hist_dir,
-                         pickle_dir, output_dir, **kwargs)
+                         data_dir, hist_dir, pickle_dir, output_dir, executables_dir, **kwargs)
         self.survival_selector = Selector.create_selector(name=survival_selector, **kwargs)
         self.parent_selector = Selector.create_selector(name=parent_selector, **kwargs)
         self.offspring_size = offspring_size
