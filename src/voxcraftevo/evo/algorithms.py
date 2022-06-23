@@ -102,8 +102,9 @@ class EvolutionarySolver(Solver):
         output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
         while True:
             try:
-                sub.call("cd {0}; ./voxcraft-sim -i {1} -o {2}".format(
-                    self.executables_dir, self.data_dir, output_file), shell=True)
+                sub.call("cd {0}; ./voxcraft-sim -i {1} -o {2}".format(self.executables_dir,
+                                                                       os.path.join("..", self.data_dir),
+                                                                       os.path.join("..", output_file)), shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
                 break
