@@ -129,11 +129,10 @@ class VXA(object):
         etree.SubElement(data, "Layer").text = etree.CDATA("0")
         etree.SubElement(data, "Layer").text = etree.CDATA("1")
 
-    def add_material(self, E: float = 10000, RHO: float = 1000, P: float = 0.35, CTE: float = 0, uStatic: float = 1,
+    def add_material(self, material_id: int, E: float = 10000, RHO: float = 1000, P: float = 0.35, CTE: float = 0, uStatic: float = 1,
                      uDynamic: float = 0.8, isSticky: int = 0, hasCilia: int = 0, isBreakable: int = 0,
                      isMeasured: int = 1, RGBA: tuple = None, isFixed: int = 0, TempPhase: float = 0) -> int:
 
-        material_id = self.NextMaterialID
         self.NextMaterialID += 1
 
         if RGBA is None:
@@ -179,7 +178,7 @@ class VXA(object):
 
         # If no material has been added, add default material
         if self.NextMaterialID == 0:
-            self.add_material()
+            self.add_material(material_id=0)
 
         with open(filename, 'w+') as f:
             f.write(etree.tostring(self.tree, encoding="unicode", pretty_print=True))
