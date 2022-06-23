@@ -69,20 +69,21 @@ class Solver(object):
 class EvolutionarySolver(Solver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, genetic_operators,
-                 data_dir, hist_dir, pickle_dir, output_dir, comparator="lexicase", genotype_filter=None,
-                 phenotype_filter=None, **kwargs):
+                 data_dir, hist_dir, pickle_dir, output_dir, comparator="lexicase", genotype_filter=None, **kwargs):
         super().__init__(seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir)
         self.pop_size = pop_size
         self.remap = remap
         self.continued_from_checkpoint = False
         self.pop = Population(pop_size=pop_size,
                               genotype_factory=GenotypeFactory.create_factory(name=genotype_factory,
-                                                                              genotype_filter=Filter.create_filter(genotype_filter), **kwargs),
+                                                                              genotype_filter=Filter.create_filter(
+                                                                                  genotype_filter), **kwargs),
                               solution_mapper=SolutionMapper.create_mapper(name=solution_mapper, **kwargs),
                               objectives_dict=self.fitness_func.create_objectives_dict(),
                               comparator=comparator)
         self.genetic_operators = {GeneticOperator.create_genetic_operator(name=k,
-                                                                          phenotype_filter=Filter.create_filter(genotype_filter), **kwargs):
+                                                                          genotype_filter=Filter.create_filter(
+                                                                              genotype_filter), **kwargs):
                                       v for k, v in genetic_operators.items()}
 
     def evaluate_individuals(self):
@@ -97,8 +98,8 @@ class EvolutionarySolver(Solver):
         output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
         while True:
             try:
-                sub.call("cd executables; ./voxcraft-sim -i {0} -o {1} -f".format(os.path.join("..", self.data_dir),
-                                                                                  os.path.join("..", output_file)),
+                sub.call("cd executables; ./voxcraft-sim -i {0} -o {1}".format(os.path.join("..", self.data_dir),
+                                                                               os.path.join("..", output_file)),
                          shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
