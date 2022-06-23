@@ -129,9 +129,10 @@ class VXA(object):
         etree.SubElement(data, "Layer").text = etree.CDATA("0")
         etree.SubElement(data, "Layer").text = etree.CDATA("1")
 
-    def add_material(self, material_id: int, E: float = 10000, RHO: float = 1000, P: float = 0.35, CTE: float = 0, uStatic: float = 1,
-                     uDynamic: float = 0.8, isSticky: int = 0, hasCilia: int = 0, isBreakable: int = 0,
-                     isMeasured: int = 1, RGBA: tuple = None, isFixed: int = 0, TempPhase: float = 0) -> int:
+    def add_material(self, material_id: int, E: float = 10000, RHO: float = 1000, P: float = 0.35, CTE: float = 0,
+                     uStatic: float = 1, uDynamic: float = 0.8, isSticky: int = 0, hasCilia: int = 0,
+                     isBreakable: int = 0, isMeasured: int = 1, RGBA: tuple = None, isFixed: int = 0,
+                     TempPhase: float = 0) -> int:
 
         self.NextMaterialID += 1
 

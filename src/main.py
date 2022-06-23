@@ -67,7 +67,8 @@ class MyFitness(FitnessFunction):
         self.immovable_left = vxa.add_material(material_id=1, RGBA=(50, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1)
         self.immovable_right = vxa.add_material(material_id=2, RGBA=(0, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1)
         self.special = vxa.add_material(material_id=3, RGBA=(255, 255, 255, 255), E=5e10, RHO=1e8, isFixed=1)
-        self.soft = vxa.add_material(material_id=4, RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5, CTE=0.01)
+        self.soft = vxa.add_material(material_id=4, RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5,
+                                     CTE=0.01)
         vxa.write(filename=os.path.join(directory, "base.vxa"))
 
     def create_vxd(self, ind, directory, record_history):
@@ -115,10 +116,10 @@ class MyFitness(FitnessFunction):
                 vxd.write(filename=base_name + ".vxd")
 
     def get_fitness(self, ind, output_file):
-        #try:
+        # try:
         root = etree.parse(output_file).getroot()
-        #except:
-        #    return {"fitness": 0.0}
+        # except:
+        #     return {"fitness": 0.0}
         values = []
         for _, r_label in enumerate(["b"]):
             for _, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
@@ -145,15 +146,6 @@ if __name__ == "__main__":
     # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/voxcraft-sim ./executables", shell=True)
     # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker ./executables", shell=True)
 
-    if arguments.reload:
-        pickled_pops = os.listdir("pickledPops{}".format(arguments.seed))
-        last_gen = sorted(pickled_pops, reverse=True)[0]
-        with open(os.path.join("pickledPops{}".format(arguments.seed), last_gen), "rb") as handle:
-            [optimizer, random_state, numpy_random_state] = pickle.load(handle)
-        best = optimizer.pop.get_best()
-        optimizer.save_best(best=best)
-        exit()
-
     sub.call("rm -rf pickledPops{}".format(arguments.seed), shell=True)
     sub.call("rm -rf data{}".format(arguments.seed), shell=True)
 
@@ -165,7 +157,11 @@ if __name__ == "__main__":
                                pickle_dir="pickledPops{}".format(arguments.seed), output_dir="output",
                                executables_dir=arguments.execs, tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
                                range=(-1, 1), upper=2.0, lower=-1.0)
-    evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
-                  save_hist_every=arguments.history)
+
+    if arguments.reload:
+        evolver.reload()
+    else:
+        evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
+                      save_hist_every=arguments.history)
     start_time = time()
     sub.call("echo That took a total of {} minutes".format((time() - start_time) / 60.), shell=True)

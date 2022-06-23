@@ -68,6 +68,14 @@ class Solver(object):
         self.fitness_func.save_histories(best=best, input_directory=self.data_dir, output_directory=self.hist_dir)
         sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
 
+    def reload(self):
+        pickled_pops = os.listdir(self.pickle_dir)
+        last_gen = sorted(pickled_pops, reverse=True)[0]
+        with open(os.path.join(self.pickle_dir, last_gen), "rb") as handle:
+            [optimizer, random_state, numpy_random_state] = pickle.load(handle)
+        best = optimizer.pop.get_best()
+        optimizer.save_best(best=best)
+
     @abc.abstractmethod
     def solve(self, max_hours_runtime: int, max_gens: int, checkpoint_every: int, save_hist_every: int):
         pass
@@ -92,7 +100,7 @@ class EvolutionarySolver(Solver):
         self.genetic_operators = {GeneticOperator.create_genetic_operator(name=k,
                                                                           genotype_filter=Filter.create_filter(
                                                                               genotype_filter), **kwargs):
-                                      v for k, v in genetic_operators.items()}
+                                  v for k, v in genetic_operators.items()}
 
     def evaluate_individuals(self) -> None:
         num_evaluated = 0
@@ -103,15 +111,15 @@ class EvolutionarySolver(Solver):
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
         sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".
                  format(num_evaluated, len(self.pop)), shell=True)
-        #for ind in self.pop:
+        # for ind in self.pop:
         #    if ind.evaluated:
         #        continue
         output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
         while True:
             try:
                 sub.call("cd {0}; ./voxcraft-sim -i {1} -o {2}".format(self.executables_dir,
-                                                                           os.path.join("..", self.data_dir),
-                                                                           os.path.join("..", output_file)), shell=True)
+                                                                       os.path.join("..", self.data_dir),
+                                                                       os.path.join("..", output_file)), shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
                 break
