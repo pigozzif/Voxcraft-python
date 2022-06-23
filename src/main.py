@@ -155,8 +155,8 @@ if __name__ == "__main__":
                                offspring_size=arguments.popsize // 2, overlapping=True,
                                data_dir="data{}".format(arguments.seed), hist_dir="history{}".format(arguments.seed),
                                pickle_dir="pickledPops{}".format(arguments.seed), output_dir="output",
-                               executables_dir="/users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build", tournament_size=5,
-                               mu=0.0, sigma=0.35, n=(12 * 8) + 8, range=(-1, 1), upper=2.0, lower=-1.0)
+                               executables_dir=arguments.execs, tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
+                               range=(-1, 1), upper=2.0, lower=-1.0)
     evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
                   save_hist_every=arguments.history)
     start_time = time()
