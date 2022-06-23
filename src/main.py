@@ -50,8 +50,7 @@ class MyFitness(FitnessFunction):
             return 9
         elif r_label == "c":
             return 27
-        else:
-            raise ValueError("Unknown body size: {}".format(r_label))
+        raise ValueError("Unknown body size: {}".format(r_label))
 
     def create_objectives_dict(self):
         objective_dict = ObjectiveDict()
@@ -64,7 +63,7 @@ class MyFitness(FitnessFunction):
         self.immovable_right = vxa.add_material(RGBA=(0, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1)
         self.special = vxa.add_material(RGBA=(255, 255, 255, 255), E=5e10, RHO=1e8, isFixed=1)
         self.soft = vxa.add_material(RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5, CTE=0.01)
-        vxa.write(os.path.join(directory, "base.vxa"))
+        vxa.write(filename=os.path.join(directory, "base.vxa"))
 
     def create_vxd(self, ind, directory, record_history):
         for _, r_label in enumerate(["b"]):
@@ -100,10 +99,10 @@ class MyFitness(FitnessFunction):
                 world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special
 
                 vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable")
-                vxd.set_data(world)
+                vxd.set_data(data=world)
                 vxd.set_tags(RecordVoxel=record_history, RecordFixedVoxels=record_history,
                              RecordStepSize=100 if record_history else 0)
-                vxd.write(base_name + ".vxd")
+                vxd.write(filename=base_name + ".vxd")
 
     def get_fitness(self, ind, output_file):
         root = etree.parse(output_file).getroot()
@@ -145,11 +144,5 @@ if __name__ == "__main__":
                                lower=-1.0)
     evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
                   save_hist_every=arguments.history)
-    # optimizer = create_optimizer(arguments)
     start_time = time()
-    # optimizer.run(max_hours_runtime=arguments.time, max_gens=arguments.gens,
-    #               checkpoint_every=arguments.checkpoint, save_hist_every=arguments.history)
     sub.call("echo That took a total of {} minutes".format((time() - start_time) / 60.), shell=True)
-    # finally, record the history of best robot at end of evolution so we can play it back in VoxCad
-    # optimizer.pop.individuals = [optimizer.pop.individuals[0]]
-    # evaluate_population(optimizer.pop, record_history=True)

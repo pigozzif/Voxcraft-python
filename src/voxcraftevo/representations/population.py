@@ -33,7 +33,7 @@ class Population(object):
         self.genotype_factory = genotype_factory
         self.solution_mapper = solution_mapper
         self.objectives_dict = objectives_dict
-        self.comparator = Comparator.create_comparator(comparator, objectives_dict)
+        self.comparator = Comparator.create_comparator(name=comparator, objective_dict=objectives_dict)
         self._individuals = []
         self._max_id = 0
         # init random population (generation 0)
@@ -54,7 +54,10 @@ class Population(object):
         return iter(self._individuals)
 
     def add_individual(self, genotype):
-        self._individuals.append(Individual(self._max_id, genotype, self.solution_mapper(genotype), self.comparator))
+        self._individuals.append(Individual(id=self._max_id,
+                                            genotype=genotype,
+                                            solution=self.solution_mapper(genotype),
+                                            comparator=self.comparator))
         self._max_id += 1
 
     def remove_individual(self, ind):
@@ -66,9 +69,6 @@ class Population(object):
     def update_ages(self):
         for ind in self:
             ind.age += 1
-
-    def sort_by_objective(self, key, reverse):
-        self._individuals.sort(key=lambda x: x.fitness[key], reverse=reverse)
 
     def sort(self):
         self._individuals.sort(reverse=True)
