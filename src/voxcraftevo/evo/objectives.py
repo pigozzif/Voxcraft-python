@@ -8,7 +8,7 @@ class ObjectiveDict(dict):
         super(ObjectiveDict, self).__init__()
         self._max_rank = 0
 
-    def add_objective(self, name, maximize, tag, meta_func=None):
+    def add_objective(self, name: str, maximize: bool, tag: str, meta_func=None) -> None:
         """Add an optimization objective to the dictionary.
         Objectives must be added in order of importance, however fitness is fixed to be the most important.
         The keys of an ObjectiveDict correspond to the objective's rank or importance. The ranks are set via the order

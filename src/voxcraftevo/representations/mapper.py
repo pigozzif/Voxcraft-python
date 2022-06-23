@@ -8,7 +8,7 @@ class SolutionMapper(object):
         pass
 
     @classmethod
-    def create_mapper(cls, name, **kwargs):
+    def create_mapper(cls, name: str, **kwargs):
         if name == "direct":
             return DirectMapper()
         raise ValueError("Invalid mapper name: {}".format(name))

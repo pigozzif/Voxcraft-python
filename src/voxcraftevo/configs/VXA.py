@@ -8,13 +8,12 @@ Does not yet include signaling parameters
 
 class VXA(object):
 
-    def __init__(self, HeapSize=0.1, EnableCilia=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8,
-                 SlowDampingZ=0.01,
-                 EnableCollision=0, SimTime=5, TempPeriod=0.1, GravEnabled=1, GravAcc=-9.81, FloorEnabled=1,
-                 Lattice_Dim=0.01,
-                 RecordStepSize=100, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, VaryTempEnabled=1,
-                 TempAmplitude=20, TempBase=25,
-                 TempEnabled=1):
+    def __init__(self, HeapSize: float = 0.1, EnableCilia: int = 0, EnableExpansion: int = 1, DtFrac: float = 0.95,
+                 BondDampingZ: float = 1, ColDampingZ: float = 0.8, SlowDampingZ: float = 0.01,
+                 EnableCollision: int = 0, SimTime: int = 5, TempPeriod: float = 0.1, GravEnabled: int = 1,
+                 GravAcc: float = -9.81, FloorEnabled: int = 1, Lattice_Dim: float = 0.01, RecordStepSize: int = 100,
+                 RecordVoxel: int = 1, RecordLink: int = 0, RecordFixedVoxels: int = 1, VaryTempEnabled: int = 1,
+                 TempAmplitude: float = 20, TempBase: float = 25, TempEnabled: int = 1):
 
         root = etree.XML("<VXA></VXA>")
         root.set('Version', '1.1')
@@ -47,7 +46,7 @@ class VXA(object):
 
         self.set_default_tags()
 
-    def set_default_tags(self):
+    def set_default_tags(self) -> None:
         root = self.tree.getroot()
 
         # GPU
@@ -68,11 +67,11 @@ class VXA(object):
         etree.SubElement(damping, "ColDampingZ").text = str(self.ColDampingZ)
         etree.SubElement(damping, "SlowDampingZ").text = str(self.SlowDampingZ)
 
-        attachDetach = etree.SubElement(simulator, "AttachDetach")
-        etree.SubElement(attachDetach, "EnableCollision").text = str(self.EnableCollision)
+        attach_detach = etree.SubElement(simulator, "AttachDetach")
+        etree.SubElement(attach_detach, "EnableCollision").text = str(self.EnableCollision)
 
-        stopCondition = etree.SubElement(simulator, "StopCondition")
-        formula = etree.SubElement(stopCondition, "StopConditionFormula")
+        stop_condition = etree.SubElement(simulator, "StopCondition")
+        formula = etree.SubElement(stop_condition, "StopConditionFormula")
         sub = etree.SubElement(formula, "mtSUB")
         etree.SubElement(sub, "mtVAR").text = 't'
         etree.SubElement(sub, "mtCONST").text = str(self.SimTime)
@@ -116,7 +115,7 @@ class VXA(object):
         etree.SubElement(lattice, "Lattice_Dim").text = str(self.Lattice_Dim)
 
         # Materials
-        palette = etree.SubElement(vxc, "Palette")
+        etree.SubElement(vxc, "Palette")
 
         # Structure
         structure = etree.SubElement(vxc, "Structure")
@@ -130,11 +129,11 @@ class VXA(object):
         etree.SubElement(data, "Layer").text = etree.CDATA("0")
         etree.SubElement(data, "Layer").text = etree.CDATA("1")
 
-    def add_material(self, E=10000, RHO=1000, P=0.35, CTE=0, uStatic=1, uDynamic=0.8,
-                     isSticky=0, hasCilia=0, isBreakable=0, isMeasured=1,
-                     RGBA=None, isFixed=0, TempPhase=0):
+    def add_material(self, E: float = 10000, RHO: float = 1000, P: float = 0.35, CTE: float = 0, uStatic: float = 1,
+                     uDynamic: float = 0.8, isSticky: int = 0, hasCilia: int = 0, isBreakable: int = 0,
+                     isMeasured: int = 1, RGBA: tuple = None, isFixed: int = 0, TempPhase: float = 0) -> int:
 
-        material_ID = self.NextMaterialID
+        material_id = self.NextMaterialID
         self.NextMaterialID += 1
 
         if RGBA is None:
@@ -150,7 +149,7 @@ class VXA(object):
         palette = self.tree.find("*/Palette")
         material = etree.SubElement(palette, "Material")
 
-        etree.SubElement(material, "Name").text = str(material_ID)
+        etree.SubElement(material, "Name").text = str(material_id)
 
         display = etree.SubElement(material, "Display")
         etree.SubElement(display, "Red").text = str(RGBA[0])
@@ -174,9 +173,9 @@ class VXA(object):
         etree.SubElement(mechanical, "uStatic").text = str(uStatic)
         etree.SubElement(mechanical, "uDynamic").text = str(uDynamic)
 
-        return material_ID
+        return material_id
 
-    def write(self, filename='base.vxa'):
+    def write(self, filename: str = 'base.vxa') -> None:
 
         # If no material has been added, add default material
         if self.NextMaterialID == 0:
@@ -184,6 +183,3 @@ class VXA(object):
 
         with open(filename, 'w+') as f:
             f.write(etree.tostring(self.tree, encoding="unicode", pretty_print=True))
-
-    def set_fitness_function(self):
-        pass

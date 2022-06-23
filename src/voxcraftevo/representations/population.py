@@ -1,21 +1,27 @@
-import dataclasses
+import abc
 from functools import total_ordering
+from typing import Iterable
 
 import numpy as np
 
-from voxcraftevo.evo.selection.comparator import Comparator
+from voxcraftevo.representations.factory import GenotypeFactory
+from voxcraftevo.evo.objectives import ObjectiveDict
+from voxcraftevo.representations.mapper import SolutionMapper
+from voxcraftevo.utils.utilities import dominates
 
 
-@dataclasses.dataclass
 @total_ordering
 class Individual(object):
-    id: int
-    genotype: object
-    solution: object
-    comparator: Comparator
-    fitness: dict = None
-    age: int = 0
-    evaluated: bool = False
+
+    def __init__(self, id: int, genotype, solution, comparator, fitness: dict = None, age: int = 0,
+                 evaluated: bool = False):
+        self.id = id
+        self.genotype = genotype
+        self.solution = solution
+        self.comparator = comparator
+        self.fitness = fitness
+        self.age = age
+        self.evaluated = evaluated
 
     def __str__(self):
         return "Individual[id={0},age={1},fitness={2}]".format(self.id, self.age, self.fitness)
@@ -27,9 +33,39 @@ class Individual(object):
         return self.comparator.compare(ind1=self, ind2=other) == -1
 
 
+class Comparator(object):
+
+    def __init__(self, objective_dict: ObjectiveDict):
+        self.objective_dict = objective_dict
+
+    @abc.abstractmethod
+    def compare(self, ind1: Individual, ind2: Individual) -> int:
+        pass
+
+    @classmethod
+    def create_comparator(cls, name: str, objective_dict: ObjectiveDict):
+        if name == "lexicase":
+            return LexicaseComparator(objective_dict=objective_dict)
+        raise ValueError("Invalid comparator name: {}".format(name))
+
+
+class LexicaseComparator(Comparator):
+
+    def compare(self, ind1, ind2):
+        for rank in reversed(range(len(self.objective_dict))):
+            goal = self.objective_dict[rank]
+            d = dominates(ind1=ind1, ind2=ind2, attribute_name=goal["name"], maximize=goal["maximize"])
+            if d == 1:
+                return 1
+            elif d == -1:
+                return -1
+        return 0
+
+
 class Population(object):
 
-    def __init__(self, pop_size, genotype_factory, solution_mapper, objectives_dict, comparator):
+    def __init__(self, pop_size: int, genotype_factory: GenotypeFactory, solution_mapper: SolutionMapper,
+                 objectives_dict: ObjectiveDict, comparator: str):
         self.genotype_factory = genotype_factory
         self.solution_mapper = solution_mapper
         self.objectives_dict = objectives_dict
@@ -53,29 +89,29 @@ class Population(object):
     def __iter__(self):
         return iter(self._individuals)
 
-    def add_individual(self, genotype):
+    def add_individual(self, genotype) -> None:
         self._individuals.append(Individual(id=self._max_id,
                                             genotype=genotype,
                                             solution=self.solution_mapper(genotype),
                                             comparator=self.comparator))
         self._max_id += 1
 
-    def remove_individual(self, ind):
+    def remove_individual(self, ind: Individual) -> None:
         self._individuals.remove(ind)
 
-    def clear(self):
+    def clear(self) -> None:
         self._individuals = []
 
-    def update_ages(self):
+    def update_ages(self) -> None:
         for ind in self:
             ind.age += 1
 
-    def sort(self):
+    def sort(self) -> None:
         self._individuals.sort(reverse=True)
 
-    def get_best(self):
+    def get_best(self) -> None:
         self.sort()
         return self[0]
 
-    def sample(self, n):
+    def sample(self, n: int) -> Iterable[Individual]:
         return np.random.choice(self, size=n)

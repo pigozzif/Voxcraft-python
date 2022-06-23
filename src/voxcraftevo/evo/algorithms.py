@@ -3,21 +3,25 @@ import os
 import random
 import time
 import pickle
+from typing import Dict
+
 import numpy as np
 import subprocess as sub
 
 from .operators.operator import GeneticOperator
 from .selection.filters import Filter
 from .selection.selector import Selector
+from ..fitness.evaluation import FitnessFunction
 from ..representations.factory import GenotypeFactory
 from ..representations.mapper import SolutionMapper
-from ..representations.population import Population
+from ..representations.population import Population, Individual
 from ..utils.utilities import weighted_random_by_dct
 
 
 class Solver(object):
 
-    def __init__(self, seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir):
+    def __init__(self, seed: int, fitness_func: FitnessFunction, data_dir: str, hist_dir: str, pickle_dir: str,
+                 output_dir: str, executables_dir: str):
         self.seed = seed
         self.fitness_func = fitness_func
         self.start_time = None
@@ -38,7 +42,7 @@ class Solver(object):
         if not os.path.isdir(executables_dir):
             sub.call("mkdir {}".format(executables_dir), shell=True)
 
-    def elapsed_time(self, units="s"):
+    def elapsed_time(self, units: str = "s") -> float:
         if self.start_time is None:
             self.start_time = time.time()
         s = time.time() - self.start_time
@@ -49,7 +53,7 @@ class Solver(object):
         elif units == "h":
             return s / 3600.0
 
-    def save_checkpoint(self, pop):
+    def save_checkpoint(self, pop: Population) -> None:
         random_state = random.getstate()
         numpy_random_state = np.random.get_state()
         data = [self, random_state, numpy_random_state]
@@ -57,7 +61,7 @@ class Solver(object):
         with open(os.path.join(self.pickle_dir, "gen_{}.pickle".format(pop.gen)), "wb") as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def save_best(self, best):
+    def save_best(self, best: Individual) -> None:
         if self.best_so_far is not None and self.best_so_far.id == best.id:
             return
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
@@ -65,15 +69,15 @@ class Solver(object):
         sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
 
     @abc.abstractmethod
-    def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every):
+    def solve(self, max_hours_runtime: int, max_gens: int, checkpoint_every: int, save_hist_every: int):
         pass
 
 
 class EvolutionarySolver(Solver):
 
-    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, genetic_operators,
-                 data_dir, hist_dir, pickle_dir, output_dir, executables_dir, comparator="lexicase",
-                 genotype_filter=None, **kwargs):
+    def __init__(self, seed, pop_size: int, genotype_factory: str, solution_mapper: str, fitness_func, remap: bool,
+                 genetic_operators: Dict[str, float], data_dir, hist_dir, pickle_dir, output_dir, executables_dir,
+                 comparator: str = "lexicase", genotype_filter: str = None, **kwargs):
         super().__init__(seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir)
         self.pop_size = pop_size
         self.remap = remap
@@ -90,7 +94,7 @@ class EvolutionarySolver(Solver):
                                                                               genotype_filter), **kwargs):
                                       v for k, v in genetic_operators.items()}
 
-    def evaluate_individuals(self):
+    def evaluate_individuals(self) -> None:
         num_evaluated = 0
         for ind in self.pop:
             if not ind.evaluated:
@@ -122,7 +126,7 @@ class EvolutionarySolver(Solver):
                 if not self.remap:
                     ind.evaluated = True
 
-    def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every):
+    def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every) -> None:
         self.start_time = time.time()
         self.fitness_func.create_vxa(directory=self.data_dir)
 
@@ -159,9 +163,9 @@ class EvolutionarySolver(Solver):
 
 class GeneticAlgorithm(EvolutionarySolver):
 
-    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, survival_selector, parent_selector,
-                 fitness_func, offspring_size, overlapping, remap, genetic_operators, data_dir, hist_dir, pickle_dir,
-                 output_dir, executables_dir, **kwargs):
+    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, survival_selector: str, parent_selector: str,
+                 fitness_func, offspring_size: int, overlapping: bool, remap, genetic_operators, data_dir, hist_dir,
+                 pickle_dir, output_dir, executables_dir, **kwargs):
         super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, genetic_operators,
                          data_dir, hist_dir, pickle_dir, output_dir, executables_dir, **kwargs)
         self.survival_selector = Selector.create_selector(name=survival_selector, **kwargs)
@@ -169,7 +173,7 @@ class GeneticAlgorithm(EvolutionarySolver):
         self.offspring_size = offspring_size
         self.overlapping = overlapping
 
-    def build_offspring(self):
+    def build_offspring(self) -> list:
         children_genotypes = []
         while len(children_genotypes) < self.offspring_size:
             operator = weighted_random_by_dct(dct=self.genetic_operators)
@@ -178,11 +182,11 @@ class GeneticAlgorithm(EvolutionarySolver):
             children_genotypes.append(operator.apply(parents))
         return children_genotypes
 
-    def trim_population(self):
+    def trim_population(self) -> None:
         while len(self.pop) > self.pop_size:
             self.pop.remove_individual(self.survival_selector.select(population=self.pop, n=1)[0])
 
-    def evolve(self):
+    def evolve(self) -> None:
         # apply genetic operators
         if not self.overlapping:
             self.pop.clear()

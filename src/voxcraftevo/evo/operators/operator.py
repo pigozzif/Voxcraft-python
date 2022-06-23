@@ -4,10 +4,12 @@ import random
 
 import numpy as np
 
+from voxcraftevo.evo.selection.filters import Filter
+
 
 class GeneticOperator(object):
 
-    def __init__(self, genotype_filter):
+    def __init__(self, genotype_filter: Filter):
         self.genotype_filter = genotype_filter
 
     def apply(self, *args):
@@ -21,11 +23,11 @@ class GeneticOperator(object):
         pass
 
     @abc.abstractmethod
-    def get_arity(self):
+    def get_arity(self) -> int:
         pass
 
     @classmethod
-    def create_genetic_operator(cls, name, genotype_filter, **kwargs):
+    def create_genetic_operator(cls, name: str, genotype_filter: Filter, **kwargs):
         if name == "gaussian_mut":
             return GaussianMutation(genotype_filter=genotype_filter, mu=kwargs["mu"], sigma=kwargs["sigma"])
         elif name == "geometric_cx":
@@ -36,12 +38,12 @@ class GeneticOperator(object):
 
 class GaussianMutation(GeneticOperator):
 
-    def __init__(self, genotype_filter, mu, sigma):
+    def __init__(self, genotype_filter, mu: float, sigma: float):
         super().__init__(genotype_filter)
         self.mu = mu
         self.sigma = sigma
 
-    def propose(self, *args):
+    def propose(self, *args) -> np.ndarray:
         if len(args) > 1:
             raise ValueError("More than one parent for mutation")
         child = copy.deepcopy(args[0])
@@ -54,13 +56,13 @@ class GaussianMutation(GeneticOperator):
 
 class GeometricCrossover(GeneticOperator):
 
-    def __init__(self, genotype_filter, upper, lower, mu, sigma):
+    def __init__(self, genotype_filter, upper: float, lower: float, mu: float, sigma: float):
         super().__init__(genotype_filter)
         self.upper = upper
         self.lower = lower
         self.mutation = GaussianMutation(genotype_filter=genotype_filter, mu=mu, sigma=sigma)
 
-    def propose(self, *args):
+    def propose(self, *args) -> np.ndarray:
         if len(args) > 2:
             raise ValueError("More than two parents for crossover")
         parent1, parent2 = args

@@ -4,7 +4,7 @@ from lxml import etree
 
 class VXD(object):
 
-    def __init__(self, isPassable=1, NeuralWeights=None):
+    def __init__(self, isPassable: int = 1, NeuralWeights: np.ndarray = None):
         root = etree.XML("<VXD></VXD>")
         self.tree = etree.ElementTree(root)
         if NeuralWeights is not None:
@@ -13,7 +13,8 @@ class VXD(object):
             self.NeuralWeights = ""
         self.isPassable = isPassable
 
-    def set_tags(self, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, RecordStepSize=100):
+    def set_tags(self, RecordVoxel: int = 1, RecordLink: int = 0, RecordFixedVoxels: int = 1,
+                 RecordStepSize: float = 100) -> None:
         root = self.tree.getroot()
 
         neural = etree.SubElement(root, "Controller")
@@ -29,28 +30,28 @@ class VXD(object):
         etree.SubElement(history, "RecordLink").text = str(RecordLink)  # Add links to the visualization
         etree.SubElement(history, "RecordFixedVoxels").text = str(RecordFixedVoxels)
 
-    def set_data(self, data):
+    def set_data(self, data: np.ndarray) -> None:
         root = self.tree.getroot()
 
-        X_Voxels, Y_Voxels, Z_Voxels = data.shape
-        body_flatten = np.zeros((X_Voxels * Y_Voxels, Z_Voxels), dtype=np.int8)
-        for z in range(Z_Voxels):
+        x_voxels, y_voxels, z_voxels = data.shape
+        body_flatten = np.zeros((x_voxels * y_voxels, z_voxels), dtype=np.int8)
+        for z in range(z_voxels):
             k = 0
-            for y in range(Y_Voxels):
-                for x in range(X_Voxels):
+            for y in range(y_voxels):
+                for x in range(x_voxels):
                     body_flatten[k, z] = data[x, y, z]
                     k += 1
         structure = etree.SubElement(root, "Structure")
         structure.set('replace', 'VXA.VXC.Structure')
         structure.set('Compression', 'ASCII_READABLE')
 
-        etree.SubElement(structure, "X_Voxels").text = str(X_Voxels)
-        etree.SubElement(structure, "Y_Voxels").text = str(Y_Voxels)
-        etree.SubElement(structure, "Z_Voxels").text = str(Z_Voxels)
+        etree.SubElement(structure, "X_Voxels").text = str(x_voxels)
+        etree.SubElement(structure, "Y_Voxels").text = str(y_voxels)
+        etree.SubElement(structure, "Z_Voxels").text = str(z_voxels)
 
         # set body data
         data_tag = etree.SubElement(structure, "Data")
-        for i in range(Z_Voxels):
+        for i in range(z_voxels):
             string = "".join([f"{c}" for c in body_flatten[:, i]])
             etree.SubElement(data_tag, "Layer").text = etree.CDATA(string)
 
