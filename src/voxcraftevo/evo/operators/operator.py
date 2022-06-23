@@ -13,9 +13,9 @@ class GeneticOperator(object):
         self.genotype_filter = genotype_filter
 
     def apply(self, *args):
-        new_born = self.propose(args)
+        new_born = self.propose(*args)
         while not self.genotype_filter(new_born):
-            new_born = self.propose(args)
+            new_born = self.propose(*args)
         return new_born
 
     @abc.abstractmethod
@@ -46,8 +46,10 @@ class GaussianMutation(GeneticOperator):
     def propose(self, *args) -> np.ndarray:
         if len(args) > 1:
             raise ValueError("More than one parent for mutation")
-        child = copy.deepcopy(args[0])
-        child += np.random.normal(self.mu, self.sigma, len(child))
+        child = copy.deepcopy(args[0][0])
+        mutation = np.random.normal(self.mu, self.sigma, len(child))
+        for i in range(len(child)):
+            child[i] += mutation[i]
         return child
 
     def get_arity(self):
