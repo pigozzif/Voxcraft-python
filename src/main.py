@@ -30,6 +30,8 @@ def parse_args():
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
     parser.add_argument("--time", default=48, type=int, help="maximumm hours for the ea")
     parser.add_argument("--reload", default=0, type=int, help="restart from last pickled population")
+    parser.add_argument("--execs", default="executables", type=str,
+                        help="relative path to the dir containing Voxcraft executables")
     return parser.parse_args()
 
 
