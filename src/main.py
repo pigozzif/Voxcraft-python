@@ -111,12 +111,12 @@ class MyFitness(FitnessFunction):
                 vxd.write(base_name + ".vxd")
 
     def get_fitness(self, ind, output_file):
-        root = etree.parse(output_file).getroot()
+        #root = etree.parse(output_file).getroot()
         values = []
         for _, r_label in enumerate(["b"]):
             for _, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
-                values.append(float(
-                    self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text))
+                values.append(random.random())#float(
+                    #self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text))
 
         return {"fitness": min(values)}
 

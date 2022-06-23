@@ -7,6 +7,7 @@ import numpy as np
 import subprocess as sub
 
 from .operators.operator import GeneticOperator
+from .selection.filters import Filter
 from .selection.selector import Selector
 from ..representations.factory import GenotypeFactory
 from ..representations.mapper import SolutionMapper
@@ -67,16 +68,22 @@ class Solver(object):
 
 class EvolutionarySolver(Solver):
 
-    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, data_dir, hist_dir,
-                 pickle_dir, output_dir, **kwargs):
+    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, genetic_operators,
+                 data_dir, hist_dir, pickle_dir, output_dir, comparator="lexicase", genotype_filter=None,
+                 phenotype_filter=None, **kwargs):
         super().__init__(seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir)
         self.pop_size = pop_size
         self.remap = remap
         self.continued_from_checkpoint = False
         self.pop = Population(pop_size=pop_size,
-                              genotype_factory=GenotypeFactory.create_factory(genotype_factory, **kwargs),
-                              solution_mapper=SolutionMapper.create_mapper(solution_mapper, **kwargs),
-                              objectives_dict=self.fitness_func.create_objectives_dict())
+                              genotype_factory=GenotypeFactory.create_factory(name=genotype_factory,
+                                                                              genotype_filter=Filter.create_filter(genotype_filter), **kwargs),
+                              solution_mapper=SolutionMapper.create_mapper(name=solution_mapper, **kwargs),
+                              objectives_dict=self.fitness_func.create_objectives_dict(),
+                              comparator=comparator)
+        self.genetic_operators = {GeneticOperator.create_genetic_operator(name=k,
+                                                                          phenotype_filter=Filter.create_filter(genotype_filter), **kwargs):
+                                      v for k, v in genetic_operators.items()}
 
     def evaluate_individuals(self):
         num_evaluated = 0
@@ -148,14 +155,13 @@ class EvolutionarySolver(Solver):
 class GeneticAlgorithm(EvolutionarySolver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, survival_selector, parent_selector,
-                 fitness_func, remap, genetic_operators, offspring_size, overlapping, data_dir, hist_dir, pickle_dir,
+                 fitness_func, offspring_size, overlapping, remap, genetic_operators, data_dir, hist_dir, pickle_dir,
                  output_dir, **kwargs):
-        super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, data_dir, hist_dir,
+        super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, genetic_operators,
+                         data_dir, hist_dir,
                          pickle_dir, output_dir, **kwargs)
         self.survival_selector = Selector.create_selector(name=survival_selector, **kwargs)
         self.parent_selector = Selector.create_selector(name=parent_selector, **kwargs)
-        self.genetic_operators = {GeneticOperator.create_genetic_operator(name=k, **kwargs): v for k, v in
-                                  genetic_operators.items()}
         self.offspring_size = offspring_size
         self.overlapping = overlapping
 
@@ -169,10 +175,8 @@ class GeneticAlgorithm(EvolutionarySolver):
         return children_genotypes
 
     def trim_population(self):
-        print("BEFORE: " + str({ind.id: ind.fitness["fitness"] for ind in self.pop}))
         while len(self.pop) > self.pop_size:
             self.pop.remove_individual(self.survival_selector.select(population=self.pop, n=1)[0])
-        print("AFTER: " + str({ind.id: ind.fitness["fitness"] for ind in self.pop}))
 
     def evolve(self):
         # apply genetic operators

@@ -7,8 +7,17 @@ import numpy as np
 
 class GeneticOperator(object):
 
-    @abc.abstractmethod
+    def __init__(self, phenotype_filter):
+        self.phenotype_filter = phenotype_filter
+
     def apply(self, *args):
+        new_born = self.propose(args)
+        while not self.phenotype_filter(new_born):
+            new_born = self.propose(args)
+        return new_born
+
+    @abc.abstractmethod
+    def propose(self, *args):
         pass
 
     @abc.abstractmethod
@@ -16,21 +25,22 @@ class GeneticOperator(object):
         pass
 
     @classmethod
-    def create_genetic_operator(cls, name, **kwargs):
+    def create_genetic_operator(cls, name, phenotype_filter, **kwargs):
         if name == "gaussian_mut":
-            return GaussianMutation(mu=kwargs["mu"], sigma=kwargs["sigma"])
+            return GaussianMutation(phenotype_filter=phenotype_filter, mu=kwargs["mu"], sigma=kwargs["sigma"])
         elif name == "geometric_cx":
-            return GeometricCrossover(upper=kwargs["upper"], lower=kwargs["lower"])
+            return GeometricCrossover(phenotype_filter=phenotype_filter, upper=kwargs["upper"], lower=kwargs["lower"])
         raise ValueError("Invalid genetic operator name: {}".format(name))
 
 
 class GaussianMutation(GeneticOperator):
 
-    def __init__(self, mu, sigma):
+    def __init__(self, phenotype_filter, mu, sigma):
+        super().__init__(phenotype_filter)
         self.mu = mu
         self.sigma = sigma
 
-    def apply(self, *args):
+    def propose(self, *args):
         if len(args) > 1:
             raise ValueError("More than one parent for mutation")
         child = copy.deepcopy(args[0])
@@ -43,11 +53,12 @@ class GaussianMutation(GeneticOperator):
 
 class GeometricCrossover(GeneticOperator):
 
-    def __init__(self, upper, lower):
+    def __init__(self, phenotype_filter, upper, lower):
+        super().__init__(phenotype_filter)
         self.upper = upper
         self.lower = lower
 
-    def apply(self, *args):
+    def propose(self, *args):
         if len(args) > 2:
             raise ValueError("More than two parents for crossover")
         parent1, parent2 = args
