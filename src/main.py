@@ -1,4 +1,6 @@
 import os
+import pickle
+
 from lxml import etree
 
 import numpy as np
@@ -27,6 +29,7 @@ def parse_args():
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
     parser.add_argument("--time", default=48, type=int, help="maximumm hours for the ea")
+    parser.add_argument("--reload", default=0, type=int, help="restart from last pickled population")
     return parser.parse_args()
 
 
@@ -133,6 +136,16 @@ if __name__ == "__main__":
         sub.call("mkdir executables", shell=True)
     sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/voxcraft-sim ./executables", shell=True)
     sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker ./executables", shell=True)
+
+    if arguments.reload:
+        pickled_pops = os.listdir("pickledPops{}".format(arguments.seed))
+        last_gen = sorted(pickled_pops, reverse=True)[0]
+        with open(os.path.join("pickledPops{}".format(arguments.seed), last_gen), "rb") as handle:
+            [optimizer, random_state, numpy_random_state] = pickle.load(handle)
+        best = optimizer.pop.get_best()
+        optimizer.save_best(best=best)
+        exit()
+
     sub.call("rm -rf pickledPops{}".format(arguments.seed), shell=True)
     sub.call("rm -rf data{}".format(arguments.seed), shell=True)
 
