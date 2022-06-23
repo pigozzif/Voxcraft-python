@@ -39,4 +39,4 @@ class UniformFloatFactory(GenotypeFactory):
         self.l, self.u = r
 
     def create(self) -> np.ndarray:
-        return np.array([random.random() * (self.u - self.l) - self.l for _ in range(self.n)])
+        return np.array([random.random() * (self.u - self.l) + self.l for _ in range(self.n)])
