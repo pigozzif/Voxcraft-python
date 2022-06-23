@@ -7,7 +7,7 @@ from voxcraftevo.representations.population import Individual
 class FitnessFunction(object):
 
     @staticmethod
-    def parse_fitness(root, bot_id: str) -> str:
+    def parse_fitness(root, bot_id: str):
         detail = root.findall("detail/")
         for d in detail:
             if d.tag == bot_id:

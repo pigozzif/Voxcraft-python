@@ -103,25 +103,28 @@ class EvolutionarySolver(Solver):
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
         sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".
                  format(num_evaluated, len(self.pop)), shell=True)
-        output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
-        while True:
-            try:
-                sub.call("cd {0}; ./voxcraft-sim -i {1} -o {2}".format(self.executables_dir,
-                                                                       os.path.join("..", self.data_dir),
-                                                                       os.path.join("..", output_file)), shell=True)
-                # sub.call waits for the process to return
-                # after it does, we collect the results output by the simulator
-                break
-
-            except IOError:
-                sub.call("echo Dang it! There was an IOError. I'll re-simulate this batch again...", shell=True)
-                pass
-
-            except IndexError:
-                sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
-                pass
         for ind in self.pop:
-            if not ind.evaluated:
+            if ind.evaluated:
+                continue
+            output_file = os.path.join(self.output_dir, "output{0}_{1}_{2}.xml".format(self.seed, self.pop.gen, ind.id))
+            while True:
+                try:
+                    sub.call("cd {0}; ./voxcraft-sim -i {1} -o {2}".format(self.executables_dir,
+                                                                           os.path.join("..", self.data_dir, "vxd_{}".format(ind.id)),
+                                                                           os.path.join("..", output_file)), shell=True)
+                    # sub.call waits for the process to return
+                    # after it does, we collect the results output by the simulator
+                    break
+
+                except IOError:
+                    sub.call("echo Dang it! There was an IOError. I'll re-simulate this batch again...", shell=True)
+                    pass
+
+                except IndexError:
+                    sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
+                    pass
+        # for ind in self.pop:
+        #     if not ind.evaluated:
                 ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
                 if not self.remap:
                     ind.evaluated = True
@@ -135,7 +138,8 @@ class EvolutionarySolver(Solver):
 
         # iterate until stop conditions met
         while self.pop.gen < max_gens and self.elapsed_time(units="h") <= max_hours_runtime:
-            sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
+            sub.call("rm -rf {}/*".format(self.data_dir), shell=True)
+            self.fitness_func.create_vxa(directory=self.data_dir)
 
             # checkpoint population
             if self.pop.gen % checkpoint_every == 0:  # and self.pop.gen > 0:

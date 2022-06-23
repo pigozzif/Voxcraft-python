@@ -109,7 +109,7 @@ class Population(object):
     def sort(self) -> None:
         self._individuals.sort(reverse=True)
 
-    def get_best(self) -> None:
+    def get_best(self) -> Individual:
         self.sort()
         return self[0]
 
