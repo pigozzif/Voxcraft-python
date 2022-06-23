@@ -1,8 +1,15 @@
-from random import random
+import random
+
+import numpy as np
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
 
 
 def weighted_random_by_dct(dct):
-    rand_val = random()
+    rand_val = random.random()
     total = 0
     for k, v in dct.items():
         total += v

@@ -19,11 +19,6 @@ from voxcraftevo.fitness.evaluation import FitnessFunction
 # (1.5**(1/3)-1)/0.01 = 14.4714
 
 
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
