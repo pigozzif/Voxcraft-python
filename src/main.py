@@ -123,7 +123,7 @@ class MyFitness(FitnessFunction):
         for _, r_label in enumerate(["b"]):
             for _, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
                 values.append(float(
-                    self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)).text))
+                    self.parse_fitness(root, "vxd_{}".format(ind.id)).text))
 
         return {"fitness": min(values)}
 
