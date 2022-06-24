@@ -138,9 +138,7 @@ class MyFitness(FitnessFunction):
             if file.endswith("vxd"):
                 sub.call("cd executables; ./voxcraft-sim -i {0} > {1} -f".format(
                     os.path.join("..", input_directory),
-                    os.path.join("..", output_directory, "{0}_id{1}_fit{2}.history".format(input_directory[4:],
-                                                                                           file.split(".")[0],
-                                                                                           best.fitness))), shell=True)
+                    os.path.join("..", output_directory, "ind{}.history".format(best.id))), shell=True)
 
 
 if __name__ == "__main__":
