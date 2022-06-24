@@ -135,12 +135,15 @@ class MyFitness(FitnessFunction):
     def save_histories(self, best, input_directory, output_directory):
         local_dir = "{0}/vxd_{1}".format(input_directory, best.id)
         self.create_vxd(best, input_directory, True)
+        sub.call("mkdir temp", shell=True)
         for file in os.listdir(local_dir):
             if file.endswith("vxd"):
                 print(file)
+                sub.call("cp {} temp/".format(os.path.join(local_dir, file)), shell=True)
                 sub.call("cd executables; ./voxcraft-sim -i {0} > {1} -f".format(
-                    os.path.join("..", local_dir),
-                    os.path.join("..", output_directory, "ind{}.history".format(best.id))), shell=True)
+                    os.path.join("..", "temp"),
+                    os.path.join("..", output_directory, "{}.history".format(file))), shell=True)
+        sub.call("rm -rf temp", shell=True)
 
 
 if __name__ == "__main__":
