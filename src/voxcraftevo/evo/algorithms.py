@@ -114,11 +114,11 @@ class EvolutionarySolver(Solver):
         for ind in self.pop:
             if ind.evaluated:
                 continue
-            output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
+            output_file = os.path.join(self.output_dir, "output{0}_{1}_{2}.xml".format(self.seed, self.pop.gen, ind.id))
             while True:
                 try:
                     sub.call("cd {0}; ./voxcraft-sim -i {1} -o {2}".format(self.executables_dir,
-                                                                       os.path.join("..", self.data_dir),
+                                                                       os.path.join("..", self.data_dir, "vxd_" + str(ind.id)),
                                                                        os.path.join("..", output_file)), shell=True)
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
