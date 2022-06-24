@@ -95,8 +95,8 @@ class MyFitness(FitnessFunction):
 
                 aperture_size = round(body_length * (0.25 if p_label == "impassable" else 0.75))
                 half = math.floor(body_length * 1.5)
-                world[:half, body_length * 2, :] = self.immovable_left
-                world[half:, body_length * 2, :] = self.immovable_right
+                #world[:half, body_length * 2, :] = self.immovable_left
+                #world[half:, body_length * 2, :] = self.immovable_right
 
                 left_bank = half - int(aperture_size / 2) - 1
                 right_bank = half + int(aperture_size / 2) + 1
@@ -106,9 +106,9 @@ class MyFitness(FitnessFunction):
                 elif p_label == "passable_right":
                     left_bank += math.ceil(aperture_size / 2)
                     right_bank += math.ceil(aperture_size / 2)
-                world[left_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_left
-                world[right_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_right
-                world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
+                #world[left_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_left
+                #world[right_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_right
+                #world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
 
                 if p_label != "impassable":
                     world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special
