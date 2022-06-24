@@ -58,7 +58,7 @@ class MyFitness(FitnessFunction):
 
     def create_objectives_dict(self):
         objective_dict = ObjectiveDict()
-        objective_dict.add_objective(name="fitness", maximize=True, tag="<fitness_score>")
+        objective_dict.add_objective(name="fitness", maximize=True, tag="<sensing_score>")
         return objective_dict
 
     def create_vxa(self, directory):

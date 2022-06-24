@@ -11,7 +11,7 @@ class FitnessFunction(object):
         detail = root.findall("detail/")
         for d in detail:
             if d.tag == bot_id:
-                return d.findall("fitness_score")[0]
+                return d.findall("sensing_score")[0]
         raise IndexError
 
     @abc.abstractmethod
