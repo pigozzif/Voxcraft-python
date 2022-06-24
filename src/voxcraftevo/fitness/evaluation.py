@@ -7,11 +7,11 @@ from voxcraftevo.representations.population import Individual
 class FitnessFunction(object):
 
     @staticmethod
-    def parse_fitness(root, bot_id: str):
+    def parse_fitness(root, bot_id: str, fitness_tag: str):
         detail = root.findall("detail/")
         for d in detail:
             if d.tag == bot_id:
-                return d.findall("sensing_score")[0]
+                return d.findall(fitness_tag)[0]
         raise IndexError
 
     @abc.abstractmethod
