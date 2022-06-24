@@ -134,6 +134,7 @@ class MyFitness(FitnessFunction):
 
     def save_histories(self, best, input_directory, output_directory):
         self.create_vxd(best, input_directory, True)
+        print(input_directory)
         for file in os.listdir(input_directory):
             if file.endswith("vxd"):
                 sub.call("cd executables; ./voxcraft-sim -i {0} > {1} -f".format(
