@@ -151,8 +151,8 @@ if __name__ == "__main__":
     # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker ./executables", shell=True)
     pickle_dir = "{0}{1}".format(arguments.pickled_dir, arguments.seed)
     data_dir = "{0}{1}".format(arguments.data_dir, arguments.seed)
-    sub.call("rm -rf {0}{1}".format(arguments.pickled_dir, arguments.seed), shell=True)
-    sub.call("rm -rf {0}{1}".format(arguments.data_dir, arguments.seed), shell=True)
+    sub.call("rm -rf {0}{1}".format(pickle_dir, arguments.seed), shell=True)
+    sub.call("rm -rf {0}{1}".format(data_dir, arguments.seed), shell=True)
 
     evolver = GeneticAlgorithm(seed=arguments.seed, pop_size=arguments.popsize, genotype_factory="uniform_float",
                                solution_mapper="direct", survival_selector="worst", parent_selector="tournament",
