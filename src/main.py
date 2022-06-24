@@ -32,6 +32,8 @@ def parse_args():
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
     parser.add_argument("--output_dir", default="output", type=str, help="relative path to output dir")
+    parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
+    parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
     return parser.parse_args()
 
@@ -147,16 +149,17 @@ if __name__ == "__main__":
 
     # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/voxcraft-sim ./executables", shell=True)
     # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker ./executables", shell=True)
-
-    sub.call("rm -rf pickledPops{}".format(arguments.seed), shell=True)
-    sub.call("rm -rf data{}".format(arguments.seed), shell=True)
+    pickle_dir = "{0}{1}".format(arguments.pickled_dir, arguments.seed)
+    data_dir = "{0}{1}".format(arguments.data_dir, arguments.seed)
+    sub.call("rm -rf {0}{1}".format(arguments.pickled_dir, arguments.seed), shell=True)
+    sub.call("rm -rf {0}{1}".format(arguments.data_dir, arguments.seed), shell=True)
 
     evolver = GeneticAlgorithm(seed=arguments.seed, pop_size=arguments.popsize, genotype_factory="uniform_float",
                                solution_mapper="direct", survival_selector="worst", parent_selector="tournament",
                                fitness_func=MyFitness(arguments.fitness), remap=False, genetic_operators={"gaussian_mut": 1.0},
                                offspring_size=arguments.popsize // 2, overlapping=True,
-                               data_dir="data{}".format(arguments.seed), hist_dir="history{}".format(arguments.seed),
-                               pickle_dir="pickledPops{}".format(arguments.seed), output_dir=arguments.output_dir,
+                               data_dir=data_dir, hist_dir="history{}".format(arguments.seed),
+                               pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                executables_dir=arguments.execs, tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
                                range=(-1, 1), upper=2.0, lower=-1.0)
 
