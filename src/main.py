@@ -81,7 +81,7 @@ class MyFitness(FitnessFunction):
         sub.call("cp {0}/base.vxa {1}/".format(directory, local_dir), shell=True)
         sub.call("rm {}/*.vxd".format(local_dir), shell=True)
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
+            for _, p_label in enumerate(["passable_left"]):#, "passable_right", "impassable"]):
                 base_name = os.path.join(local_dir, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
                                                                        p_label))
                 body_length = self.get_body_length(r_label)
