@@ -133,9 +133,9 @@ class MyFitness(FitnessFunction):
         return {"fitness": min(values)}
 
     def save_histories(self, best, input_directory, output_directory):
-        self.create_vxd(best, input_directory, True)
-        print(input_directory)
-        for file in os.listdir(input_directory):
+        local_dir = "{0}/vxd_{1}".format(input_directory, best.id)
+        self.create_vxd(best, local_dir, True)
+        for file in os.listdir(local_dir):
             if file.endswith("vxd"):
                 sub.call("cd executables; ./voxcraft-sim -i {0} > {1} -f".format(
                     os.path.join("..", input_directory),
