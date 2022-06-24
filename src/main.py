@@ -143,7 +143,7 @@ class MyFitness(FitnessFunction):
                 sub.call("cd executables; ./voxcraft-sim -i {0} > {1} -f".format(
                     os.path.join("..", "temp"),
                     os.path.join("..", output_directory, "{}.history".format(file))), shell=True)
-        sub.call("rm -rf temp", shell=True)
+        #sub.call("rm -rf temp", shell=True)
 
 
 if __name__ == "__main__":
