@@ -8,6 +8,7 @@ import subprocess as sub
 import argparse
 import math
 
+from voxcraftevo.listeners.Listener import Listener
 from voxcraftevo.utils.utilities import set_seed
 from voxcraftevo.evo.objectives import ObjectiveDict
 from voxcraftevo.configs.VXA import VXA
@@ -36,6 +37,14 @@ def parse_args():
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
     return parser.parse_args()
+
+
+class MyListener(Listener):
+
+    def listen(self, solver):
+        with open(self._file, "a") as file:
+            file.write(self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
+                                             str(solver.best_so_far.fitness["fitness"]), "\n"]))
 
 
 class MyFitness(FitnessFunction):
@@ -84,7 +93,7 @@ class MyFitness(FitnessFunction):
         sub.call("cp {0}/base.vxa {1}/".format(directory, local_dir), shell=True)
         sub.call("rm {}/*.vxd".format(local_dir), shell=True)
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(["passable_left"]):#, "passable_right", "impassable"]):
+            for _, p_label in enumerate(["passable_left"]):  # , "passable_right", "impassable"]):
                 base_name = os.path.join(local_dir, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
                                                                        p_label))
                 body_length = self.get_body_length(r_label)
@@ -99,8 +108,8 @@ class MyFitness(FitnessFunction):
 
                 aperture_size = round(body_length * (0.25 if p_label == "impassable" else 0.75))
                 half = math.floor(body_length * 1.5)
-                #world[:half, body_length * 2, :] = self.immovable_left
-                #world[half:, body_length * 2, :] = self.immovable_right
+                # world[:half, body_length * 2, :] = self.immovable_left
+                # world[half:, body_length * 2, :] = self.immovable_right
 
                 left_bank = half - int(aperture_size / 2) - 1
                 right_bank = half + int(aperture_size / 2) + 1
@@ -110,9 +119,9 @@ class MyFitness(FitnessFunction):
                 elif p_label == "passable_right":
                     left_bank += math.ceil(aperture_size / 2)
                     right_bank += math.ceil(aperture_size / 2)
-                #world[left_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_left
-                #world[right_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_right
-                #world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
+                # world[left_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_left
+                # world[right_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_right
+                # world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
 
                 if p_label != "impassable":
                     world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special
@@ -148,7 +157,7 @@ class MyFitness(FitnessFunction):
                 sub.call("cd executables; ./voxcraft-sim -i {0} > {1} -f".format(
                     os.path.join("..", "temp"),
                     os.path.join("..", output_directory, "{}.history".format(file))), shell=True)
-                #sub.call("rm temp/*.vxd", shell=True)
+                # sub.call("rm temp/*.vxd", shell=True)
         # sub.call("rm -rf temp", shell=True)
 
 
@@ -165,11 +174,16 @@ if __name__ == "__main__":
 
     evolver = GeneticAlgorithm(seed=arguments.seed, pop_size=arguments.popsize, genotype_factory="uniform_float",
                                solution_mapper="direct", survival_selector="worst", parent_selector="tournament",
-                               fitness_func=MyFitness(arguments.fitness), remap=False, genetic_operators={"gaussian_mut": 1.0},
+                               fitness_func=MyFitness(arguments.fitness), remap=False,
+                               genetic_operators={"gaussian_mut": 1.0},
                                offspring_size=arguments.popsize // 2, overlapping=True,
                                data_dir=data_dir, hist_dir="history{}".format(arguments.seed),
                                pickle_dir=pickle_dir, output_dir=arguments.output_dir,
-                               executables_dir=arguments.execs, tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
+                               executables_dir=arguments.execs, listener=MyListener(file_path="stats.csv",
+                                                                                    header=["seed", "gen", "elapsed"
+                                                                                                           ".time",
+                                                                                            "best.fitness"]),
+                               tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
                                range=(-1, 1), upper=2.0, lower=-1.0)
 
     if arguments.reload:

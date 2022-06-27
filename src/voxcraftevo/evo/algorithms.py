@@ -12,6 +12,7 @@ from .operators.operator import GeneticOperator
 from .selection.filters import Filter
 from .selection.selector import Selector
 from ..fitness.evaluation import FitnessFunction
+from ..listeners.Listener import Listener
 from ..representations.factory import GenotypeFactory
 from ..representations.mapper import SolutionMapper
 from ..representations.population import Population, Individual
@@ -85,7 +86,7 @@ class EvolutionarySolver(Solver):
 
     def __init__(self, seed, pop_size: int, genotype_factory: str, solution_mapper: str, fitness_func, remap: bool,
                  genetic_operators: Dict[str, float], data_dir, hist_dir, pickle_dir, output_dir, executables_dir,
-                 comparator: str = "lexicase", genotype_filter: str = None, **kwargs):
+                 listener: Listener, comparator: str = "lexicase", genotype_filter: str = None, **kwargs):
         super().__init__(seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir)
         self.pop_size = pop_size
         self.remap = remap
@@ -101,6 +102,7 @@ class EvolutionarySolver(Solver):
                                                                           genotype_filter=Filter.create_filter(
                                                                               genotype_filter), **kwargs):
                                   v for k, v in genetic_operators.items()}
+        self.listener = listener
 
     def evaluate_individuals(self) -> None:
         num_evaluated = 0
@@ -154,16 +156,14 @@ class EvolutionarySolver(Solver):
                 sub.call("echo Saving checkpoint at generation {0}".format(self.pop.gen + 1), shell=True)
                 self.save_checkpoint(pop=self.pop)
 
-            # save history of best individual so far
-            # if self.pop.gen % save_hist_every == 0:
-            #     sub.call("echo Saving history of run champ at generation {0}".format(self.pop.gen + 1), shell=True)
-            #     self.save_best(self.pop.get_best())
             # update population stats
             self.pop.gen += 1
             self.pop.update_ages()
             self.best_so_far = self.pop.get_best()
+            self.listener.listen(solver=self)
             # update evolution
             self.evolve()
+        self.listener.listen(solver=self)
         self.save_checkpoint(pop=self.pop)
         sub.call("echo Saving history of run champ at generation {0}".format(self.pop.gen + 1), shell=True)
         self.save_best(best=self.pop.get_best())
@@ -177,9 +177,9 @@ class GeneticAlgorithm(EvolutionarySolver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, survival_selector: str, parent_selector: str,
                  fitness_func, offspring_size: int, overlapping: bool, remap, genetic_operators, data_dir, hist_dir,
-                 pickle_dir, output_dir, executables_dir, **kwargs):
+                 pickle_dir, output_dir, executables_dir, listener, **kwargs):
         super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, genetic_operators,
-                         data_dir, hist_dir, pickle_dir, output_dir, executables_dir, **kwargs)
+                         data_dir, hist_dir, pickle_dir, output_dir, executables_dir, listener, **kwargs)
         self.survival_selector = Selector.create_selector(name=survival_selector, **kwargs)
         self.parent_selector = Selector.create_selector(name=parent_selector, **kwargs)
         self.offspring_size = offspring_size
