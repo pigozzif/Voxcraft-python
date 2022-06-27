@@ -8,7 +8,7 @@ import subprocess as sub
 import argparse
 import math
 
-from voxcraftevo.listeners.Listener import Listener
+from voxcraftevo.listeners.listener import Listener
 from voxcraftevo.utils.utilities import set_seed
 from voxcraftevo.evo.objectives import ObjectiveDict
 from voxcraftevo.configs.VXA import VXA
@@ -44,7 +44,10 @@ class MyListener(Listener):
     def listen(self, solver):
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
-                                             str(solver.best_so_far.fitness["fitness"]), "\n"]))
+                                             str(solver.best_so_far.fitness["fitness"]), str(solver.best_so_far.id),
+                                             str(np.median([ind.fitness["fitness"] for ind in solver.pop])),
+                                             str(min([ind.fitness["fitness"] for ind in solver.pop])),
+                                             "\n"]))
 
 
 class MyFitness(FitnessFunction):
@@ -182,7 +185,9 @@ if __name__ == "__main__":
                                executables_dir=arguments.execs, listener=MyListener(file_path="stats.csv",
                                                                                     header=["seed", "gen", "elapsed"
                                                                                                            ".time",
-                                                                                            "best.fitness"]),
+                                                                                            "best.fitness", "best.id",
+                                                                                            "median.fitness",
+                                                                                            "min.fitness"]),
                                tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
                                range=(-1, 1), upper=2.0, lower=-1.0)
 

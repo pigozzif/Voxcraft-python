@@ -13,5 +13,5 @@ class Listener(object):
             file.write(delimiter.join(header))
 
     @abc.abstractmethod
-    def listen(self, solver):
+    def listen(self, solver) -> None:
         pass

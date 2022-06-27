@@ -12,7 +12,7 @@ from .operators.operator import GeneticOperator
 from .selection.filters import Filter
 from .selection.selector import Selector
 from ..fitness.evaluation import FitnessFunction
-from ..listeners.Listener import Listener
+from ..listeners.listener import Listener
 from ..representations.factory import GenotypeFactory
 from ..representations.mapper import SolutionMapper
 from ..representations.population import Population, Individual
@@ -72,6 +72,7 @@ class Solver(object):
     def reload(self):
         pickled_pops = os.listdir(self.pickle_dir)
         last_gen = sorted(pickled_pops, reverse=True)[0]
+        print(last_gen)
         with open(os.path.join(self.pickle_dir, last_gen), "rb") as handle:
             [optimizer, random_state, numpy_random_state] = pickle.load(handle)
         best = optimizer.pop.get_best()
