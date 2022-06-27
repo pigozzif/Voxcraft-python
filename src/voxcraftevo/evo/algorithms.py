@@ -64,6 +64,7 @@ class Solver(object):
 
     def save_best(self, best: Individual) -> None:
         if self.best_so_far is None or self.best_so_far.id == best.id:
+            print("we are here instead")
             return
         print("we are here")
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
