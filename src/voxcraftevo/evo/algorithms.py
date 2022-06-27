@@ -69,13 +69,15 @@ class Solver(object):
         self.fitness_func.save_histories(best=best, input_directory=self.data_dir, output_directory=self.hist_dir)
         sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
 
-    def reload(self):
+    def reload(self):  # TODO: restore evolution state
         pickled_pops = os.listdir(self.pickle_dir)
         last_gen = sorted(pickled_pops, reverse=True)[0]
         print(last_gen)
         with open(os.path.join(self.pickle_dir, last_gen), "rb") as handle:
             [optimizer, random_state, numpy_random_state] = pickle.load(handle)
         best = optimizer.pop.get_best()
+        if self.best_so_far is None:
+            self.best_so_far = best
         print(best)
         optimizer.save_best(best=best)
 
