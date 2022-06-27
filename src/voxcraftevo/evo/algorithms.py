@@ -76,6 +76,7 @@ class Solver(object):
         with open(os.path.join(self.pickle_dir, last_gen), "rb") as handle:
             [optimizer, random_state, numpy_random_state] = pickle.load(handle)
         best = optimizer.pop.get_best()
+        print(best)
         optimizer.save_best(best=best)
 
     @abc.abstractmethod
