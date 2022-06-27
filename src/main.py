@@ -1,13 +1,13 @@
 import os
-
-from lxml import etree
-
-import numpy as np
 from time import time
 import subprocess as sub
 import argparse
 import math
 
+import numpy as np
+from lxml import etree
+
+from voxcraftevo.listeners.listener import Listener
 from voxcraftevo.utils.utilities import set_seed
 from voxcraftevo.evo.objectives import ObjectiveDict
 from voxcraftevo.configs.VXA import VXA
@@ -32,8 +32,20 @@ def parse_args():
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
     parser.add_argument("--output_dir", default="output", type=str, help="relative path to output dir")
+    parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
+    parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
     return parser.parse_args()
+
+
+class MyListener(Listener):
+
+    def listen(self, solver):
+        with open(self._file, "a") as file:
+            file.write(self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
+                                             str(solver.best_so_far.fitness["fitness"]), str(solver.best_so_far.id),
+                                             str(np.median([ind.fitness["fitness"] for ind in solver.pop])),
+                                             str(min([ind.fitness["fitness"] for ind in solver.pop]))]) + "\n")
 
 
 class MyFitness(FitnessFunction):
@@ -66,20 +78,20 @@ class MyFitness(FitnessFunction):
 
     def create_vxa(self, directory):
         vxa = VXA(TempAmplitude=14.4714, TempPeriod=0.2, TempBase=0)
-        self.immovable_left = vxa.add_material(material_id=1, RGBA=(50, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1)
-        self.immovable_right = vxa.add_material(material_id=2, RGBA=(0, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1)
-        self.special = vxa.add_material(material_id=3, RGBA=(255, 255, 255, 255), E=5e10, RHO=1e8, isFixed=1)
+        self.immovable_left = vxa.add_material(material_id=1, RGBA=(50, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1,
+                                               isMeasured=0)
+        self.immovable_right = vxa.add_material(material_id=2, RGBA=(0, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1,
+                                                isMeasured=0)
+        self.special = vxa.add_material(material_id=3, RGBA=(255, 255, 255, 255), E=5e10, RHO=1e8, isFixed=1,
+                                        isMeasured=0)
         self.soft = vxa.add_material(material_id=4, RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5,
-                                     CTE=0.01)
+                                     CTE=0.01, isMeasured=1)
         vxa.write(filename=os.path.join(directory, "base.vxa"))
 
     def create_vxd(self, ind, directory, record_history):
-        local_dir = directory  # "{0}/vxd_{1}".format(directory, ind.id)
-        # sub.call("mkdir {}".format(local_dir), shell=True)
-        # sub.call("cp {0}/base.vxa {1}/".format(directory, local_dir), shell=True)
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
-                base_name = os.path.join(local_dir, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
+            for _, p_label in enumerate(["passable_left"]):  # , "passable_right", "impassable"]):
+                base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
                                                                        p_label))
                 body_length = self.get_body_length(r_label)
                 world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
@@ -93,8 +105,8 @@ class MyFitness(FitnessFunction):
 
                 aperture_size = round(body_length * (0.25 if p_label == "impassable" else 0.75))
                 half = math.floor(body_length * 1.5)
-                world[:half, body_length * 2, :] = self.immovable_left
-                world[half:, body_length * 2, :] = self.immovable_right
+                # world[:half, body_length * 2, :] = self.immovable_left
+                # world[half:, body_length * 2, :] = self.immovable_right
 
                 left_bank = half - int(aperture_size / 2) - 1
                 right_bank = half + int(aperture_size / 2) + 1
@@ -104,9 +116,9 @@ class MyFitness(FitnessFunction):
                 elif p_label == "passable_right":
                     left_bank += math.ceil(aperture_size / 2)
                     right_bank += math.ceil(aperture_size / 2)
-                world[left_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_left
-                world[right_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_right
-                world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
+                # world[left_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_left
+                # world[right_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_right
+                # world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
 
                 if p_label != "impassable":
                     world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special
@@ -118,28 +130,29 @@ class MyFitness(FitnessFunction):
                 vxd.write(filename=base_name + ".vxd")
 
     def get_fitness(self, ind, output_file):
-        # try:
         root = etree.parse(output_file).getroot()
-        # except:
-        #     return {"fitness": 0.0}
         values = []
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(["passable_left", "passable_right", "impassable"]):
+            for _, p_label in enumerate(["passable_left"]):  # , "passable_right", "impassable"]):
                 values.append(float(
-                    self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label),
-                                       self.fitness).text))
+                    self.parse_fitness(root, "vxd_{}".format(ind.id), self.fitness).text))
 
         return {"fitness": min(values)}
 
     def save_histories(self, best, input_directory, output_directory):
-        self.create_vxd(best, input_directory, True)
-        for file in os.listdir(input_directory):
+        local_dir = "{0}/vxd_{1}".format(input_directory, best.id)
+        self.create_vxd(ind=best, directory=input_directory, record_history=True)
+        sub.call("mkdir temp", shell=True)
+        self.create_vxa(directory="temp")
+        for file in os.listdir(local_dir):
             if file.endswith("vxd"):
-                sub.call("cd executables; ./voxcraft-sim -i {0} > {1} -f".format(
-                    os.path.join("..", input_directory),
-                    os.path.join("..", output_directory, "{0}_id{1}_fit{2}.history".format(input_directory[4:],
-                                                                                           file.split(".")[0],
-                                                                                           best.fitness))), shell=True)
+                print(file)
+                sub.call("cp {} temp/".format(os.path.join(local_dir, file)), shell=True)
+                sub.call("cd executables; ./voxcraft-sim -i {0} -o output.xml > {1}".format(
+                    os.path.join("..", "temp"),
+                    os.path.join("..", output_directory, file.replace("vxd", "history"))), shell=True)
+                # sub.call("rm temp/{}".format(os.path.join(local_dir, file)), shell=True)
+        # sub.call("rm -rf temp", shell=True)
 
 
 if __name__ == "__main__":
@@ -148,17 +161,26 @@ if __name__ == "__main__":
 
     # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/voxcraft-sim ./executables", shell=True)
     # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker ./executables", shell=True)
+    pickle_dir = "{0}{1}".format(arguments.pickle_dir, arguments.seed)
+    data_dir = "{0}{1}".format(arguments.data_dir, arguments.seed)
+    sub.call("rm -rf {0}{1}".format(pickle_dir, arguments.seed), shell=True)
+    sub.call("rm -rf {0}{1}".format(data_dir, arguments.seed), shell=True)
 
-    sub.call("rm -rf pickledPops{}".format(arguments.seed), shell=True)
-    sub.call("rm -rf data{}".format(arguments.seed), shell=True)
-
-    evolver = GeneticAlgorithm(seed=arguments.seed, pop_size=arguments.popsize, genotype_factory="uniform_float",
+    seed = arguments.seed
+    evolver = GeneticAlgorithm(seed=seed, pop_size=arguments.popsize, genotype_factory="uniform_float",
                                solution_mapper="direct", survival_selector="worst", parent_selector="tournament",
-                               fitness_func=MyFitness(arguments.fitness), remap=False, genetic_operators={"gaussian_mut": 1.0},
+                               fitness_func=MyFitness(arguments.fitness), remap=False,
+                               genetic_operators={"gaussian_mut": 1.0},
                                offspring_size=arguments.popsize // 2, overlapping=True,
-                               data_dir="data{}".format(arguments.seed), hist_dir="history{}".format(arguments.seed),
-                               pickle_dir="pickledPops{}".format(arguments.seed), output_dir=arguments.output_dir,
-                               executables_dir=arguments.execs, tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
+                               data_dir=data_dir, hist_dir="history{}".format(seed),
+                               pickle_dir=pickle_dir, output_dir=arguments.output_dir,
+                               executables_dir=arguments.execs, listener=MyListener(file_path="{}.csv".format(seed),
+                                                                                    header=["seed", "gen", "elapsed"
+                                                                                                           ".time",
+                                                                                            "best.fitness", "best.id",
+                                                                                            "median.fitness",
+                                                                                            "min.fitness"]),
+                               tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
                                range=(-1, 1), upper=2.0, lower=-1.0)
 
     if arguments.reload:
