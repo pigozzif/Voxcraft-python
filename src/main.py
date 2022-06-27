@@ -157,7 +157,7 @@ class MyFitness(FitnessFunction):
             if file.endswith("vxd"):
                 print(file)
                 sub.call("cp {} temp/".format(os.path.join(local_dir, file)), shell=True)
-                sub.call("cd executables; ./voxcraft-sim -i {0} > {1} -f".format(
+                sub.call("cd executables; ./voxcraft-sim -i {0} > {1}".format(
                     os.path.join("..", "temp"),
                     os.path.join("..", output_directory, "{}.history".format(file))), shell=True)
                 # sub.call("rm temp/*.vxd", shell=True)
