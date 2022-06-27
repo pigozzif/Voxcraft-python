@@ -65,6 +65,7 @@ class Solver(object):
     def save_best(self, best: Individual) -> None:
         if self.best_so_far is None or self.best_so_far.id == best.id:
             return
+        print("we are here")
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
         self.fitness_func.save_histories(best=best, input_directory=self.data_dir, output_directory=self.hist_dir)
         sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
