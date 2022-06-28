@@ -56,6 +56,8 @@ class MyFitness(FitnessFunction):
         self.immovable_right = None
         self.soft = None
         self.special = None
+        self.terrains = ["passable_left"] if "locomotion" in fitness else ["passable_left", "passable_right",
+                                                                           "impassable"]
 
     @staticmethod
     def get_file_name(*args):
@@ -90,7 +92,7 @@ class MyFitness(FitnessFunction):
 
     def create_vxd(self, ind, directory, record_history):
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(["passable_left"]):  # , "passable_right", "impassable"]):
+            for _, p_label in enumerate(self.terrains):
                 base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
                                                                        p_label))
                 body_length = self.get_body_length(r_label)
@@ -105,8 +107,9 @@ class MyFitness(FitnessFunction):
 
                 aperture_size = round(body_length * (0.25 if p_label == "impassable" else 0.75))
                 half = math.floor(body_length * 1.5)
-                # world[:half, body_length * 2, :] = self.immovable_left
-                # world[half:, body_length * 2, :] = self.immovable_right
+                if "locomotion" not in self.fitness:
+                    world[:half, body_length * 2, :] = self.immovable_left
+                    world[half:, body_length * 2, :] = self.immovable_right
 
                 left_bank = half - int(aperture_size / 2) - 1
                 right_bank = half + int(aperture_size / 2) + 1
@@ -116,9 +119,10 @@ class MyFitness(FitnessFunction):
                 elif p_label == "passable_right":
                     left_bank += math.ceil(aperture_size / 2)
                     right_bank += math.ceil(aperture_size / 2)
-                # world[left_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_left
-                # world[right_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_right
-                # world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
+                if "locomotion" not in self.fitness:
+                    world[left_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_left
+                    world[right_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_right
+                    world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
 
                 if p_label != "impassable":
                     world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special
@@ -133,7 +137,7 @@ class MyFitness(FitnessFunction):
         root = etree.parse(output_file).getroot()
         values = []
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(["passable_left"]):  # , "passable_right", "impassable"]):
+            for _, p_label in enumerate(self.terrains):
                 values.append(float(
                     self.parse_fitness(root, "vxd_{}".format(ind.id), self.fitness).text))
 
@@ -159,8 +163,6 @@ if __name__ == "__main__":
     arguments = parse_args()
     set_seed(arguments.seed)
 
-    # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/voxcraft-sim ./executables", shell=True)
-    # sub.call("cp /users/f/p/fpigozzi/selfsimilar/voxcraft-sim/build/vx3_node_worker ./executables", shell=True)
     pickle_dir = "{0}{1}".format(arguments.pickle_dir, arguments.seed)
     data_dir = "{0}{1}".format(arguments.data_dir, arguments.seed)
     sub.call("rm -rf {0}{1}".format(pickle_dir, arguments.seed), shell=True)
