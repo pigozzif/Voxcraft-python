@@ -34,7 +34,7 @@ class ObjectiveDict(dict):
         curr_rank = self._max_rank
 
         # if fitness is not added first, shift every other objective "down" in importance
-        if name == "fitness" and self._max_rank > 0:
+        if name == "fitness_score" and self._max_rank > 0:
             curr_rank = 0  # change the key to rank 0
             for rank in reversed(range(len(self))):
                 self[rank + 1] = self[rank]

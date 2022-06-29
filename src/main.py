@@ -43,9 +43,16 @@ class MyListener(Listener):
     def listen(self, solver):
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
-                                             str(solver.best_so_far.fitness["fitness"]), str(solver.best_so_far.id),
-                                             str(np.median([ind.fitness["fitness"] for ind in solver.pop])),
-                                             str(min([ind.fitness["fitness"] for ind in solver.pop]))]) + "\n")
+                                             str(solver.best_so_far.fitness["fitness_score"]), str(solver.best_so_far.id),
+                                             str(np.median([ind.fitness["fitness_score"] for ind in solver.pop])),
+                                             str(min([ind.fitness["fitness_score"] for ind in solver.pop])),
+                                             str(solver.best_so_far.fitness["locomotion_score"]), str(solver.best_so_far.id),
+                                             str(np.median([ind.fitness["locomotion_score"] for ind in solver.pop])),
+                                             str(min([ind.fitness["locomotion_score"] for ind in solver.pop])),
+                                             str(solver.best_so_far.fitness["sensing_score"]), str(solver.best_so_far.id),
+                                             str(np.median([ind.fitness["sensing_score"] for ind in solver.pop])),
+                                             str(min([ind.fitness["sensing_score"] for ind in solver.pop]))
+                                             ]) + "\n")
 
 
 class MyFitness(FitnessFunction):
@@ -75,7 +82,9 @@ class MyFitness(FitnessFunction):
 
     def create_objectives_dict(self):
         objective_dict = ObjectiveDict()
-        objective_dict.add_objective(name="fitness", maximize=True, tag="<{}>".format(self.fitness))
+        objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness))
+        objective_dict.add_objective(name="locomotion_score", maximize=True, tag="<{}>".format("sensing_score"))
+        objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("locomotion_score"))
         return objective_dict
 
     def create_vxa(self, directory):
@@ -135,14 +144,15 @@ class MyFitness(FitnessFunction):
 
     def get_fitness(self, ind, output_file):
         root = etree.parse(output_file).getroot()
-        values = []
+        values = {"fitness_score": [], "sensing_score": [], "locomotion_score": []}
         for _, r_label in enumerate(["b"]):
             for _, p_label in enumerate(self.terrains):
-                values.append(float(
-                    self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
-                                                                p_label), self.fitness).text))
+                for tag in ["fitness_score", "sensing_score", "locomotion_score"]:
+                    values[tag].append(float(
+                        self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
+                                                                    p_label), fitness_tag=tag).text))
 
-        return {"fitness": min(values)}
+        return {k: min(v) for k, v in values.items()}
 
     def save_histories(self, best, input_directory, output_directory):
         local_dir = "{0}/vxd_{1}".format(input_directory, best.id)
