@@ -177,12 +177,12 @@ if __name__ == "__main__":
                                offspring_size=arguments.popsize // 2, overlapping=True,
                                data_dir=data_dir, hist_dir="history{}".format(seed),
                                pickle_dir=pickle_dir, output_dir=arguments.output_dir,
-                               executables_dir=arguments.execs, listener=MyListener(file_path="{}.csv".format(seed),
-                                                                                    header=["seed", "gen", "elapsed"
-                                                                                                           ".time",
-                                                                                            "best.fitness", "best.id",
-                                                                                            "median.fitness",
-                                                                                            "min.fitness"]),
+                               executables_dir=arguments.execs, listener=MyListener(file_path="{0}_{1}.csv".format(
+            arguments.fitness, seed), header=["seed", "gen", "elapsed"
+                                                             ".time",
+                                              "best.fitness", "best.id",
+                                              "median.fitness",
+                                              "min.fitness"]),
                                tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
                                range=(-1, 1), upper=2.0, lower=-1.0)
 
