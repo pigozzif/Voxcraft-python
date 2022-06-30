@@ -155,6 +155,7 @@ class MyFitness(FitnessFunction):
         return {k: min(v) for k, v in values.items()}
 
     def save_histories(self, best, input_directory, output_directory):
+        print(best.id)
         sub.call("rm {}/*vxd".format(input_directory), shell=True)
         self.create_vxd(ind=best, directory=input_directory, record_history=True)
         sub.call("mkdir temp", shell=True)
