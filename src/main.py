@@ -43,13 +43,16 @@ class MyListener(Listener):
     def listen(self, solver):
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
-                                             str(solver.best_so_far.fitness["fitness_score"]), str(solver.best_so_far.id),
+                                             str(solver.best_so_far.fitness["fitness_score"]),
+                                             str(solver.best_so_far.id),
                                              str(np.median([ind.fitness["fitness_score"] for ind in solver.pop])),
                                              str(min([ind.fitness["fitness_score"] for ind in solver.pop])),
-                                             str(solver.best_so_far.fitness["locomotion_score"]), str(solver.best_so_far.id),
+                                             str(solver.best_so_far.fitness["locomotion_score"]),
+                                             str(solver.best_so_far.id),
                                              str(np.median([ind.fitness["locomotion_score"] for ind in solver.pop])),
                                              str(min([ind.fitness["locomotion_score"] for ind in solver.pop])),
-                                             str(solver.best_so_far.fitness["sensing_score"]), str(solver.best_so_far.id),
+                                             str(solver.best_so_far.fitness["sensing_score"]),
+                                             str(solver.best_so_far.id),
                                              str(np.median([ind.fitness["sensing_score"] for ind in solver.pop])),
                                              str(min([ind.fitness["sensing_score"] for ind in solver.pop]))
                                              ]) + "\n")
