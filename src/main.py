@@ -189,11 +189,10 @@ if __name__ == "__main__":
                                data_dir=data_dir, hist_dir="history{}".format(seed),
                                pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                executables_dir=arguments.execs, listener=MyListener(file_path="{0}_{1}.csv".format(
-            arguments.fitness, seed), header=["seed", "gen", "elapsed"
-                                                             ".time",
-                                              "best.fitness", "best.id",
-                                              "median.fitness",
-                                              "min.fitness"]),
+            arguments.fitness, seed), header=["seed", "gen", "elapsed.time", "best.fitness_score", "best.id",
+                                              "median.fitness_score", "min.fitness_score", "best.locomotion_score",
+                                              "median.locomotion_score", "min.locomotion_score", "best.sensing_score",
+                                              "median.sensing_score", "min.sensing_score"]),
                                tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
                                range=(-1, 1), upper=2.0, lower=-1.0)
 
