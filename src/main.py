@@ -48,11 +48,9 @@ class MyListener(Listener):
                                              str(np.median([ind.fitness["fitness_score"] for ind in solver.pop])),
                                              str(min([ind.fitness["fitness_score"] for ind in solver.pop])),
                                              str(solver.best_so_far.fitness["locomotion_score"]),
-                                             str(solver.best_so_far.id),
                                              str(np.median([ind.fitness["locomotion_score"] for ind in solver.pop])),
                                              str(min([ind.fitness["locomotion_score"] for ind in solver.pop])),
                                              str(solver.best_so_far.fitness["sensing_score"]),
-                                             str(solver.best_so_far.id),
                                              str(np.median([ind.fitness["sensing_score"] for ind in solver.pop])),
                                              str(min([ind.fitness["sensing_score"] for ind in solver.pop]))
                                              ]) + "\n")
