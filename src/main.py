@@ -89,7 +89,7 @@ class MyFitness(FitnessFunction):
         return objective_dict
 
     def create_vxa(self, directory):
-        vxa = VXA(TempAmplitude=14.4714, TempPeriod=0.2, TempBase=0)
+        vxa = VXA(TempAmplitude=14.4714, TempPeriod=0.2, TempBase=0, EnableCollision=1)
         self.immovable_left = vxa.add_material(material_id=1, RGBA=(50, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1,
                                                isMeasured=0)
         self.immovable_right = vxa.add_material(material_id=2, RGBA=(0, 50, 50, 255), E=5e10, RHO=1e8, isFixed=1,
