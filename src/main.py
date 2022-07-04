@@ -109,17 +109,13 @@ class MyFitness(FitnessFunction):
                 world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
                 start = math.floor(body_length * 1.5)
-                half_thickness = math.floor(body_length / 6)
-                world[start - half_thickness: start + half_thickness + 1, body_length - 1: body_length * 2 - 1,
-                :half_thickness + 1] = self.soft
-                world[body_length: body_length * 2, start - half_thickness - 1: start + half_thickness,
-                :half_thickness + 1] = self.soft
+                world[start, body_length - 1: body_length * 2 - 1, 0] = self.soft
+                world[body_length: body_length * 2, start - 1, 0] = self.soft
 
-                aperture_size = round(body_length * (0.25 if p_label == "impassable" else 0.75))
+                aperture_size = 1 if p_label == "impassable" else body_length - 3
                 half = math.floor(body_length * 1.5)
-                if "locomotion" not in self.fitness:
-                    world[:half, body_length * 2, :] = self.immovable_left
-                    world[half:, body_length * 2, :] = self.immovable_right
+                world[:half, body_length * 2, :2] = self.immovable_left
+                world[half:, body_length * 2, :2] = self.immovable_right
 
                 left_bank = half - int(aperture_size / 2) - 1
                 right_bank = half + int(aperture_size / 2) + 1
@@ -130,8 +126,8 @@ class MyFitness(FitnessFunction):
                     left_bank += math.ceil(aperture_size / 2)
                     right_bank += math.ceil(aperture_size / 2)
                 if "locomotion" not in self.fitness:
-                    world[left_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_left
-                    world[right_bank, body_length * 2: body_length * 3 + 1, :] = self.immovable_right
+                    world[left_bank, body_length * 2: body_length * 3 + 1, :2] = self.immovable_left
+                    world[right_bank, body_length * 2: body_length * 3 + 1, :2] = self.immovable_right
                     world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
 
                 if p_label != "impassable":
