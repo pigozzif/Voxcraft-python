@@ -109,10 +109,11 @@ class MyFitness(FitnessFunction):
                 world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
                 start = math.floor(body_length * 1.5)
-                world[start, body_length - 1: body_length * 2 - 1, 0] = self.soft
-                world[body_length: body_length * 2, start - 1, 0] = self.soft
+                world[start - 1, body_length - 1: body_length * 2 - 1, 0] = self.soft
+                world[start + 1, body_length - 1: body_length * 2 - 1, 0] = self.soft
+                world[start, body_length + body_length // 2 - 1, 0] = self.soft
 
-                aperture_size = 1 if p_label == "impassable" else body_length - 3
+                aperture_size = 1 if p_label == "impassable" else 3
                 half = math.floor(body_length * 1.5)
                 world[:half, body_length * 2, :2] = self.immovable_left
                 world[half:, body_length * 2, :2] = self.immovable_right
