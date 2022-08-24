@@ -167,8 +167,8 @@ class MyFitness(FitnessFunction):
                     os.path.join("..", "temp"),
                     os.path.join("..", output_directory, file.replace("vxd", "history"))), shell=True)
                 sub.call("cd {}; rm output.xml".format(executables_directory), shell=True)
-                # sub.call("rm temp/{}".format(os.path.join(local_dir, file)), shell=True)
-        # sub.call("rm -rf temp", shell=True)
+                sub.call("rm temp/*.vxd", shell=True)
+        sub.call("rm -rf temp", shell=True)
 
 
 if __name__ == "__main__":
