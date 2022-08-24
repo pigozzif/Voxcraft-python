@@ -151,7 +151,7 @@ class MyFitness(FitnessFunction):
 
         return {k: min(v) for k, v in values.items()}
 
-    def save_histories(self, best, input_directory, output_directory):
+    def save_histories(self, best, input_directory, output_directory, executables_directory):
         print(best.id)
         print(best.fitness)
         sub.call("rm {}/*vxd".format(input_directory), shell=True)
@@ -162,7 +162,8 @@ class MyFitness(FitnessFunction):
             if file.endswith("vxd"):
                 print(file)
                 sub.call("cp {} temp/".format(os.path.join(input_directory, file)), shell=True)
-                sub.call("cd executables; ./voxcraft-sim -i {0} -o output.xml > {1}".format(
+                sub.call("cd {0}; ./voxcraft-sim -i {1} -o output.xml > {2}".format(
+                    executables_directory,
                     os.path.join("..", "temp"),
                     os.path.join("..", output_directory, file.replace("vxd", "history"))), shell=True)
                 # sub.call("rm temp/{}".format(os.path.join(local_dir, file)), shell=True)
