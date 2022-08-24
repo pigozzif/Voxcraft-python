@@ -74,6 +74,8 @@ class Solver(object):
         last_gen = sorted(pickled_pops, reverse=True)[0]
         with open(os.path.join(self.pickle_dir, last_gen), "rb") as handle:
             [optimizer, random_state, numpy_random_state] = pickle.load(handle)
+        for ind in optimizer.pop:
+            print(ind)
         best = optimizer.pop.get_best()
         optimizer.save_best(best=best)
 
