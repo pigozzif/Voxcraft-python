@@ -153,6 +153,7 @@ class MyFitness(FitnessFunction):
 
     def save_histories(self, best, input_directory, output_directory):
         print(best.id)
+        print(best.fitness)
         sub.call("rm {}/*vxd".format(input_directory), shell=True)
         self.create_vxd(ind=best, directory=input_directory, record_history=True)
         sub.call("mkdir temp", shell=True)
