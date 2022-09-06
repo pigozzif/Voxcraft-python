@@ -139,7 +139,7 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = {"fitness_score": random.random(), "locomotion_score": random.random(), "sensing_score": random.random()}  # random.random()#self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
                 if not self.remap:
                     ind.evaluated = True
 
@@ -235,8 +235,9 @@ class NSGAII(EvolutionarySolver):
         self.dominates = {}
         self.dominated_by = {}
         self.crowding_distances = {}
-        self.parent_selector = Selector.create_selector(name="tournament_crowded", crowding_distances=self.crowding_distances,
-                                                        fronts=self.fronts, **kwargs)
+        self.parent_selector = Selector.create_selector(name="tournament_crowded",
+                                                        crowding_distances=self.crowding_distances, fronts=self.fronts,
+                                                        **kwargs)
 
     def fast_non_dominated_sort(self):
         self.fronts.clear()
