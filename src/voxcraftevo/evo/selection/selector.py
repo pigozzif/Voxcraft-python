@@ -19,7 +19,11 @@ class Selector(object):
         if name == "worst":
             return WorstSelector()
         elif name == "tournament":
-            return TournamentSelector(kwargs["tournament_size"])
+            return TournamentSelector(size=kwargs["tournament_size"])
+        elif name == "tournament_crowded":
+            return TournamentCrowdedSelector(size=kwargs["tournament_size"],
+                                             crowding_distances=kwargs["crowding_distances"],
+                                             fronts=kwargs["fronts"])
         raise ValueError("Invalid selector name: {}".format(name))
 
 
@@ -32,10 +36,35 @@ class WorstSelector(Selector):
 
 class TournamentSelector(Selector):
 
-    def __init__(self, size: int, awarder=lambda x: sorted(x, reverse=True)[0]):
+    def __init__(self, size: int):
         self.size = size
-        self.awarder = awarder
 
     def select_individual(self, population):
         contenders = population.sample(n=self.size)
-        return self.awarder(contenders)
+        return sorted(contenders, reverse=True)[0]
+
+
+class TournamentCrowdedSelector(Selector):
+
+    def __init__(self, size: int, crowding_distances: dict, fronts: dict):
+        self.size = size
+        self.crowding_distances = crowding_distances
+        self.fronts = fronts
+
+    def select_individual(self, population):
+        contenders = population.sample(n=self.size)
+        reverse_fronts = {}
+        for individual in contenders:
+            for idx, front in self.fronts.items():
+                if individual in front:
+                    reverse_fronts[individual.id] = idx
+                    break
+        best = None
+        for individual in contenders:
+            if best is None:
+                best = individual
+            elif reverse_fronts[best.id] > reverse_fronts[individual.id]:
+                best = individual
+            elif self.crowding_distances[best.id] < self.crowding_distances[individual.id]:
+                best = individual
+        return best

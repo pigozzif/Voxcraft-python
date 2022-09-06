@@ -7,12 +7,12 @@ import math
 import numpy as np
 from lxml import etree
 
+from voxcraftevo.evo.algorithms import Solver
 from voxcraftevo.listeners.listener import Listener
 from voxcraftevo.utils.utilities import set_seed
 from voxcraftevo.evo.objectives import ObjectiveDict
 from voxcraftevo.configs.VXA import VXA
 from voxcraftevo.configs.VXD import VXD
-from voxcraftevo.evo.algorithms import GeneticAlgorithm
 from voxcraftevo.fitness.evaluation import FitnessFunction
 
 
@@ -23,6 +23,7 @@ from voxcraftevo.fitness.evaluation import FitnessFunction
 def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
+    parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
     parser.add_argument("--gens", default=501, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=4, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
@@ -58,7 +59,7 @@ class MyListener(Listener):
 
 class MyFitness(FitnessFunction):
 
-    def __init__(self, fitness):
+    def __init__(self, fitness, solver):
         self.fitness = fitness
         self.immovable_left = None
         self.immovable_right = None
@@ -66,6 +67,8 @@ class MyFitness(FitnessFunction):
         self.special = None
         self.terrains = ["passable_left"] if "locomotion" in fitness else ["passable_left", "passable_right",
                                                                            "impassable"]
+        self.solver = solver
+        self.objective_dict = ObjectiveDict()
 
     @staticmethod
     def get_file_name(*args):
@@ -82,11 +85,11 @@ class MyFitness(FitnessFunction):
         raise ValueError("Unknown body size: {}".format(r_label))
 
     def create_objectives_dict(self):
-        objective_dict = ObjectiveDict()
-        objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness))
-        objective_dict.add_objective(name="locomotion_score", maximize=True, tag="<{}>".format("sensing_score"))
-        objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("locomotion_score"))
-        return objective_dict
+        if self.solver != "nsgaii":
+            self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness))
+        self.objective_dict.add_objective(name="locomotion_score", maximize=True, tag="<{}>".format("sensing_score"))
+        self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("locomotion_score"))
+        return self.objective_dict
 
     def create_vxa(self, directory):
         vxa = VXA(TempAmplitude=14.4714, TempPeriod=0.2, TempBase=0, EnableCollision=1)
@@ -141,10 +144,10 @@ class MyFitness(FitnessFunction):
 
     def get_fitness(self, ind, output_file):
         root = etree.parse(output_file).getroot()
-        values = {"fitness_score": [], "sensing_score": [], "locomotion_score": []}
+        values = {obj["name"]: [] for obj in self.objective_dict.values()}
         for _, r_label in enumerate(["b"]):
             for _, p_label in enumerate(self.terrains):
-                for tag in ["fitness_score", "sensing_score", "locomotion_score"]:
+                for tag in values:
                     values[tag].append(float(
                         self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
                                                                     p_label), fitness_tag=tag).text))
@@ -152,8 +155,6 @@ class MyFitness(FitnessFunction):
         return {k: min(v) for k, v in values.items()}
 
     def save_histories(self, best, input_directory, output_directory, executables_directory):
-        print(best.id)
-        print(best.fitness)
         sub.call("rm {}/*vxd".format(input_directory), shell=True)
         self.create_vxd(ind=best, directory=input_directory, record_history=True)
         sub.call("mkdir temp", shell=True)
@@ -181,20 +182,47 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}{1}".format(data_dir, arguments.seed), shell=True)
 
     seed = arguments.seed
-    evolver = GeneticAlgorithm(seed=seed, pop_size=arguments.popsize, genotype_factory="uniform_float",
-                               solution_mapper="direct", survival_selector="worst", parent_selector="tournament",
-                               fitness_func=MyFitness(arguments.fitness), remap=False,
-                               genetic_operators={"gaussian_mut": 1.0},
-                               offspring_size=arguments.popsize // 2, overlapping=True,
-                               data_dir=data_dir, hist_dir="history{}".format(seed),
-                               pickle_dir=pickle_dir, output_dir=arguments.output_dir,
-                               executables_dir=arguments.execs, listener=MyListener(file_path="{0}_{1}.csv".format(
-            arguments.fitness, seed), header=["seed", "gen", "elapsed.time", "best.fitness_score", "best.id",
-                                              "median.fitness_score", "min.fitness_score", "best.locomotion_score",
-                                              "median.locomotion_score", "min.locomotion_score", "best.sensing_score",
-                                              "median.sensing_score", "min.sensing_score"]),
-                               tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
-                               range=(-1, 1), upper=2.0, lower=-1.0)
+    if arguments.solver == "ga":
+        evolver = Solver.create_solver(name="ga", seed=seed, pop_size=arguments.popsize,
+                                       genotype_factory="uniform_float",
+                                       solution_mapper="direct", survival_selector="worst",
+                                       parent_selector="tournament",
+                                       fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=False,
+                                       genetic_operators={"gaussian_mut": 1.0},
+                                       offspring_size=arguments.popsize // 2, overlapping=True,
+                                       data_dir=data_dir, hist_dir="history{}".format(seed),
+                                       pickle_dir=pickle_dir, output_dir=arguments.output_dir,
+                                       executables_dir=arguments.execs,
+                                       listener=MyListener(file_path="{0}_{1}.csv".format(
+                                           arguments.fitness, seed),
+                                           header=["seed", "gen", "elapsed.time", "best.fitness_score", "best.id",
+                                                   "median.fitness_score", "min.fitness_score", "best.locomotion_score",
+                                                   "median.locomotion_score", "min.locomotion_score", "best"
+                                                                                                      ".sensing_score",
+                                                   "median.sensing_score", "min.sensing_score"]),
+                                       tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
+                                       range=(-1, 1), upper=2.0, lower=-1.0)
+    elif arguments.solver == "nsgaii":
+        evolver = Solver.create_solver(name="nsgaii", seed=seed, pop_size=arguments.popsize,
+                                       genotype_factory="uniform_float",
+                                       solution_mapper="direct",
+                                       fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=False,
+                                       genetic_operators={"gaussian_mut": 1.0},
+                                       offspring_size=arguments.popsize // 2,
+                                       data_dir=data_dir, hist_dir="history{}".format(seed),
+                                       pickle_dir=pickle_dir, output_dir=arguments.output_dir,
+                                       executables_dir=arguments.execs,
+                                       listener=MyListener(file_path="{0}_{1}.csv".format(
+                                           arguments.fitness, seed),
+                                           header=["seed", "gen", "elapsed.time", "best.fitness_score", "best.id",
+                                                   "median.fitness_score", "min.fitness_score", "best.locomotion_score",
+                                                   "median.locomotion_score", "min.locomotion_score", "best"
+                                                                                                      ".sensing_score",
+                                                   "median.sensing_score", "min.sensing_score"]),
+                                       tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
+                                       range=(-1, 1), upper=2.0, lower=-1.0)
+    else:
+        raise ValueError("Invalid solver name: {}".format(arguments.solver))
 
     if arguments.reload:
         evolver.reload()
