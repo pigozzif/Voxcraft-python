@@ -32,9 +32,10 @@ class WorstSelector(Selector):
 
 class TournamentSelector(Selector):
 
-    def __init__(self, size: int):
+    def __init__(self, size: int, awarder=lambda x: sorted(x, reverse=True)[0]):
         self.size = size
+        self.awarder = awarder
 
     def select_individual(self, population):
         contenders = population.sample(n=self.size)
-        return sorted(contenders, reverse=True)[0]
+        return self.awarder(contenders)

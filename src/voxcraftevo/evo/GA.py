@@ -8,8 +8,11 @@ class GeneticAlgorithm(EvolutionarySolver):
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, survival_selector: str, parent_selector: str,
                  fitness_func, offspring_size: int, overlapping: bool, remap, genetic_operators, data_dir, hist_dir,
                  pickle_dir, output_dir, executables_dir, listener, **kwargs):
-        super().__init__(seed, pop_size, genotype_factory, solution_mapper, fitness_func, remap, genetic_operators,
-                         data_dir, hist_dir, pickle_dir, output_dir, executables_dir, listener, **kwargs)
+        super().__init__(seed=seed, pop_size=pop_size, genotype_factory=genotype_factory,
+                         solution_mapper=solution_mapper, fitness_func=fitness_func, remap=remap,
+                         genetic_operators=genetic_operators, data_dir=data_dir, hist_dir=hist_dir,
+                         pickle_dir=pickle_dir, output_dir=output_dir, executables_dir=executables_dir,
+                         listener=listener, comparator="lexicase", **kwargs)
         self.survival_selector = Selector.create_selector(name=survival_selector, **kwargs)
         self.parent_selector = Selector.create_selector(name=parent_selector, **kwargs)
         self.offspring_size = offspring_size

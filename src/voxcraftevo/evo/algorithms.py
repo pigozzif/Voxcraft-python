@@ -8,6 +8,8 @@ from typing import Dict
 import numpy as np
 import subprocess as sub
 
+from .GA import GeneticAlgorithm
+from .NSGAII import NSGAII
 from .operators.operator import GeneticOperator
 from .selection.filters import Filter
 from ..fitness.evaluation import FitnessFunction
@@ -78,12 +80,20 @@ class Solver(object):
     def solve(self, max_hours_runtime: int, max_gens: int, checkpoint_every: int, save_hist_every: int):
         pass
 
+    @classmethod
+    def create_solver(cls, name: str, **kwargs):
+        if name == "ga":
+            return GeneticAlgorithm(**kwargs)
+        elif name == "nsgaii":
+            return NSGAII(**kwargs)
+        raise ValueError("Invalid solver name: {}".format(name))
+
 
 class EvolutionarySolver(Solver):
 
     def __init__(self, seed, pop_size: int, genotype_factory: str, solution_mapper: str, fitness_func, remap: bool,
                  genetic_operators: Dict[str, float], data_dir, hist_dir, pickle_dir, output_dir, executables_dir,
-                 listener: Listener, comparator: str = "lexicase", genotype_filter: str = None, **kwargs):
+                 listener: Listener, comparator: str, genotype_filter: str = None, **kwargs):
         super().__init__(seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir)
         self.pop_size = pop_size
         self.remap = remap
