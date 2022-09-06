@@ -46,6 +46,8 @@ class Comparator(object):
     def create_comparator(cls, name: str, objective_dict: ObjectiveDict):
         if name == "lexicase":
             return LexicaseComparator(objective_dict=objective_dict)
+        elif name == "pareto":
+            return ParetoComparator(objective_dict=objective_dict)
         raise ValueError("Invalid comparator name: {}".format(name))
 
 
@@ -60,6 +62,20 @@ class LexicaseComparator(Comparator):
             elif d == -1:
                 return -1
         return 0
+
+
+class ParetoComparator(Comparator):
+
+    def compare(self, ind1, ind2):
+        won = False
+        for rank in reversed(range(len(self.objective_dict))):
+            goal = self.objective_dict[rank]
+            result = dominates(ind1=ind1, ind2=ind2, attribute_name=goal["name"], maximize=goal["maximize"])
+            if result == -1:
+                return -1
+            elif result == 1:
+                won = True
+        return 1 if won else 0
 
 
 class Population(object):
