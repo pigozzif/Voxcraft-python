@@ -320,5 +320,4 @@ class NSGAII(EvolutionarySolver):
         for child_genotype in self.build_offspring():
             self.pop.add_individual(genotype=child_genotype)
         self.evaluate_individuals()
-        # apply selection
         self.trim_population()
