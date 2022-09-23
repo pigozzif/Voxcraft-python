@@ -122,11 +122,11 @@ class Population(object):
         for ind in self:
             ind.age += 1
 
-    def sort(self, key) -> None:
-        self._individuals.sort(key=key, reverse=True)
+    def sort(self) -> None:
+        self._individuals.sort(reverse=True)
 
     def get_best(self) -> Individual:
-        self.sort(key=lambda x: x.fitness["sensing_score"])
+        self.sort()  # key=lambda x: x.fitness["sensing_score"])
         return self[0]
 
     def sample(self, n: int) -> Iterable[Individual]:
