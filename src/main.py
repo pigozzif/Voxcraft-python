@@ -132,8 +132,6 @@ class MyFitness(FitnessFunction):
                 if "locomotion" not in self.fitness:
                     world[:half, body_length * 2, :2] = self.immovable_left
                     world[half:, body_length * 2, :2] = self.immovable_right
-                    world[left_bank, body_length * 2: body_length * 3 + 1, :2] = self.immovable_left
-                    world[right_bank, body_length * 2: body_length * 3 + 1, :2] = self.immovable_right
                     world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
 
                 if p_label != "impassable":
@@ -203,7 +201,7 @@ if __name__ == "__main__":
                                                    "median.locomotion_score", "min.locomotion_score", "best"
                                                                                                       ".sensing_score",
                                                    "median.sensing_score", "min.sensing_score"]),
-                                       tournament_size=5, mu=0.0, sigma=0.35, n=(13 * 13) + 13 + (13 * 8) + 8,
+                                       tournament_size=5, mu=0.0, sigma=0.35, n=(9 * 9) + 9 + (9 * 8) + 8,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     elif arguments.solver == "nsgaii":
         evolver = Solver.create_solver(name="nsgaii", seed=seed, pop_size=arguments.popsize,
@@ -222,7 +220,7 @@ if __name__ == "__main__":
                                                    "median.locomotion_score", "min.locomotion_score", "best"
                                                                                                       ".sensing_score",
                                                    "median.sensing_score", "min.sensing_score"]),
-                                       tournament_size=5, mu=0.0, sigma=0.35, n=(12 * 8) + 8,
+                                       tournament_size=5, mu=0.0, sigma=0.35, n=(9 * 9) + 9 + (9 * 8) + 8,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     else:
         raise ValueError("Invalid solver name: {}".format(arguments.solver))
