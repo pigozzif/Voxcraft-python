@@ -73,6 +73,7 @@ class MyFitness(FitnessFunction):
                                                                            "impassable"]
         self.solver = solver
         self.objective_dict = ObjectiveDict()
+        self.ind_to_terrain = {}
 
     @staticmethod
     def get_file_name(*args):
@@ -106,9 +107,11 @@ class MyFitness(FitnessFunction):
         self.soft = vxa.add_material(material_id=4, RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5,
                                      CTE=0.01, isMeasured=1)
         vxa.write(filename=os.path.join(directory, "base.vxa"))
+        self.ind_to_terrain.clear()
 
     def create_vxd(self, ind, directory, record_history):
         p_label = random.choice(self.terrains)
+        self.ind_to_terrain[ind.id] = p_label
         for _, r_label in enumerate(["b"]):
             base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
                                                                    p_label))
@@ -147,12 +150,12 @@ class MyFitness(FitnessFunction):
     def get_fitness(self, ind, output_file):
         root = etree.parse(output_file).getroot()
         values = {obj["name"]: [] for obj in self.objective_dict.values()}
+        p_label = self.ind_to_terrain[ind.id]
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(self.terrains):
-                for tag in values:
-                    values[tag].append(float(
-                        self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
-                                                                    p_label), fitness_tag=tag).text))
+            for tag in values:
+                values[tag].append(float(
+                    self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
+                                                                p_label), fitness_tag=tag).text))
 
         return {k: min(v) for k, v in values.items()}
 
