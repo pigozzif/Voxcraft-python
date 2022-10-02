@@ -160,10 +160,6 @@ class EvolutionarySolver(Solver):
                 sub.call("echo Saving checkpoint at generation {0}".format(self.pop.gen + 1), shell=True)
                 self.save_checkpoint(pop=self.pop)
 
-            # save history of best individual so far
-            # if self.pop.gen % save_hist_every == 0:
-            #     sub.call("echo Saving history of run champ at generation {0}".format(self.pop.gen + 1), shell=True)
-            #     self.save_best(self.pop.get_best())
             # update population stats
             self.pop.gen += 1
             self.pop.update_ages()
