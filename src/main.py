@@ -1,4 +1,5 @@
 import os
+import random
 from time import time
 import subprocess as sub
 import argparse
@@ -107,41 +108,41 @@ class MyFitness(FitnessFunction):
         vxa.write(filename=os.path.join(directory, "base.vxa"))
 
     def create_vxd(self, ind, directory, record_history):
+        p_label = random.choice(self.terrains)
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(self.terrains):
-                base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
-                                                                       p_label))
-                body_length = self.get_body_length(r_label)
-                world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
+            base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
+                                                                   p_label))
+            body_length = self.get_body_length(r_label)
+            world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
-                start = math.floor(body_length * 1.5)
-                world[start, body_length - 1: body_length * 2 - 1, 0] = self.soft
-                world[body_length: body_length * 2, start - 1, 0] = self.soft
+            start = math.floor(body_length * 1.5)
+            world[start, body_length - 1: body_length * 2 - 1, 0] = self.soft
+            world[body_length: body_length * 2, start - 1, 0] = self.soft
 
-                aperture_size = 1 if p_label == "impassable" else body_length - 3
-                half = math.floor(body_length * 1.5)
+            aperture_size = 1 if p_label == "impassable" else body_length - 3
+            half = math.floor(body_length * 1.5)
 
-                left_bank = half - int(aperture_size / 2) - 1
-                right_bank = half + int(aperture_size / 2) + 1
-                if p_label == "passable_left":
-                    left_bank -= math.ceil(aperture_size / 2)
-                    right_bank -= math.ceil(aperture_size / 2)
-                elif p_label == "passable_right":
-                    left_bank += math.ceil(aperture_size / 2)
-                    right_bank += math.ceil(aperture_size / 2)
-                if "locomotion" not in self.fitness:
-                    world[:half, body_length * 2, :2] = self.immovable_left
-                    world[half:, body_length * 2, :2] = self.immovable_right
-                    world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
+            left_bank = half - int(aperture_size / 2) - 1
+            right_bank = half + int(aperture_size / 2) + 1
+            if p_label == "passable_left":
+                left_bank -= math.ceil(aperture_size / 2)
+                right_bank -= math.ceil(aperture_size / 2)
+            elif p_label == "passable_right":
+                left_bank += math.ceil(aperture_size / 2)
+                right_bank += math.ceil(aperture_size / 2)
+            if "locomotion" not in self.fitness:
+                world[:half, body_length * 2, :2] = self.immovable_left
+                world[half:, body_length * 2, :2] = self.immovable_right
+                world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
 
-                if p_label != "impassable":
-                    world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special
+            if p_label != "impassable":
+                world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special
 
-                vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable")
-                vxd.set_data(data=world)
-                vxd.set_tags(RecordVoxel=record_history, RecordFixedVoxels=record_history,
-                             RecordStepSize=100 if record_history else 0)
-                vxd.write(filename=base_name + ".vxd")
+            vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable")
+            vxd.set_data(data=world)
+            vxd.set_tags(RecordVoxel=record_history, RecordFixedVoxels=record_history,
+                         RecordStepSize=100 if record_history else 0)
+            vxd.write(filename=base_name + ".vxd")
 
     def get_fitness(self, ind, output_file):
         root = etree.parse(output_file).getroot()
