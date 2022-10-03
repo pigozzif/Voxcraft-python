@@ -192,7 +192,7 @@ if __name__ == "__main__":
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct", survival_selector="worst",
                                        parent_selector="tournament",
-                                       fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=False,
+                                       fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=True,
                                        genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2, overlapping=True,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
