@@ -139,7 +139,7 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                ind.fitness = {"fitness_score": random.random(), "locomotion_score": random.random(), "sensing_score": random.random()}#self.fitness_func.get_fitness(ind=ind, output_file=output_file)
                 if not self.remap:
                     ind.evaluated = True
 

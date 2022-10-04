@@ -66,9 +66,9 @@ class NSGAIIListener(Listener):
         solver.fast_non_dominated_sort()
         pareto_front = solver.fronts[0]
         stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time())])
-        locomotions = self._delimiter.join([str(ind["locomotion_score"]) if ind in pareto_front else "?"
+        locomotions = self._delimiter.join([str(ind.fitness["locomotion_score"]) if ind in pareto_front else "?"
                                             for ind in solver.pop])
-        sensing = self._delimiter.join([str(ind["sensing_score"]) if ind in pareto_front else "?"
+        sensing = self._delimiter.join([str(ind.fitness["sensing_score"]) if ind in pareto_front else "?"
                                         for ind in solver.pop])
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([stats, locomotions, sensing]) + "\n")
