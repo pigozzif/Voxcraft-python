@@ -92,8 +92,8 @@ class MyFitness(FitnessFunction):
     def create_objectives_dict(self):
         if self.solver != "nsgaii":
             self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness))
-        self.objective_dict.add_objective(name="locomotion_score", maximize=True, tag="<{}>".format("sensing_score"))
-        self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("locomotion_score"))
+        self.objective_dict.add_objective(name="locomotion_score", maximize=True, tag="<{}>".format("locomotion_score"))
+        self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("sensing_score"))
         return self.objective_dict
 
     def create_vxa(self, directory):
