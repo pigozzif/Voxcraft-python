@@ -295,7 +295,7 @@ class NSGAII(EvolutionarySolver):
         i = 0
         n = 0
         while n + len(self.fronts[i]) <= self.pop_size - self.offspring_size:
-            self.crowding_distance_assignment(self.fronts[i])
+            self.crowding_distance_assignment(individuals=self.fronts[i])
             n += len(self.fronts[i])
             i += 1
         self.crowding_distance_assignment(self.fronts[i])
@@ -312,7 +312,7 @@ class NSGAII(EvolutionarySolver):
         if self.pop.gen == 1:
             self.fast_non_dominated_sort()
             for front in self.fronts.values():
-                self.crowding_distance_assignment(front)
+                self.crowding_distance_assignment(individuals=front)
         for child_genotype in self.build_offspring():
             self.pop.add_individual(genotype=child_genotype)
         self.evaluate_individuals()

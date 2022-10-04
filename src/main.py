@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument("--popsize", default=4, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
-    parser.add_argument("--time", default=48, type=int, help="maximumm hours for the ea")
+    parser.add_argument("--time", default=48, type=int, help="maximum hours for the ea")
     parser.add_argument("--reload", default=0, type=int, help="restart from last pickled population")
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
@@ -58,6 +58,20 @@ class MyListener(Listener):
                                              str(np.median([ind.fitness["sensing_score"] for ind in solver.pop])),
                                              str(min([ind.fitness["sensing_score"] for ind in solver.pop]))
                                              ]) + "\n")
+
+
+class NSGAIIListener(Listener):
+
+    def listen(self, solver):
+        solver.fast_non_dominated_sort()
+        pareto_front = solver.fronts[0]
+        stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time())])
+        locomotions = self._delimiter.join([str(ind["locomotion_score"]) if ind in pareto_front else "?"
+                                            for ind in solver.pop])
+        sensing = self._delimiter.join([str(ind["sensing_score"]) if ind in pareto_front else "?"
+                                        for ind in solver.pop])
+        with open(self._file, "a") as file:
+            file.write(self._delimiter.join([stats, locomotions, sensing]) + "\n")
 
 
 class MyFitness(FitnessFunction):
@@ -90,8 +104,8 @@ class MyFitness(FitnessFunction):
     def create_objectives_dict(self):
         if self.solver != "nsgaii":
             self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness))
-        self.objective_dict.add_objective(name="locomotion_score", maximize=True, tag="<{}>".format("sensing_score"))
-        self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("locomotion_score"))
+        self.objective_dict.add_objective(name="locomotion_score", maximize=True, tag="<{}>".format("locomotion_score"))
+        self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("score_score"))
         return self.objective_dict
 
     def create_vxa(self, directory):
@@ -213,13 +227,11 @@ if __name__ == "__main__":
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
-                                       listener=MyListener(file_path="{0}_{1}.csv".format(
+                                       listener=NSGAIIListener(file_path="{0}_{1}.csv".format(
                                            arguments.fitness, seed),
-                                           header=["seed", "gen", "elapsed.time", "best.fitness_score", "best.id",
-                                                   "median.fitness_score", "min.fitness_score", "best.locomotion_score",
-                                                   "median.locomotion_score", "min.locomotion_score", "best"
-                                                                                                      ".sensing_score",
-                                                   "median.sensing_score", "min.sensing_score"]),
+                                           header=["seed", "gen", "elapsed.time", "best.fitness_score"] +
+                                                  ["_".join(["locomotion", str(i)]) for i in range(arguments.popsize)] +
+                                           ["_".join(["sensing", str(i)]) for i in range(arguments.popsize)]),
                                        tournament_size=5, mu=0.0, sigma=0.35, n=(9 * 9) + 9 + (9 * 8) + 8,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     else:
