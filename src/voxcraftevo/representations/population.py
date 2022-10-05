@@ -32,6 +32,9 @@ class Individual(object):
     def __lt__(self, other):
         return self.comparator.compare(ind1=self, ind2=other) == -1
 
+    def __gt__(self, other):
+        return self.comparator.compare(ind1=self, ind2=other) == 1
+
 
 class Comparator(object):
 
@@ -67,15 +70,19 @@ class LexicaseComparator(Comparator):
 class ParetoComparator(Comparator):
 
     def compare(self, ind1, ind2):
-        won = False
-        for rank in reversed(range(len(self.objective_dict))):
-            goal = self.objective_dict[rank]
+        wins = 0
+        losses = 0
+        for rank, goal in self.objective_dict.items():
             result = dominates(ind1=ind1, ind2=ind2, attribute_name=goal["name"], maximize=goal["maximize"])
             if result == -1:
-                return -1
+                losses += 1
             elif result == 1:
-                won = True
-        return 1 if won else 0
+                wins += 1
+        if wins != 0 and losses == 0:
+            return 1
+        elif wins == 0 and losses != 0:
+            return -1
+        return 0
 
 
 class Population(object):

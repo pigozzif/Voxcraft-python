@@ -139,16 +139,16 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
-                # if ind.id == 0:
-                #     ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"fitness_score": 2.0, "locomotion_score": 1.0, "sensing_score": 1.0}
-                # elif ind.id == 1:
-                #     ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"fitness_score": 1.0, "locomotion_score": 1.0, "sensing_score": 0.0}
-                # elif ind.id == 2:
-                #     ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"fitness_score": 1.0, "locomotion_score": 0.0, "sensing_score": 1.0}
-                # else:
-                #     ind.fitness = {"fitness_score": 0.0, "locomotion_score": 0.0,
-                #                    "sensing_score": 0.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                # ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                if ind.id == 0:
+                    ind.fitness = {"fitness_score": 2.0, "locomotion_score": 1.0, "sensing_score": 1.0}
+                elif ind.id == 1:
+                    ind.fitness = {"fitness_score": 1.0, "locomotion_score": 1.0, "sensing_score": 0.0}
+                elif ind.id == 2:
+                    ind.fitness = {"fitness_score": 1.0, "locomotion_score": 0.0, "sensing_score": 1.0}
+                else:
+                    ind.fitness = {"fitness_score": 0.0, "locomotion_score": 0.0,
+                                    "sensing_score": 0.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
                 if not self.remap:
                     ind.evaluated = True
 
@@ -251,7 +251,9 @@ class NSGAII(EvolutionarySolver):
         for p in self.pop:
             self.dominated_by[p.id] = 0
             for q in self.pop:
-                if p > q:
+                if p.id == q.id:
+                    continue
+                elif p > q:
                     if p.id not in self.dominates:
                         self.dominates[p.id] = [q]
                     else:
@@ -267,17 +269,19 @@ class NSGAII(EvolutionarySolver):
             self.fronts[0] = [ind for ind in self.pop]
             return
         i = 0
+        print("dominated by: ", self.dominated_by)
+        print("dominates: ", {k: [x.id for x in v] for k, v in self.dominates.items()})
         while len(self.fronts[i]):
             self.fronts[i + 1] = []
             for p in self.fronts[i]:
-                for q in self.dominates[p.id]:
+                print("for p: ", p.id)
+                for q in self.dominates.get(p.id, []):
+                    print("for q", q.id)
                     self.dominated_by[q.id] -= 1
                     if self.dominated_by[q.id] == 0:
-                        if i + 1 not in self.fronts:
-                            self.fronts[i + 1] = [q]
-                        else:
-                            self.fronts[i + 1].append(q)
+                        self.fronts[i + 1].append(q)
             i += 1
+        self.fronts.pop(i)
 
     def crowding_distance_assignment(self, individuals):
         for individual in individuals:
@@ -320,11 +324,10 @@ class NSGAII(EvolutionarySolver):
     def evolve(self):
         if self.pop.gen == 1:
             self.fast_non_dominated_sort()
-            print(self.pop)
-            print(self.fronts)
+            print({k: [x.id for x in v] for k, v in self.fronts.items()})
             for front in self.fronts.values():
-                print(front)
                 self.crowding_distance_assignment(individuals=front)
+        exit()
         for child_genotype in self.build_offspring():
             self.pop.add_individual(genotype=child_genotype)
         self.evaluate_individuals()
