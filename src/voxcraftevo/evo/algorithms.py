@@ -139,17 +139,16 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                if ind.id == 0:
-                    ind.fitness = {"fitness_score": 2.0, "locomotion_score": 1.0, "sensing_score": 1.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
-                elif ind.id == 1:
-                    ind.fitness = {"fitness_score": 1.0, "locomotion_score": 1.0,
-                                   "sensing_score": 0.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
-                elif ind.id == 2:
-                    ind.fitness = {"fitness_score": 1.0, "locomotion_score": 0.0,
-                                   "sensing_score": 1.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
-                else:
-                    ind.fitness = {"fitness_score": 0.0, "locomotion_score": 0.0,
-                                   "sensing_score": 0.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                # if ind.id == 0:
+                #     ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"fitness_score": 2.0, "locomotion_score": 1.0, "sensing_score": 1.0}
+                # elif ind.id == 1:
+                #     ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"fitness_score": 1.0, "locomotion_score": 1.0, "sensing_score": 0.0}
+                # elif ind.id == 2:
+                #     ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"fitness_score": 1.0, "locomotion_score": 0.0, "sensing_score": 1.0}
+                # else:
+                #     ind.fitness = {"fitness_score": 0.0, "locomotion_score": 0.0,
+                #                    "sensing_score": 0.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
                 if not self.remap:
                     ind.evaluated = True
 
