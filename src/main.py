@@ -197,6 +197,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}{1}".format(data_dir, arguments.seed), shell=True)
 
     seed = arguments.seed
+    number_of_params = (8 * 8) + 8 + (8 * 8) + 8
     if arguments.solver == "ga":
         evolver = Solver.create_solver(name="ga", seed=seed, pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
@@ -215,7 +216,7 @@ if __name__ == "__main__":
                                                    "median.locomotion_score", "min.locomotion_score", "best"
                                                                                                       ".sensing_score",
                                                    "median.sensing_score", "min.sensing_score"]),
-                                       tournament_size=5, mu=0.0, sigma=0.35, n=(9 * 9) + 9 + (9 * 8) + 8,
+                                       tournament_size=5, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     elif arguments.solver == "nsgaii":
         evolver = Solver.create_solver(name="nsgaii", seed=seed, pop_size=arguments.popsize,
@@ -232,7 +233,7 @@ if __name__ == "__main__":
                                            header=["seed", "gen", "elapsed.time"] +
                                                   ["_".join(["locomotion", str(i)]) for i in range(arguments.popsize)] +
                                            ["_".join(["sensing", str(i)]) for i in range(arguments.popsize)]),
-                                       tournament_size=5, mu=0.0, sigma=0.35, n=(8 * 8) + 8 + (8 * 8) + 8,
+                                       tournament_size=5, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     else:
         raise ValueError("Invalid solver name: {}".format(arguments.solver))
