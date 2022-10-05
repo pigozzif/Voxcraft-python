@@ -139,7 +139,17 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                if ind.id == 0:
+                    ind.fitness = {"fitness_score": 2.0, "locomotion_score": 1.0, "sensing_score": 1.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                elif ind.id == 1:
+                    ind.fitness = {"fitness_score": 1.0, "locomotion_score": 1.0,
+                                   "sensing_score": 0.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                elif ind.id == 2:
+                    ind.fitness = {"fitness_score": 1.0, "locomotion_score": 0.0,
+                                   "sensing_score": 1.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                else:
+                    ind.fitness = {"fitness_score": 0.0, "locomotion_score": 0.0,
+                                   "sensing_score": 0.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
                 if not self.remap:
                     ind.evaluated = True
 
@@ -272,7 +282,7 @@ class NSGAII(EvolutionarySolver):
 
     def crowding_distance_assignment(self, individuals):
         for individual in individuals:
-            self.crowding_distances[individual.id] = 0
+            self.crowding_distances[individual.id] = 0.0
         for rank, goal in self.pop.objectives_dict.items():
             individuals.sort(key=lambda x: x.fitness[goal["name"]], reverse=goal["maximize"])
             self.crowding_distances[individuals[0].id] = float("inf")
@@ -311,7 +321,10 @@ class NSGAII(EvolutionarySolver):
     def evolve(self):
         if self.pop.gen == 1:
             self.fast_non_dominated_sort()
+            print(self.pop)
+            print(self.fronts)
             for front in self.fronts.values():
+                print(front)
                 self.crowding_distance_assignment(individuals=front)
         for child_genotype in self.build_offspring():
             self.pop.add_individual(genotype=child_genotype)

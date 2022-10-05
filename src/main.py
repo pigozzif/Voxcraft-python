@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
     parser.add_argument("--gens", default=501, type=int, help="generations for the ea")
-    parser.add_argument("--popsize", default=4, type=int, help="population size for the ea")
+    parser.add_argument("--popsize", default=5, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
     parser.add_argument("--time", default=48, type=int, help="maximum hours for the ea")
@@ -229,10 +229,10 @@ if __name__ == "__main__":
                                        executables_dir=arguments.execs,
                                        listener=NSGAIIListener(file_path="{0}_{1}.csv".format(
                                            arguments.fitness, seed),
-                                           header=["seed", "gen", "elapsed.time", "best.fitness_score"] +
+                                           header=["seed", "gen", "elapsed.time"] +
                                                   ["_".join(["locomotion", str(i)]) for i in range(arguments.popsize)] +
                                            ["_".join(["sensing", str(i)]) for i in range(arguments.popsize)]),
-                                       tournament_size=5, mu=0.0, sigma=0.35, n=(9 * 9) + 9 + (9 * 8) + 8,
+                                       tournament_size=5, mu=0.0, sigma=0.35, n=(8 * 8) + 8 + (8 * 8) + 8,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     else:
         raise ValueError("Invalid solver name: {}".format(arguments.solver))
