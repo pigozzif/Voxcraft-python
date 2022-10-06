@@ -7,6 +7,7 @@ from typing import Dict
 
 import numpy as np
 import subprocess as sub
+import matplotlib.pyplot as plt
 
 from .operators.operator import GeneticOperator
 from .selection.filters import Filter
@@ -139,17 +140,7 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                # ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
-                ind.fitness = {"locomotion_score": ind.genotype[0] ** 2, "sensing_score": (ind.genotype[0] - 2) ** 2}
-                #if ind.id == 0:
-                #    ind.fitness = {"fitness_score": 2.0, "locomotion_score": 1.0, "sensing_score": 1.0}
-                #elif ind.id == 1:
-                #    ind.fitness = {"fitness_score": 1.0, "locomotion_score": 1.0, "sensing_score": 0.0}
-                #elif ind.id == 2:
-                #    ind.fitness = {"fitness_score": 1.0, "locomotion_score": 0.0, "sensing_score": 1.0}
-                #else:
-                #    ind.fitness = {"fitness_score": 0.0, "locomotion_score": 0.0,
-                #                    "sensing_score": 0.0}  # self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
                 if not self.remap:
                     ind.evaluated = True
 

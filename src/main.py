@@ -24,8 +24,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=10, type=int, help="generations for the ea")
-    parser.add_argument("--popsize", default=5, type=int, help="population size for the ea")
+    parser.add_argument("--gens", default=100, type=int, help="generations for the ea")
+    parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
     parser.add_argument("--time", default=48, type=int, help="maximum hours for the ea")
@@ -64,11 +64,11 @@ class NSGAIIListener(Listener):
 
     def listen(self, solver):
         solver.fast_non_dominated_sort()
-        pareto_front = solver.fronts[0]
+        pareto_front = [x.id for x in solver.fronts[0]]
         stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time())])
-        locomotions = self._delimiter.join([str(ind.fitness["locomotion_score"]) if ind in pareto_front else "?"
+        locomotions = self._delimiter.join([str(ind.fitness["locomotion_score"]) if ind.id in pareto_front else "?"
                                             for ind in solver.pop])
-        sensing = self._delimiter.join([str(ind.fitness["sensing_score"]) if ind in pareto_front else "?"
+        sensing = self._delimiter.join([str(ind.fitness["sensing_score"]) if ind.id in pareto_front else "?"
                                         for ind in solver.pop])
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([stats, locomotions, sensing]) + "\n")
@@ -105,14 +105,10 @@ class MyFitness(FitnessFunction):
         if self.solver != "nsgaii":
             self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness),
                                               best_value=2.0, worst_value=-1.0)
-        self.objective_dict.add_objective(name="locomotion_score", maximize=False, tag="<{}>".format("locomotion_score"),
-                                          best_value=0.0, worst_value=100)
-        self.objective_dict.add_objective(name="sensing_score", maximize=False, tag="<{}>".format("sensing_score"),
-                                          best_value=0.0, worst_value=100)
-        #self.objective_dict.add_objective(name="locomotion_score", maximize=True, tag="<{}>".format("locomotion_score"),
-        #                                  best_value=1.0, worst_value=-1.0)
-        #self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("score_score"),
-        #                                  best_value=1.0, worst_value=0.0)
+        self.objective_dict.add_objective(name="locomotion_score", maximize=True, tag="<{}>".format("locomotion_score"),
+                                          best_value=1.0, worst_value=-1.0)
+        self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("score_score"),
+                                          best_value=1.0, worst_value=0.0)
         return self.objective_dict
 
     def create_vxa(self, directory):
@@ -240,7 +236,7 @@ if __name__ == "__main__":
                                            header=["seed", "gen", "elapsed.time"] +
                                                   ["_".join(["locomotion", str(i)]) for i in range(arguments.popsize)] +
                                            ["_".join(["sensing", str(i)]) for i in range(arguments.popsize)]),
-                                       tournament_size=5, mu=0.0, sigma=0.35, n=number_of_params,
+                                       tournament_size=2, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     else:
         raise ValueError("Invalid solver name: {}".format(arguments.solver))
