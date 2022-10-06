@@ -201,12 +201,13 @@ if __name__ == "__main__":
 
     seed = arguments.seed
     number_of_params = (8 * 8) + 8 + (8 * 8) + 8
+    remap = False
     if arguments.solver == "ga":
         evolver = Solver.create_solver(name="ga", seed=seed, pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct", survival_selector="worst",
                                        parent_selector="tournament",
-                                       fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=False,
+                                       fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=remap,
                                        genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2, overlapping=True,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
@@ -225,7 +226,7 @@ if __name__ == "__main__":
         evolver = Solver.create_solver(name="nsgaii", seed=seed, pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct",
-                                       fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=False,
+                                       fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=remap,
                                        genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),

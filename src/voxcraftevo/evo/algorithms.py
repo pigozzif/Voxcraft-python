@@ -164,7 +164,7 @@ class EvolutionarySolver(Solver):
             # update population stats
             self.pop.gen += 1
             self.pop.update_ages()
-            self.best_so_far = self.pop.get_best()
+            self.best_so_far = self.get_best()
             # update evolution
             self.listener.listen(solver=self)
             self.evolve()
@@ -176,6 +176,9 @@ class EvolutionarySolver(Solver):
     @abc.abstractmethod
     def evolve(self):
         pass
+
+    def get_best(self):
+        return self.pop.get_best()
 
 
 class GeneticAlgorithm(EvolutionarySolver):
@@ -318,3 +321,18 @@ class NSGAII(EvolutionarySolver):
             self.pop.add_individual(genotype=child_genotype)
         self.evaluate_individuals()
         self.trim_population()
+
+    def get_best(self):
+        return min(self.pop, key=lambda x: self.get_distance_from_diagonal(individual=x,
+                                                                           objectives_dict=self.pop.objectives_dict))
+
+    @staticmethod
+    def get_distance_from_diagonal(individual, objectives_dict):
+        s = 0.0
+        for rank, goal in objectives_dict.items():
+            obj = individual.fitness[rank] / abs(goal["best_value"] - goal["worst_value"])
+            if s == 0.0:
+                s = obj
+            else:
+                s -= obj
+        return abs(s)
