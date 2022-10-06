@@ -55,16 +55,16 @@ class TournamentCrowdedSelector(Selector):
         contenders = population.sample(n=self.size)
         reverse_fronts = {}
         for individual in contenders:
+            found = False
             for idx, front in self.fronts.items():
-                if individual in front:
-                    reverse_fronts[individual.id] = idx
+                if found:
                     break
-        best = None
-        for individual in contenders:
-            if best is None:
-                best = individual
-            elif reverse_fronts[best.id] > reverse_fronts[individual.id]:
-                best = individual
-            elif self.crowding_distances[best.id] < self.crowding_distances[individual.id]:
-                best = individual
+                for ind in front:
+                    if individual.id == ind.id:
+                        reverse_fronts[individual.id] = idx
+                        found = True
+                        break
+        best_front_idx = reverse_fronts[min(contenders, key=lambda x: reverse_fronts[x.id]).id]
+        best_front = list(filter(lambda x: reverse_fronts[x.id] == best_front_idx, contenders))
+        best = max(best_front, key=lambda x: self.crowding_distances[x.id])
         return best

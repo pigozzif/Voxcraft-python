@@ -137,4 +137,4 @@ class Population(object):
         return self[0]
 
     def sample(self, n: int) -> Iterable[Individual]:
-        return np.random.choice(self, size=n)
+        return np.random.choice(self, size=n, replace=False)

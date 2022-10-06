@@ -8,7 +8,7 @@ class ObjectiveDict(dict):
         super(ObjectiveDict, self).__init__()
         self._max_rank = 0
 
-    def add_objective(self, name: str, maximize: bool, tag: str, meta_func=None) -> None:
+    def add_objective(self, name: str, maximize: bool, tag: str, best_value: float, worst_value: float, meta_func=None) -> None:
         """Add an optimization objective to the dictionary.
         Objectives must be added in order of importance, however fitness is fixed to be the most important.
         The keys of an ObjectiveDict correspond to the objective's rank or importance. The ranks are set via the order
@@ -24,6 +24,8 @@ class ObjectiveDict(dict):
         tag : str or None
             The tag used in parsing the resulting output from a VoxCraft simulation.
             If this is None then the attribute is calculated outside of VoxCraft (in Python only).
+        best_value: float
+        worst_value: float
         meta_func : function
             This is applied as a function of the objective value and individual, i.e. func(val, ind)
         """
@@ -42,7 +44,8 @@ class ObjectiveDict(dict):
         super(ObjectiveDict, self).__setitem__(curr_rank, {"name": name,
                                                            "maximize": maximize,
                                                            "tag": xml_format(tag) if tag is not None else None,
-                                                           "worst_value": -10e6 if maximize else 10e6,
+                                                           "best_value": best_value,
+                                                           "worst_value": worst_value,
                                                            "meta_func": meta_func
                                                            })
 
