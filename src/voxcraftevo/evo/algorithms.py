@@ -178,7 +178,7 @@ class EvolutionarySolver(Solver):
     def evolve(self):
         pass
 
-    def get_best(self):
+    def get_best(self) -> Individual:
         return self.pop.get_best()
 
 
@@ -240,7 +240,7 @@ class NSGAII(EvolutionarySolver):
                                                         crowding_distances=self.crowding_distances, fronts=self.fronts,
                                                         **kwargs)
 
-    def fast_non_dominated_sort(self):
+    def fast_non_dominated_sort(self) -> None:
         self.fronts.clear()
         self.dominates.clear()
         self.dominated_by.clear()
@@ -278,7 +278,7 @@ class NSGAII(EvolutionarySolver):
         for front in self.fronts.values():
             self.crowding_distance_assignment(individuals=front)
 
-    def crowding_distance_assignment(self, individuals):
+    def crowding_distance_assignment(self, individuals: list) -> None:
         for individual in individuals:
             self.crowding_distances[individual.id] = 0.0
         for rank, goal in self.pop.objectives_dict.items():
@@ -299,7 +299,7 @@ class NSGAII(EvolutionarySolver):
             children_genotypes.append(operator.apply(tuple(parents)))
         return children_genotypes
 
-    def trim_population(self):
+    def trim_population(self) -> None:
         self.fast_non_dominated_sort()
         i = 0
         n = 0
@@ -318,7 +318,7 @@ class NSGAII(EvolutionarySolver):
                     continue
             i += 1
 
-    def evolve(self):
+    def evolve(self) -> None:
         if self.pop.gen == 1:
             self.fast_non_dominated_sort()
         for child_genotype in self.build_offspring():
@@ -326,12 +326,12 @@ class NSGAII(EvolutionarySolver):
         self.evaluate_individuals()
         self.trim_population()
 
-    def get_best(self):
+    def get_best(self) -> Individual:
         return min(self.pop, key=lambda x: self.get_distance_from_diagonal(individual=x,
                                                                            objectives_dict=self.pop.objectives_dict))
 
     @staticmethod
-    def get_distance_from_diagonal(individual, objectives_dict):
+    def get_distance_from_diagonal(individual: Individual, objectives_dict: dict) -> float:
         s = 0.0
         for goal in objectives_dict.values():
             obj = individual.fitness[goal["name"]] / abs(goal["best_value"] - goal["worst_value"])
