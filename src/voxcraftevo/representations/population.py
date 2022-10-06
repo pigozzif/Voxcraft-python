@@ -26,6 +26,8 @@ class Individual(object):
     def __str__(self):
         return "Individual[id={0},age={1},fitness={2}]".format(self.id, self.age, self.fitness)
 
+    __repr__ = __str__
+
     def __eq__(self, other):
         return self.comparator.compare(ind1=self, ind2=other) == 0
 
@@ -70,19 +72,13 @@ class LexicaseComparator(Comparator):
 class ParetoComparator(Comparator):
 
     def compare(self, ind1, ind2):
-        wins = 0
-        losses = 0
-        for rank, goal in self.objective_dict.items():
-            result = dominates(ind1=ind1, ind2=ind2, attribute_name=goal["name"], maximize=goal["maximize"])
-            if result == -1:
-                losses += 1
-            elif result == 1:
-                wins += 1
-        if wins != 0 and losses == 0:
+        wins = [True if dominates(ind1=ind1, ind2=ind2, attribute_name=goal["name"], maximize=goal["maximize"]) >= 0
+                else False for rank, goal in self.objective_dict.items()]
+        if all(wins):
             return 1
-        elif wins == 0 and losses != 0:
-            return -1
-        return 0
+        elif any(wins):
+            return 0
+        return -1
 
 
 class Population(object):
