@@ -165,6 +165,7 @@ class EvolutionarySolver(Solver):
             self.pop.gen += 1
             self.pop.update_ages()
             self.best_so_far = self.get_best()
+            print(self.best_so_far.fitness)
             # update evolution
             self.listener.listen(solver=self)
             self.evolve()
@@ -311,7 +312,10 @@ class NSGAII(EvolutionarySolver):
         i += 1
         while i in self.fronts:
             for ind in self.fronts[i]:
-                self.pop.remove_individual(ind=ind)
+                try:
+                    self.pop.remove_individual(ind=ind)
+                except:
+                    continue
             i += 1
 
     def evolve(self):
@@ -329,8 +333,8 @@ class NSGAII(EvolutionarySolver):
     @staticmethod
     def get_distance_from_diagonal(individual, objectives_dict):
         s = 0.0
-        for rank, goal in objectives_dict.items():
-            obj = individual.fitness[rank] / abs(goal["best_value"] - goal["worst_value"])
+        for goal in objectives_dict.values():
+            obj = individual.fitness[goal["name"]] / abs(goal["best_value"] - goal["worst_value"])
             if s == 0.0:
                 s = obj
             else:
