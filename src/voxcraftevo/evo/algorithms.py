@@ -7,7 +7,6 @@ from typing import Dict
 
 import numpy as np
 import subprocess as sub
-import matplotlib.pyplot as plt
 
 from .operators.operator import GeneticOperator
 from .selection.filters import Filter
@@ -312,10 +311,7 @@ class NSGAII(EvolutionarySolver):
         i += 1
         while i in self.fronts:
             for ind in self.fronts[i]:
-                try:
-                    self.pop.remove_individual(ind=ind)
-                except:
-                    continue
+                self.pop.remove_individual(ind=ind)
             i += 1
 
     def evolve(self) -> None:

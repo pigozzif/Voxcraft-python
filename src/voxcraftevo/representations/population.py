@@ -116,7 +116,10 @@ class Population(object):
         self._max_id += 1
 
     def remove_individual(self, ind: Individual) -> None:
-        self._individuals.remove(ind)
+        try:
+            self._individuals.remove(ind)
+        except:
+            pass
 
     def clear(self) -> None:
         self._individuals = []
