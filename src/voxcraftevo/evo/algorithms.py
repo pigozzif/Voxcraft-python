@@ -6,6 +6,7 @@ import pickle
 from typing import Dict
 
 import numpy as np
+import matplotlib.pyplot as plt
 import subprocess as sub
 
 from .operators.operator import GeneticOperator
@@ -108,7 +109,7 @@ class EvolutionarySolver(Solver):
         self.genetic_operators = {GeneticOperator.create_genetic_operator(name=k,
                                                                           genotype_filter=Filter.create_filter(
                                                                               genotype_filter), **kwargs):
-                                  v for k, v in genetic_operators.items()}
+                                      v for k, v in genetic_operators.items()}
         self.listener = listener
 
     def evaluate_individuals(self) -> None:
@@ -137,7 +138,9 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"locomotion_score": ind.genotype[0] ** 2, "sensing_score": (ind.genotype[1] - 2) ** 2}
+                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0),
+                               # "sensing_score": min((ind.genotype[1] - 2) ** 2,
+                               #                      1.0)}
                 if not self.remap:
                     ind.evaluated = True
 
@@ -308,11 +311,7 @@ class NSGAII(EvolutionarySolver):
         i += 1
         while i in self.fronts:
             for ind in self.fronts[i]:
-                before = ind in self.pop
                 self.pop.remove_individual(ind=ind)
-                after = ind in self.pop
-                if before == after:
-                    print("before removing: ", before, " after removing: ", after)
             i += 1
 
     def evolve(self) -> None:
@@ -322,6 +321,10 @@ class NSGAII(EvolutionarySolver):
             self.pop.add_individual(genotype=child_genotype)
         self.evaluate_individuals()
         self.trim_population()
+        # plt.scatter([ind.fitness["locomotion_score"] for ind in self.fronts[0]],
+        #             [ind.fitness["sensing_score"] for ind in self.fronts[0]], color="red")
+        # plt.savefig(str(self.pop.gen) + ".png")
+        # plt.clf()
 
     def get_best(self) -> Individual:
         return min(self.pop, key=lambda x: self.get_distance_from_diagonal(individual=x,

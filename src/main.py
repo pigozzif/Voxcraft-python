@@ -64,12 +64,10 @@ class NSGAIIListener(Listener):
 
     def listen(self, solver):
         solver.fast_non_dominated_sort()
-        pareto_front = [x.id for x in solver.fronts[0]]
+        pareto_front = [x for x in solver.fronts[0]]
         stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time())])
-        locomotions = self._delimiter.join([str(ind.fitness["locomotion_score"]) if ind.id in pareto_front else "?"
-                                            for ind in solver.pop])
-        sensing = self._delimiter.join([str(ind.fitness["sensing_score"]) if ind.id in pareto_front else "?"
-                                        for ind in solver.pop])
+        locomotions = "/".join([str(ind.fitness["locomotion_score"]) for ind in pareto_front])
+        sensing = "/".join([str(ind.fitness["sensing_score"]) for ind in pareto_front])
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([stats, locomotions, sensing]) + "\n")
 
@@ -105,9 +103,10 @@ class MyFitness(FitnessFunction):
         if self.solver != "nsgaii":
             self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness),
                                               best_value=2.0, worst_value=-1.0)
-        self.objective_dict.add_objective(name="locomotion_score", maximize=True, tag="<{}>".format("locomotion_score"),
+        self.objective_dict.add_objective(name="locomotion_score", maximize=True,
+                                          tag="<{}>".format("locomotion_score"),
                                           best_value=1.0, worst_value=-1.0)
-        self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("score_score"),
+        self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("sensing_score"),
                                           best_value=1.0, worst_value=0.0)
         return self.objective_dict
 
@@ -234,9 +233,7 @@ if __name__ == "__main__":
                                        executables_dir=arguments.execs,
                                        listener=NSGAIIListener(file_path="{0}_{1}.csv".format(
                                            arguments.fitness, seed),
-                                           header=["seed", "gen", "elapsed.time"] +
-                                                  ["_".join(["locomotion", str(i)]) for i in range(arguments.popsize)] +
-                                           ["_".join(["sensing", str(i)]) for i in range(arguments.popsize)]),
+                                           header=["seed", "gen", "elapsed.time", "locomotions", "sensings"]),
                                        tournament_size=2, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     else:
