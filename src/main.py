@@ -24,7 +24,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=100, type=int, help="generations for the ea")
+    parser.add_argument("--gens", default=50, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")

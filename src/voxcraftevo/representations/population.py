@@ -108,6 +108,9 @@ class Population(object):
     def __iter__(self):
         return iter(self._individuals)
 
+    def __contains__(self, item):
+        return any([ind.id == item.id for ind in self])
+
     def add_individual(self, genotype) -> None:
         self._individuals.append(Individual(id=self._max_id,
                                             genotype=genotype,
@@ -116,10 +119,10 @@ class Population(object):
         self._max_id += 1
 
     def remove_individual(self, ind: Individual) -> None:
-        try:
-            self._individuals.remove(ind)
-        except:
-            pass
+        for idx, individual in enumerate(self):
+            if ind.id == individual.id:
+                self._individuals.pop(idx)
+                break
 
     def clear(self) -> None:
         self._individuals = []

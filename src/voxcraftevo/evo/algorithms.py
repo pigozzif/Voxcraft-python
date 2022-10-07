@@ -129,17 +129,15 @@ class EvolutionarySolver(Solver):
                 # sub.call waits for the process to return
                 # after it does, we collect the results output by the simulator
                 break
-
             except IOError:
                 sub.call("echo Dang it! There was an IOError. I'll re-simulate this batch again...", shell=True)
                 pass
-
             except IndexError:
                 sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)
+                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"locomotion_score": ind.genotype[0] ** 2, "sensing_score": (ind.genotype[1] - 2) ** 2}
                 if not self.remap:
                     ind.evaluated = True
 
@@ -164,7 +162,6 @@ class EvolutionarySolver(Solver):
             self.pop.gen += 1
             self.pop.update_ages()
             self.best_so_far = self.get_best()
-            print(self.best_so_far.fitness)
             # update evolution
             self.listener.listen(solver=self)
             self.evolve()
@@ -311,7 +308,11 @@ class NSGAII(EvolutionarySolver):
         i += 1
         while i in self.fronts:
             for ind in self.fronts[i]:
+                before = ind in self.pop
                 self.pop.remove_individual(ind=ind)
+                after = ind in self.pop
+                if before == after:
+                    print("before removing: ", before, " after removing: ", after)
             i += 1
 
     def evolve(self) -> None:
