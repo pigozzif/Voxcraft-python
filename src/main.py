@@ -24,7 +24,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=50, type=int, help="generations for the ea")
+    parser.add_argument("--gens", default=20, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}{1}".format(data_dir, arguments.seed), shell=True)
 
     seed = arguments.seed
-    number_of_params = (8 * 8) + 8 + (8 * 8) + 8
+    number_of_params = (9 * 9) + 9 + (9 * 8) + 8
     remap = False
     if arguments.solver == "ga":
         evolver = Solver.create_solver(name="ga", seed=seed, pop_size=arguments.popsize,

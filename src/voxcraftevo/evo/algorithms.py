@@ -19,6 +19,8 @@ from ..representations.mapper import SolutionMapper
 from ..representations.population import Population, Individual
 from ..utils.utilities import weighted_random_by_dct
 
+PLOT = False
+
 
 class Solver(object):
 
@@ -138,9 +140,10 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0),
-                               # "sensing_score": min((ind.genotype[1] - 2) ** 2,
-                               #                      1.0)}
+                ind.fitness = self.fitness_func.get_fitness(ind=ind,
+                                                            output_file=output_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0),
+                # "sensing_score": min((ind.genotype[1] - 2) ** 2,
+                #                      1.0)}
                 if not self.remap:
                     ind.evaluated = True
 
@@ -238,6 +241,7 @@ class NSGAII(EvolutionarySolver):
         self.parent_selector = Selector.create_selector(name="tournament_crowded",
                                                         crowding_distances=self.crowding_distances, fronts=self.fronts,
                                                         **kwargs)
+        self._fronts_to_plot = {}
 
     def fast_non_dominated_sort(self) -> None:
         self.fronts.clear()
@@ -321,10 +325,23 @@ class NSGAII(EvolutionarySolver):
             self.pop.add_individual(genotype=child_genotype)
         self.evaluate_individuals()
         self.trim_population()
-        # plt.scatter([ind.fitness["locomotion_score"] for ind in self.fronts[0]],
-        #             [ind.fitness["sensing_score"] for ind in self.fronts[0]], color="red")
-        # plt.savefig(str(self.pop.gen) + ".png")
-        # plt.clf()
+        if not PLOT:
+            return
+        if self.pop.gen == 1:
+            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
+        elif self.pop.gen == 10:
+            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
+        elif self.pop.gen == 20:
+            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
+            for color, (gen, front) in zip(["orange", "blue", "red"], self._fronts_to_plot.items()):
+                plt.scatter([ind.fitness["locomotion_score"] for ind in front],
+                            [ind.fitness["sensing_score"] for ind in front], color=color, alpha=0.5, label=str(gen))
+            plt.scatter([-1.0, 1.0, -1.0, 1.0], [0.0, 0.0, 1.0, 1.0], alpha=0.0)
+            plt.xlabel("locomotion through the aperture (m)")
+            plt.ylabel("affordance detection (% of timesteps correct)")
+            plt.legend()
+            plt.savefig("pareto_fronts.png")
+            plt.clf()
 
     def get_best(self) -> Individual:
         return min(self.pop, key=lambda x: self.get_distance_from_diagonal(individual=x,
