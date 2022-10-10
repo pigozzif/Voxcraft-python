@@ -32,7 +32,7 @@ class GeneticOperator(object):
             return GaussianMutation(genotype_filter=genotype_filter, mu=kwargs["mu"], sigma=kwargs["sigma"])
         elif name == "geometric_cx":
             return GeometricCrossover(genotype_filter=genotype_filter, upper=kwargs["upper"], lower=kwargs["lower"],
-                                      mu=kwargs["mu"], sigma=kwargs["sigma"])
+                                      mu=kwargs["mu"], sigma=0.1)
         raise ValueError("Invalid genetic operator name: {}".format(name))
 
 

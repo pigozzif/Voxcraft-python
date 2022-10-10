@@ -24,7 +24,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=20, type=int, help="generations for the ea")
+    parser.add_argument("--gens", default=40, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
@@ -226,7 +226,7 @@ if __name__ == "__main__":
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct",
                                        fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=remap,
-                                       genetic_operators={"gaussian_mut": 1.0},
+                                       genetic_operators={"gaussian_mut": 0.2, "geometric_cx": 0.8},
                                        offspring_size=arguments.popsize // 2,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,

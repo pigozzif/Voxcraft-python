@@ -329,9 +329,9 @@ class NSGAII(EvolutionarySolver):
             return
         if self.pop.gen == 1:
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
-        elif self.pop.gen == 10:
-            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
         elif self.pop.gen == 20:
+            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
+        elif self.pop.gen == 40:
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
             for color, (gen, front) in zip(["orange", "blue", "red"], self._fronts_to_plot.items()):
                 plt.scatter([ind.fitness["locomotion_score"] for ind in front],
@@ -340,7 +340,7 @@ class NSGAII(EvolutionarySolver):
             plt.xlabel("locomotion through the aperture (m)")
             plt.ylabel("affordance detection (% of timesteps correct)")
             plt.legend()
-            plt.savefig("pareto_fronts.png")
+            plt.savefig("pareto_fronts_cpg_long.png")
             plt.clf()
 
     def get_best(self) -> Individual:
