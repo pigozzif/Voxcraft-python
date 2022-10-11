@@ -140,8 +140,8 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = self.fitness_func.get_fitness(ind=ind,
-                                                            output_file=output_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0),
+                ind.fitness = {"locomotion_score": random.random(), "sensing_score": random.random()}  # self.fitness_func.get_fitness(ind=ind,
+                #                                            output_file=output_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0),
                 # "sensing_score": min((ind.genotype[1] - 2) ** 2,
                 #                      1.0)}
                 if not self.remap:
@@ -299,7 +299,7 @@ class NSGAII(EvolutionarySolver):
             operator = weighted_random_by_dct(dct=self.genetic_operators)
             parents = [parent.genotype for parent in self.parent_selector.select(population=self.pop,
                                                                                  n=operator.get_arity())]
-            children_genotypes.append(operator.apply(tuple(parents)))
+            children_genotypes.append(operator.apply(*parents))
         return children_genotypes
 
     def trim_population(self) -> None:

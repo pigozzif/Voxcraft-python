@@ -44,8 +44,8 @@ class GaussianMutation(GeneticOperator):
         self.sigma = sigma
 
     def propose(self, *args) -> np.ndarray:
-        if len(args) > 1:
-            raise ValueError("More than one parent for mutation")
+        if len(args) != 1:
+            raise ValueError("Need one parent for mutation")
         child = copy.deepcopy(args[0][0])
         mutation = np.random.normal(self.mu, self.sigma, len(child))
         for i in range(len(child)):
@@ -65,11 +65,12 @@ class GeometricCrossover(GeneticOperator):
         self.mutation = GaussianMutation(genotype_filter=genotype_filter, mu=mu, sigma=sigma)
 
     def propose(self, *args) -> np.ndarray:
-        if len(args) > 2:
-            raise ValueError("More than two parents for crossover")
+        if len(args) != 2:
+            raise ValueError("Need two parents for crossover")
         parent1, parent2 = args
-        return self.mutation.apply(np.array([v1 + (v2 - v1) * (random.random() * (self.upper - self.lower) + self.lower)
-                                             for v1, v2 in zip(parent1, parent2)]))
+        return self.mutation.apply(
+            tuple(np.array([v1 + (v2 - v1) * (random.random() * (self.upper - self.lower) + self.lower)
+                            for v1, v2 in zip(parent1, parent2)])))
 
     def get_arity(self):
         return 2
