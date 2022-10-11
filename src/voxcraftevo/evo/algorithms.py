@@ -140,8 +140,8 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = {"locomotion_score": random.random(), "sensing_score": random.random()}  # self.fitness_func.get_fitness(ind=ind,
-                #                                            output_file=output_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0),
+                ind.fitness = self.fitness_func.get_fitness(ind=ind,
+                                                            output_file=output_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0),
                 # "sensing_score": min((ind.genotype[1] - 2) ** 2,
                 #                      1.0)}
                 if not self.remap:
@@ -346,6 +346,14 @@ class NSGAII(EvolutionarySolver):
     def get_best(self) -> Individual:
         return min(self.pop, key=lambda x: self.get_distance_from_diagonal(individual=x,
                                                                            objectives_dict=self.pop.objectives_dict))
+
+    def save_best(self, best: Individual) -> None:
+        sub.call("rm {}/*".format(self.hist_dir), shell=True)
+        for individual in self.fronts[0]:
+            self.fitness_func.save_histories(best=individual, input_directory=self.data_dir,
+                                             output_directory=self.hist_dir,
+                                             executables_directory=self.executables_dir)
+        sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
 
     @staticmethod
     def get_distance_from_diagonal(individual: Individual, objectives_dict: dict) -> float:
