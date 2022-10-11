@@ -353,7 +353,7 @@ class NSGAII(EvolutionarySolver):
             self.fitness_func.save_histories(best=individual, input_directory=self.data_dir,
                                              output_directory=self.hist_dir,
                                              executables_directory=self.executables_dir)
-        sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
+            sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
 
     @staticmethod
     def get_distance_from_diagonal(individual: Individual, objectives_dict: dict) -> float:
