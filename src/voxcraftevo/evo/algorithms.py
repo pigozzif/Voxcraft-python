@@ -299,7 +299,7 @@ class NSGAII(EvolutionarySolver):
             operator = weighted_random_by_dct(dct=self.genetic_operators)
             parents = [parent.genotype for parent in self.parent_selector.select(population=self.pop,
                                                                                  n=operator.get_arity())]
-            children_genotypes.append(operator.apply(*parents))
+            children_genotypes.append(operator.apply(tuple(parents)))
         return children_genotypes
 
     def trim_population(self) -> None:
