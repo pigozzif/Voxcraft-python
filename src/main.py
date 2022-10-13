@@ -22,9 +22,9 @@ from voxcraftevo.fitness.evaluation import FitnessFunction
 
 def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
-    parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
+    parser.add_argument("--seed", default=3, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=40, type=int, help="generations for the ea")
+    parser.add_argument("--gens", default=30, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
@@ -79,7 +79,8 @@ class MyFitness(FitnessFunction):
         self.immovable_left = None
         self.immovable_right = None
         self.soft = None
-        self.special = None
+        self.special_passable = None
+        self.special_impassable = None
         self.terrains = ["passable_left"] if "locomotion" in fitness else ["passable_left", "passable_right",
                                                                            "impassable"]
         self.solver = solver
@@ -116,10 +117,13 @@ class MyFitness(FitnessFunction):
                                                uDynamic=0.5, isFixed=1, isMeasured=0)
         self.immovable_right = vxa.add_material(material_id=2, RGBA=(0, 50, 50, 255), E=10000, RHO=10, P=0.5,
                                                 uDynamic=0.5, isFixed=1, isMeasured=0)
-        self.special = vxa.add_material(material_id=3, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5,
-                                        isFixed=1, isMeasured=0)
+        self.special_passable = vxa.add_material(material_id=3, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
+                                                 uDynamic=0.5, isFixed=1, isMeasured=0)
         self.soft = vxa.add_material(material_id=4, RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5,
                                      CTE=0.01, isMeasured=1)
+        self.special_impassable = vxa.add_material(material_id=3, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
+                                                   uDynamic=0.5,
+                                                   isFixed=1, isMeasured=0)
         vxa.write(filename=os.path.join(directory, "base.vxa"))
 
     def create_vxd(self, ind, directory, record_history):
@@ -151,7 +155,9 @@ class MyFitness(FitnessFunction):
                     world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
 
                 if p_label != "impassable":
-                    world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special
+                    world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special_passable
+                else:
+                    world[half - 1, body_length * 2 + 1, 0] = self.special_impassable
 
                 vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable")
                 vxd.set_data(data=world)
