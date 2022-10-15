@@ -333,14 +333,17 @@ class NSGAII(EvolutionarySolver):
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
         elif self.pop.gen == 40:
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
+            print(max(self.fronts[0], key=lambda x: x.fitness["sensing_score"]))
+            print(max(self.fronts[0], key=lambda x: x.fitness["locomotion_score"]))
             for color, (gen, front) in zip(["orange", "blue", "red"], self._fronts_to_plot.items()):
-                plt.scatter([ind.fitness["locomotion_score"] for ind in front],
-                            [ind.fitness["sensing_score"] for ind in front], color=color, alpha=0.5, label=str(gen))
+                loc = [float(ind.fitness["locomotion_score"]) for ind in front],
+                sens = [float(ind.fitness["sensing_score"]) for ind in front]
+                plt.scatter(loc, sens, color=color, alpha=0.5, label=str(gen))
             plt.scatter([-1.0, 1.0, -1.0, 1.0], [0.0, 0.0, 1.0, 1.0], alpha=0.0)
             plt.xlabel("locomotion through the aperture (m)")
             plt.ylabel("affordance detection (% of timesteps correct)")
             plt.legend()
-            plt.savefig("pareto_fronts_cpg_long.png")
+            plt.savefig("pareto_fronts_{}.png".format(self.seed))
             plt.clf()
 
     def get_best(self) -> Individual:
@@ -353,7 +356,6 @@ class NSGAII(EvolutionarySolver):
             self.fitness_func.save_histories(best=individual, input_directory=self.data_dir,
                                              output_directory=self.hist_dir,
                                              executables_directory=self.executables_dir)
-            sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
 
     @staticmethod
     def get_distance_from_diagonal(individual: Individual, objectives_dict: dict) -> float:

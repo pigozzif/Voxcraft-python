@@ -24,7 +24,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=3, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=30, type=int, help="generations for the ea")
+    parser.add_argument("--gens", default=40, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
@@ -184,7 +184,6 @@ class MyFitness(FitnessFunction):
         self.create_vxa(directory="temp")
         for file in os.listdir(input_directory):
             if file.endswith("vxd"):
-                print(file)
                 sub.call("cp {} temp/".format(os.path.join(input_directory, file)), shell=True)
                 sub.call("cd {0}; ./voxcraft-sim -i {1} -o output.xml > {2}".format(
                     executables_directory,
