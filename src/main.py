@@ -157,7 +157,7 @@ class MyFitness(FitnessFunction):
                 if p_label != "impassable":
                     world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special_passable
                 else:
-                    world[half - 1, body_length * 2 + 1, 0] = self.special_impassable
+                    world[half, body_length * 2 + 1, 0] = self.special_impassable
 
                 vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable")
                 vxd.set_data(data=world)
