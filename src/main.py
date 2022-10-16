@@ -204,7 +204,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}{1}".format(data_dir, arguments.seed), shell=True)
 
     seed = arguments.seed
-    number_of_params = (9 * 9) + 9 + (9 * 8) + 8
+    number_of_params = (8 * 8) + 8 + (8 * 8) + 8
     remap = False
     if arguments.solver == "ga":
         evolver = Solver.create_solver(name="ga", seed=seed, pop_size=arguments.popsize,
