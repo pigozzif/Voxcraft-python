@@ -7,11 +7,14 @@ import numpy as np
 VOXEL_SIZE = 15
 
 
-def draw_robot(data, width, height, touch):
+def draw_robot(data, width, height, touch, is_passable):
     image = Image.new("RGB", ((width + 2) * VOXEL_SIZE, (height + 2) * VOXEL_SIZE), color="white")
     draw = ImageDraw.Draw(image)
     step_count, voxels = tuple(data.split(":"))
-    draw.text((0, 0), str(step_count), fill="black")
+    draw.text((0, 0), str(step_count) + "  truth", fill="black")
+    draw.rectangle((((width + 2) * VOXEL_SIZE / 2 - VOXEL_SIZE / 4, 0),
+                    ((width + 2) * VOXEL_SIZE / 2 + VOXEL_SIZE / 4, VOXEL_SIZE / 2)),
+                   outline="white", fill="blue" if is_passable else "red")
     new_voxels = []
     for voxel in voxels.split("/")[:-1]:
         vote, x, y, z, t = tuple(voxel.split(","))
@@ -35,6 +38,12 @@ def draw_robot(data, width, height, touch):
         else:
             fill = "red"
         draw.rectangle([x0y0, x1y1], outline="black" if not t else "yellow", fill=fill, width=2)
+    draw.text(((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, 0), "  majority", fill="black")
+    majority = 1 if len(list(filter(lambda x: x[0] >= 0.0, new_voxels))) >\
+                    len(list(filter(lambda x: x[0] < 0.0, new_voxels))) else 0
+    draw.rectangle((((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, 0),
+                    ((width + 2) * VOXEL_SIZE * 0.66 + VOXEL_SIZE / 4, VOXEL_SIZE / 2)),
+                   outline="white", fill="blue" if majority else "red")
     return image
 
 
@@ -50,7 +59,7 @@ if __name__ == "__main__":
         frame_count += 1
         if ("/" not in line) or "vx3_node_worker" in line or "setting" in line or frame_count % 2 == 0:
             continue
-        images.append(draw_robot(line, arguments.width, arguments.height, True))
+        images.append(draw_robot(line, arguments.width, arguments.height, True, "impassable" not in arguments.path))
         print(frame_count)
     fps = len(images) // 50
     out = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps,
