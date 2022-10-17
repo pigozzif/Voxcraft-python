@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--reload", default=0, type=int, help="restart from last pickled population")
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
-    parser.add_argument("--output_dir", default="output", type=str, help="relative path to output dir")
+    parser.add_argument("--output_dir", default="output_nsgaii_difficult_fixed/output_nsgaii_difficult_long", type=str, help="relative path to output dir")
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
@@ -121,7 +121,7 @@ class MyFitness(FitnessFunction):
                                                  uDynamic=0.5, isFixed=1, isMeasured=0)
         self.soft = vxa.add_material(material_id=4, RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5,
                                      CTE=0.01, isMeasured=1)
-        self.special_impassable = vxa.add_material(material_id=3, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
+        self.special_impassable = vxa.add_material(material_id=5, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
                                                    uDynamic=0.5,
                                                    isFixed=1, isMeasured=0)
         vxa.write(filename=os.path.join(directory, "base.vxa"))
@@ -200,8 +200,8 @@ if __name__ == "__main__":
 
     pickle_dir = "{0}{1}".format(arguments.pickle_dir, arguments.seed)
     data_dir = "{0}{1}".format(arguments.data_dir, arguments.seed)
-    sub.call("rm -rf {0}{1}".format(pickle_dir, arguments.seed), shell=True)
-    sub.call("rm -rf {0}{1}".format(data_dir, arguments.seed), shell=True)
+    sub.call("rm -rf {0}".format(pickle_dir), shell=True)
+    sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
     number_of_params = (9 * 9) + 9 + (9 * 8) + 8

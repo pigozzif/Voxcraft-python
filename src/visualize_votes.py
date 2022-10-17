@@ -1,4 +1,5 @@
 import argparse
+import subprocess
 
 from PIL import Image, ImageDraw, ImageFont
 import cv2
@@ -61,7 +62,9 @@ if __name__ == "__main__":
             continue
         images.append(draw_robot(line, arguments.width, arguments.height, True, "impassable" not in arguments.path))
         print(frame_count)
+    print("simulation over")
     fps = len(images) // 50
+    subprocess.call("rm output.avi", shell=True)
     out = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps,
                           ((int(arguments.width) + 2) * VOXEL_SIZE, (int(arguments.height) + 2) * VOXEL_SIZE))
     for image in images:
