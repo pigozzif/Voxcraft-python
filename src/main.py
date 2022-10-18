@@ -180,18 +180,19 @@ class MyFitness(FitnessFunction):
     def save_histories(self, individual, input_directory, output_directory, executables_directory):
         sub.call("rm {}/*vxd".format(input_directory), shell=True)
         self.create_vxd(ind=individual, directory=input_directory, record_history=True)
-        sub.call("mkdir {}".format(input_directory.replace("data", "temp")), shell=True)
+        temp_dir = input_directory.replace("data", "temp")
+        sub.call("mkdir {}".format(temp_dir), shell=True)
         self.create_vxa(directory="temp")
         for file in os.listdir(input_directory):
             if file.endswith("vxd"):
-                sub.call("cp {} temp/".format(os.path.join(input_directory, file)), shell=True)
+                sub.call("cp {0} {1}/".format(os.path.join(input_directory, file), temp_dir), shell=True)
                 sub.call("cd {0}; ./voxcraft-sim -i {1} -o output.xml > {2}".format(
                     executables_directory,
-                    os.path.join("..", "temp"),
+                    os.path.join("..", temp_dir),
                     os.path.join("..", output_directory, file.replace("vxd", "history"))), shell=True)
                 sub.call("cd {}; rm output.xml".format(executables_directory), shell=True)
-                sub.call("rm temp/*.vxd", shell=True)
-        sub.call("rm -rf temp", shell=True)
+                sub.call("rm {}/*.vxd".format(temp_dir), shell=True)
+        sub.call("rm -rf {}".format(temp_dir), shell=True)
 
 
 if __name__ == "__main__":
