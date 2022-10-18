@@ -182,7 +182,7 @@ class MyFitness(FitnessFunction):
         self.create_vxd(ind=individual, directory=input_directory, record_history=True)
         temp_dir = input_directory.replace("data", "temp")
         sub.call("mkdir {}".format(temp_dir), shell=True)
-        self.create_vxa(directory="temp")
+        self.create_vxa(directory=temp_dir)
         for file in os.listdir(input_directory):
             if file.endswith("vxd"):
                 sub.call("cp {0} {1}/".format(os.path.join(input_directory, file), temp_dir), shell=True)
