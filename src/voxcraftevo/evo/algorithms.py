@@ -67,7 +67,7 @@ class Solver(object):
 
     def save_best(self, best: Individual) -> None:
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        self.fitness_func.save_histories(best=best, input_directory=self.data_dir, output_directory=self.hist_dir,
+        self.fitness_func.save_histories(individual=best, input_directory=self.data_dir, output_directory=self.hist_dir,
                                          executables_directory=self.executables_dir)
         sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
 
@@ -333,6 +333,7 @@ class NSGAII(EvolutionarySolver):
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
         elif self.pop.gen == 40:
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
+            # 0: (2032, 661) 1: (1943, 573) 2: (1925, 792) 3: (765, 1973)
             print(max(self.fronts[0], key=lambda x: x.fitness["sensing_score"]))
             print(max(self.fronts[0], key=lambda x: x.fitness["locomotion_score"]))
             for color, (gen, front) in zip(["orange", "blue", "red"], self._fronts_to_plot.items()):
@@ -353,7 +354,7 @@ class NSGAII(EvolutionarySolver):
     def save_best(self, best: Individual) -> None:
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
         for individual in self.fronts[0]:
-            self.fitness_func.save_histories(best=individual, input_directory=self.data_dir,
+            self.fitness_func.save_histories(individual=individual, input_directory=self.data_dir,
                                              output_directory=self.hist_dir,
                                              executables_directory=self.executables_dir)
 
