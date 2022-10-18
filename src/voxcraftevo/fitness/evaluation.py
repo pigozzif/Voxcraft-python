@@ -31,6 +31,6 @@ class FitnessFunction(object):
         pass
 
     @abc.abstractmethod
-    def save_histories(self, best: Individual, input_directory: str, output_directory: str, executables_directory: str)\
+    def save_histories(self, individual: Individual, input_directory: str, output_directory: str, executables_directory: str)\
             -> None:
         pass

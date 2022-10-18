@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--reload", default=0, type=int, help="restart from last pickled population")
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
-    parser.add_argument("--output_dir", default="output_nsgaii_difficult_fixed/output_nsgaii_difficult_long", type=str, help="relative path to output dir")
+    parser.add_argument("--output_dir", default="output_super_fixed/output_nsgaii_difficult_long", type=str, help="relative path to output dir")
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
@@ -177,10 +177,10 @@ class MyFitness(FitnessFunction):
 
         return {k: min(v) for k, v in values.items()}
 
-    def save_histories(self, best, input_directory, output_directory, executables_directory):
+    def save_histories(self, individual, input_directory, output_directory, executables_directory):
         sub.call("rm {}/*vxd".format(input_directory), shell=True)
-        self.create_vxd(ind=best, directory=input_directory, record_history=True)
-        sub.call("mkdir temp", shell=True)
+        self.create_vxd(ind=individual, directory=input_directory, record_history=True)
+        sub.call("mkdir {}".format(input_directory.replace("data", "temp")), shell=True)
         self.create_vxa(directory="temp")
         for file in os.listdir(input_directory):
             if file.endswith("vxd"):
