@@ -72,11 +72,11 @@ class LexicaseComparator(Comparator):
 class ParetoComparator(Comparator):
 
     def compare(self, ind1, ind2):
-        wins = [True if dominates(ind1=ind1, ind2=ind2, attribute_name=goal["name"], maximize=goal["maximize"]) > 0
-                else False for rank, goal in self.objective_dict.items()]
-        if all(wins):
+        wins = [dominates(ind1=ind1, ind2=ind2, attribute_name=goal["name"], maximize=goal["maximize"])
+                for rank, goal in self.objective_dict.items()]
+        if all([w >= 0 for w in wins]):
             return 1
-        elif any(wins):
+        elif any([w > 0 for w in wins]):
             return 0
         return -1
 
