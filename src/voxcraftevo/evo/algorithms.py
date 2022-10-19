@@ -19,7 +19,7 @@ from ..representations.mapper import SolutionMapper
 from ..representations.population import Population, Individual
 from ..utils.utilities import weighted_random_by_dct
 
-PLOT = False
+PLOT = True
 
 
 class Solver(object):
@@ -140,10 +140,7 @@ class EvolutionarySolver(Solver):
                 pass
         for ind in self.pop:
             if not ind.evaluated:
-                ind.fitness = self.fitness_func.get_fitness(ind=ind,
-                                                            output_file=output_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0),
-                # "sensing_score": min((ind.genotype[1] - 2) ** 2,
-                #                      1.0)}
+                ind.fitness = self.fitness_func.get_fitness(ind=ind, output_file=output_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
                 if not self.remap:
                     ind.evaluated = True
 
@@ -333,7 +330,7 @@ class NSGAII(EvolutionarySolver):
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
         elif self.pop.gen == 40:
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
-            # 0: (2032, 661) 1: (1943, 573) 2: (1925, 792) 3: (765, 1973)
+            # 0: (2009, 510) 1: (1800, 1423) 2: (2083, 787) 3: (766, 672)
             print(max(self.fronts[0], key=lambda x: x.fitness["sensing_score"]))
             print(max(self.fronts[0], key=lambda x: x.fitness["locomotion_score"]))
             for color, (gen, front) in zip(["orange", "blue", "red"], self._fronts_to_plot.items()):
@@ -344,7 +341,7 @@ class NSGAII(EvolutionarySolver):
             plt.xlabel("locomotion through the aperture (m)")
             plt.ylabel("affordance detection (% of timesteps correct)")
             plt.legend()
-            plt.savefig("pareto_fronts_{}.png".format(self.seed))
+            plt.savefig("pareto_front_{}.png".format(self.seed))
             plt.clf()
 
     def get_best(self) -> Individual:

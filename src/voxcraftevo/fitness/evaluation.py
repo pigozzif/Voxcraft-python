@@ -11,7 +11,16 @@ class FitnessFunction(object):
         detail = root.findall("detail/")
         for d in detail:
             if d.tag == bot_id:
-                return d.findall(fitness_tag)[0]
+                return float(d.findall(fitness_tag)[0].text)
+        raise IndexError
+
+    @staticmethod
+    def parse_pos(root, bot_id: str, tag: str):
+        detail = root.findall("detail/")
+        for d in detail:
+            if d.tag == bot_id:
+                center = d.findall(tag)[0]
+                return float(center.findall("x")[0].text), float(center.findall("y")[0].text), float(center.findall("z")[0].text)
         raise IndexError
 
     @abc.abstractmethod
@@ -31,6 +40,7 @@ class FitnessFunction(object):
         pass
 
     @abc.abstractmethod
-    def save_histories(self, individual: Individual, input_directory: str, output_directory: str, executables_directory: str)\
+    def save_histories(self, individual: Individual, input_directory: str, output_directory: str,
+                       executables_directory: str) \
             -> None:
         pass

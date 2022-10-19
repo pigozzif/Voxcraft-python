@@ -22,7 +22,7 @@ from voxcraftevo.fitness.evaluation import FitnessFunction
 
 def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
-    parser.add_argument("--seed", default=3, type=int, help="seed for random number generation")
+    parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
     parser.add_argument("--gens", default=40, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
@@ -32,7 +32,8 @@ def parse_args():
     parser.add_argument("--reload", default=0, type=int, help="restart from last pickled population")
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
-    parser.add_argument("--output_dir", default="output_super_fixed/output_nsgaii_difficult_long", type=str, help="relative path to output dir")
+    parser.add_argument("--output_dir", default="output_ultra_fixed/output_nsgaii_difficult_long", type=str,
+                        help="relative path to output dir")
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
@@ -64,10 +65,9 @@ class NSGAIIListener(Listener):
 
     def listen(self, solver):
         solver.fast_non_dominated_sort()
-        pareto_front = [x for x in solver.fronts[0]]
         stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time())])
-        locomotions = "/".join([str(ind.fitness["locomotion_score"]) for ind in pareto_front])
-        sensing = "/".join([str(ind.fitness["sensing_score"]) for ind in pareto_front])
+        locomotions = "/".join([str(ind.fitness["locomotion_score"]) for ind in solver.pop])
+        sensing = "/".join([str(ind.fitness["sensing_score"]) for ind in solver.pop])
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([stats, locomotions, sensing]) + "\n")
 
@@ -155,9 +155,9 @@ class MyFitness(FitnessFunction):
                     world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
 
                 if p_label != "impassable":
-                    world[math.floor(body_length * 1.5), body_length * 5 - 1, 0] = self.special_passable
+                    world[half, body_length * 5 - 1, 0] = self.special_passable
                 else:
-                    world[half, body_length * 2 + 1, 0] = self.special_impassable
+                    world[half, 0, 0] = self.special_impassable
 
                 vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable")
                 vxd.set_data(data=world)
@@ -171,9 +171,17 @@ class MyFitness(FitnessFunction):
         for _, r_label in enumerate(["b"]):
             for _, p_label in enumerate(self.terrains):
                 for tag in values:
-                    values[tag].append(float(
-                        self.parse_fitness(root, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
-                                                                    p_label), fitness_tag=tag).text))
+                    file_name = self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
+                    if "locomotion" not in tag:
+                        values[tag].append(self.parse_fitness(root, bot_id=file_name, fitness_tag=tag))
+                    else:
+                        max_distance = 3.5
+                        target_pos = (0.13, 0.44, 0.0) if p_label != "impassable" else (0.13, 0.0, 0.0)
+                        current_pos = self.parse_pos(root, bot_id=file_name, tag="currentCenterOfMass")
+                        score = 1.0 - ((max_distance - math.sqrt((target_pos[0] - current_pos[0]) ** 2 +
+                                                                 (target_pos[1] - current_pos[1]) ** 2)) / max_distance)
+                        score = min(max(score, 0.0), 1.0)
+                        values[tag].append(score)
 
         return {k: min(v) for k, v in values.items()}
 
