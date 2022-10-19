@@ -106,7 +106,7 @@ class MyFitness(FitnessFunction):
                                               best_value=2.0, worst_value=-1.0)
         self.objective_dict.add_objective(name="locomotion_score", maximize=True,
                                           tag="<{}>".format("locomotion_score"),
-                                          best_value=1.0, worst_value=-1.0)
+                                          best_value=1.0, worst_value=0.0)
         self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("sensing_score"),
                                           best_value=1.0, worst_value=0.0)
         return self.objective_dict
@@ -172,16 +172,7 @@ class MyFitness(FitnessFunction):
             for _, p_label in enumerate(self.terrains):
                 for tag in values:
                     file_name = self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
-                    if "locomotion" not in tag:
-                        values[tag].append(self.parse_fitness(root, bot_id=file_name, fitness_tag=tag))
-                    else:
-                        max_distance = 3.5
-                        target_pos = (0.13, 0.44, 0.0) if p_label != "impassable" else (0.13, 0.0, 0.0)
-                        current_pos = self.parse_pos(root, bot_id=file_name, tag="currentCenterOfMass")
-                        score = 1.0 - ((max_distance - math.sqrt((target_pos[0] - current_pos[0]) ** 2 +
-                                                                 (target_pos[1] - current_pos[1]) ** 2)) / max_distance)
-                        score = min(max(score, 0.0), 1.0)
-                        values[tag].append(score)
+                    values[tag].append(self.parse_fitness(root, bot_id=file_name, fitness_tag=tag))
 
         return {k: min(v) for k, v in values.items()}
 
