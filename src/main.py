@@ -65,7 +65,10 @@ class NSGAIIListener(Listener):
 
     def listen(self, solver):
         solver.fast_non_dominated_sort()
-        stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time())])
+        pareto_front = solver.fronts[0]
+        stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
+                                      str(max(pareto_front, key=lambda x: x.fitness["sensing_score"]).id),
+                                      str(max(pareto_front, key=lambda x: x.fitness["locomotion_score"]).id)])
         locomotions = "/".join([str(ind.fitness["locomotion_score"]) for ind in solver.pop])
         sensing = "/".join([str(ind.fitness["sensing_score"]) for ind in solver.pop])
         with open(self._file, "a") as file:
@@ -238,7 +241,8 @@ if __name__ == "__main__":
                                        executables_dir=arguments.execs,
                                        listener=NSGAIIListener(file_path="{0}_{1}.csv".format(
                                            arguments.fitness, seed),
-                                           header=["seed", "gen", "elapsed.time", "locomotions", "sensings"]),
+                                           header=["seed", "gen", "elapsed.time", "best.sensing", "best.locomotion",
+                                                   "locomotions", "sensings"]),
                                        tournament_size=2, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     else:
