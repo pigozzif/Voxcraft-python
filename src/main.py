@@ -174,14 +174,14 @@ class MyFitness(FitnessFunction):
 
     def get_fitness(self, ind, output_file):
         root = etree.parse(output_file).getroot()
-        values = {obj: [] for obj in self.objective_dict.values()}
+        values = {obj: [] for obj in self.objective_dict}
         for _, r_label in enumerate(["b"]):
             for _, p_label in enumerate(self.terrains):
                 for obj in values:
-                    name = obj["name"]
+                    name = self.objective_dict[obj]["name"]
                     file_name = self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
                     values[name].append(self.parse_fitness(root, bot_id=file_name, fitness_tag=name))
-        return {k: min(v) if k["maximize"] else max(v) for k, v in values.items()}
+        return {k: min(v) if self.objective_dict[k]["maximize"] else max(v) for k, v in values.items()}
 
     def save_histories(self, individual, input_directory, output_directory, executables_directory):
         sub.call("rm {}/*vxd".format(input_directory), shell=True)
