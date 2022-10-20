@@ -1,5 +1,4 @@
-import argparse
-import subprocess
+import os
 
 from PIL import Image, ImageDraw, ImageFont
 import cv2
@@ -40,34 +39,41 @@ def draw_robot(data, width, height, touch, is_passable):
             fill = "red"
         draw.rectangle([x0y0, x1y1], outline="black" if not t else "yellow", fill=fill, width=2)
     draw.text(((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, 0), "  majority", fill="black")
-    majority = 1 if len(list(filter(lambda x: x[0] >= 0.0, new_voxels))) >\
-                    len(list(filter(lambda x: x[0] < 0.0, new_voxels))) else 0
+    majority = 1 if len(list(filter(lambda x: x[0] >= 0.0, new_voxels))) > len(list(filter(lambda x: x[0] < 0.0, new_voxels))) else 0
     draw.rectangle((((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, 0),
                     ((width + 2) * VOXEL_SIZE * 0.66 + VOXEL_SIZE / 4, VOXEL_SIZE / 2)),
                    outline="white", fill="blue" if majority else "red")
     return image
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="arguments")
-    parser.add_argument("--path", default=None, type=str, help="path to the .history file")
-    parser.add_argument("--width", default=9, type=int, help="width of the robot")
-    parser.add_argument("--height", default=9, type=int, help="height of the robot")
-    arguments = parser.parse_args()
+def create_video(path, width, height):
     frame_count = 0
     images = []
-    for line in open(arguments.path, "r"):
+    for line in open(path, "r"):
         frame_count += 1
         if ("/" not in line) or "vx3_node_worker" in line or "setting" in line or frame_count % 2 == 0:
             continue
-        images.append(draw_robot(line, arguments.width, arguments.height, True, "impassable" not in arguments.path))
-        print(frame_count)
-    print("simulation over")
+        im = draw_robot(line, width, height, True, "impassable" not in path)
+        images.append(im)
+        # print(frame_count)
+    # print("simulation over")
     fps = len(images) // 50
-    subprocess.call("rm output.avi", shell=True)
-    out = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps,
-                          ((int(arguments.width) + 2) * VOXEL_SIZE, (int(arguments.height) + 2) * VOXEL_SIZE))
+    # sub.call("rm output.avi", shell=True)
+    if fps < 1:
+        print("Not enough votes for {}".format(path))
+        return
+    out = cv2.VideoWriter("{}.avi".format(path.split("/")[-1].split(".")[0]),
+                          cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps,
+                          ((int(width) + 2) * VOXEL_SIZE, (int(height) + 2) * VOXEL_SIZE))
     for image in images:
         cv_img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         out.write(cv_img)
     out.release()
+
+
+if __name__ == "__main__":
+    for root, dirs, files in os.walk("output_one_wall"):
+        for file in files:
+            if not file.endswith("history"):
+                continue
+            create_video(os.path.join(os.getcwd(), root, file), 9, 9)

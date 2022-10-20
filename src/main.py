@@ -24,7 +24,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=40, type=int, help="generations for the ea")
+    parser.add_argument("--gens", default=33, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--reload", default=0, type=int, help="restart from last pickled population")
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
-    parser.add_argument("--output_dir", default="output_ultra_fixed/output_nsgaii_difficult_long", type=str,
+    parser.add_argument("--output_dir", default="output_one_wall/output_nsgaii_difficult_long", type=str,
                         help="relative path to output dir")
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
@@ -66,13 +66,17 @@ class NSGAIIListener(Listener):
     def listen(self, solver):
         solver.fast_non_dominated_sort()
         pareto_front = solver.fronts[0]
+        best_locomotion = max(pareto_front, key=lambda x: x.fitness["locomotion_score"])
+        best_sensing = max(pareto_front, key=lambda x: x.fitness["sensing_score"])
+        print(best_sensing)
         stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
-                                      str(max(pareto_front, key=lambda x: x.fitness["sensing_score"]).id),
-                                      str(max(pareto_front, key=lambda x: x.fitness["locomotion_score"]).id)])
+                                      str(best_sensing.id), str(best_locomotion.id)])
         locomotions = "/".join([str(ind.fitness["locomotion_score"]) for ind in solver.pop])
         sensing = "/".join([str(ind.fitness["sensing_score"]) for ind in solver.pop])
+        gen_locomotion = ",".join([str(g) for g in best_locomotion.genotype])
+        gen_sensing = ",".join([str(g) for g in best_sensing.genotype])
         with open(self._file, "a") as file:
-            file.write(self._delimiter.join([stats, locomotions, sensing]) + "\n")
+            file.write(self._delimiter.join([stats, locomotions, sensing, gen_sensing, gen_locomotion]) + "\n")
 
 
 class MyFitness(FitnessFunction):
@@ -107,9 +111,9 @@ class MyFitness(FitnessFunction):
         if self.solver != "nsgaii":
             self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness),
                                               best_value=2.0, worst_value=-1.0)
-        self.objective_dict.add_objective(name="locomotion_score", maximize=True,
+        self.objective_dict.add_objective(name="locomotion_score", maximize=False,
                                           tag="<{}>".format("locomotion_score"),
-                                          best_value=1.0, worst_value=0.0)
+                                          best_value=0.0, worst_value=5.0)
         self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("sensing_score"),
                                           best_value=1.0, worst_value=0.0)
         return self.objective_dict
@@ -242,7 +246,7 @@ if __name__ == "__main__":
                                        listener=NSGAIIListener(file_path="{0}_{1}.csv".format(
                                            arguments.fitness, seed),
                                            header=["seed", "gen", "elapsed.time", "best.sensing", "best.locomotion",
-                                                   "locomotions", "sensings"]),
+                                                   "locomotions", "sensings", "best.sensing.g", "best.locomotion.g"]),
                                        tournament_size=2, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     else:
