@@ -129,8 +129,7 @@ class MyFitness(FitnessFunction):
         self.soft = vxa.add_material(material_id=4, RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5,
                                      CTE=0.01, isMeasured=1)
         self.special_impassable = vxa.add_material(material_id=5, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
-                                                   uDynamic=0.5,
-                                                   isFixed=1, isMeasured=0)
+f                                                   uDynamic=0.5, isFixed=1, isMeasured=0)
         vxa.write(filename=os.path.join(directory, "base.vxa"))
 
     def create_vxd(self, ind, directory, record_history):
@@ -181,7 +180,8 @@ class MyFitness(FitnessFunction):
                     name = self.objective_dict[obj]["name"]
                     file_name = self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
                     values[obj].append(self.parse_fitness(root, bot_id=file_name, fitness_tag=name))
-        return {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v) for k, v in values.items()}
+        return {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
+                for k, v in values.items()}
 
     def save_histories(self, individual, input_directory, output_directory, executables_directory):
         sub.call("rm {}/*vxd".format(input_directory), shell=True)
