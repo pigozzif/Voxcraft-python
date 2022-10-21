@@ -129,7 +129,7 @@ class MyFitness(FitnessFunction):
         self.soft = vxa.add_material(material_id=4, RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5,
                                      CTE=0.01, isMeasured=1)
         self.special_impassable = vxa.add_material(material_id=5, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
-f                                                   uDynamic=0.5, isFixed=1, isMeasured=0)
+                                                   uDynamic=0.5, isFixed=1, isMeasured=0)
         vxa.write(filename=os.path.join(directory, "base.vxa"))
 
     def create_vxd(self, ind, directory, record_history):
