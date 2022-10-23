@@ -74,10 +74,13 @@ class NSGAIIListener(Listener):
                                       str(knee.fitness["locomotion_score"]), str(knee.fitness["sensing_score"])])
         locomotions = "/".join([str(ind.fitness["locomotion_score"]) for ind in solver.pop])
         sensing = "/".join([str(ind.fitness["sensing_score"]) for ind in solver.pop])
+        pareto_locomotions = "/".join([str(ind.fitness["locomotion_score"]) for ind in pareto_front])
+        pareto_sensing = "/".join([str(ind.fitness["sensing_score"]) for ind in pareto_front])
         gen_locomotion = ",".join([str(g) for g in best_locomotion.genotype])
         gen_sensing = ",".join([str(g) for g in best_sensing.genotype])
         with open(self._file, "a") as file:
-            file.write(self._delimiter.join([stats, locomotions, sensing, gen_sensing, gen_locomotion]) + "\n")
+            file.write(self._delimiter.join([stats, locomotions, sensing, pareto_locomotions, pareto_sensing,
+                                             gen_sensing, gen_locomotion]) + "\n")
 
 
 class MyFitness(FitnessFunction):
@@ -248,7 +251,8 @@ if __name__ == "__main__":
                                            arguments.fitness, seed),
                                            header=["seed", "gen", "elapsed.time", "best.sensing", "best.locomotion",
                                                    "knee.locomotion", "knee.sensing", "locomotions", "sensings",
-                                                   "best.sensing.g", "best.locomotion.g"]),
+                                                   "pareto.locomotions", "pareto.sensings" "best.sensing.g",
+                                                   "best.locomotion.g"]),
                                        tournament_size=2, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     else:
