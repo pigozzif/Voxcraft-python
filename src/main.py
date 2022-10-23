@@ -24,7 +24,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=33, type=int, help="generations for the ea")
+    parser.add_argument("--gens", default=40, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
@@ -66,11 +66,12 @@ class NSGAIIListener(Listener):
     def listen(self, solver):
         solver.fast_non_dominated_sort()
         pareto_front = solver.fronts[0]
-        best_locomotion = max(pareto_front, key=lambda x: x.fitness["locomotion_score"])
+        best_locomotion = min(pareto_front, key=lambda x: x.fitness["locomotion_score"])
         best_sensing = max(pareto_front, key=lambda x: x.fitness["sensing_score"])
-        print(best_sensing)
+        knee = solver.best_so_far
         stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
-                                      str(best_sensing.id), str(best_locomotion.id)])
+                                      str(best_sensing.id), str(best_locomotion.id),
+                                      str(knee.fitness["locomotion_score"]), str(knee.fitness["sensing_score"])])
         locomotions = "/".join([str(ind.fitness["locomotion_score"]) for ind in solver.pop])
         sensing = "/".join([str(ind.fitness["sensing_score"]) for ind in solver.pop])
         gen_locomotion = ",".join([str(g) for g in best_locomotion.genotype])
@@ -246,7 +247,8 @@ if __name__ == "__main__":
                                        listener=NSGAIIListener(file_path="{0}_{1}.csv".format(
                                            arguments.fitness, seed),
                                            header=["seed", "gen", "elapsed.time", "best.sensing", "best.locomotion",
-                                                   "locomotions", "sensings", "best.sensing.g", "best.locomotion.g"]),
+                                                   "knee.locomotion", "knee.sensing", "locomotions", "sensings",
+                                                   "best.sensing.g", "best.locomotion.g"]),
                                        tournament_size=2, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     else:

@@ -326,15 +326,15 @@ class NSGAII(EvolutionarySolver):
             return
         if self.pop.gen == 1:
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
-        elif self.pop.gen == 40:
+        elif self.pop.gen == 20:
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
-        elif self.pop.gen == 80:
+        elif self.pop.gen == 40:
             self._fronts_to_plot[self.pop.gen] = self.fronts[0]
             for color, (gen, front) in zip(["orange", "blue", "red"], self._fronts_to_plot.items()):
                 loc = [float(ind.fitness["locomotion_score"]) for ind in front],
                 sens = [float(ind.fitness["sensing_score"]) for ind in front]
                 plt.scatter(loc, sens, color=color, alpha=0.5, label=str(gen))
-            plt.scatter([-1.0, 1.0, -1.0, 1.0], [0.0, 0.0, 1.0, 1.0], alpha=0.0)
+            plt.scatter([0.0, 1.0, 0.0, 1.0], [0.0, 0.0, 1.0, 1.0], alpha=0.0)
             plt.xlabel("locomotion through the aperture (m)")
             plt.ylabel("affordance detection (% of timesteps correct)")
             plt.legend()
