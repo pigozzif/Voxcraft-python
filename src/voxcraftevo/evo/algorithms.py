@@ -150,7 +150,7 @@ class EvolutionarySolver(Solver):
 
         if not self.continued_from_checkpoint:  # generation zero
             self.evaluate_individuals()
-
+        self.best_so_far = self.get_best()
         # iterate until stop conditions met
         while self.pop.gen < max_gens and self.elapsed_time(units="h") <= max_hours_runtime:
             sub.call("rm -rf {}/*".format(self.data_dir), shell=True)
