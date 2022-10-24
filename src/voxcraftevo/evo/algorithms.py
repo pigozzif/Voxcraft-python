@@ -47,7 +47,7 @@ class Solver(object):
             sub.call("mkdir {}".format(executables_dir), shell=True)
         for file in os.listdir("../logs"):
             if int(file.split(".")[1].split("_")[1]) == self.seed:
-                self.log_file = "../" + file
+                self.log_file = "../logs/" + file
                 break
         else:
             raise IndexError
