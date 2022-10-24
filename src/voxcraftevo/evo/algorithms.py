@@ -47,7 +47,7 @@ class Solver(object):
             sub.call("mkdir {}".format(executables_dir), shell=True)
         for file in os.listdir("../../logs"):
             if int(file.split(".")[0].split("_")[1]) == self.seed:
-                self.log_file = file
+                self.log_file = "../../" + file
                 break
         else:
             raise IndexError
@@ -148,7 +148,7 @@ class EvolutionarySolver(Solver):
         for ind in self.pop:
             if not ind.evaluated:
                 ind.fitness = self.fitness_func.get_fitness(ind=ind,
-                                                            output_file=self.hist_dir)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
+                                                            output_file=self.log_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
                 if not self.remap:
                     ind.evaluated = True
 

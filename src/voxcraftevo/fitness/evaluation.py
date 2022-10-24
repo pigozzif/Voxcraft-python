@@ -16,10 +16,10 @@ class FitnessFunction(object):
         raise IndexError
 
     @staticmethod
-    def parse_fitness_from_history(root, fitness_tag: str) -> float:
+    def parse_fitness_from_history(root, bot_id: str, fitness_tag: str) -> float:
         with open(root, "r") as file:
             for line in file:
-                if line.startswith(fitness_tag):
+                if line.startswith("-".join([bot_id, fitness_tag])):
                     return float(line.split(":")[1].strip())
         raise IndexError
 
