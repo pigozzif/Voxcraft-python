@@ -46,7 +46,7 @@ class Solver(object):
         if not os.path.isdir(executables_dir):
             sub.call("mkdir {}".format(executables_dir), shell=True)
         for file in os.listdir("../logs"):
-            if int(file.split(".")[0].split("_")[1]) == self.seed:
+            if int(file.split(".")[1].split("_")[1]) == self.seed:
                 self.log_file = "../" + file
                 break
         else:
