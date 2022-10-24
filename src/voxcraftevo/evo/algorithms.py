@@ -115,10 +115,11 @@ class EvolutionarySolver(Solver):
         self.listener = listener
 
     def evaluate_individuals(self) -> None:
+        sub.call("rm {}/*".format(self.hist_dir), shell=True)
         num_evaluated = 0
         for ind in self.pop:
             if not ind.evaluated:
-                self.fitness_func.create_vxd(ind=ind, directory=self.data_dir, record_history=False)
+                self.fitness_func.create_vxd(ind=ind, directory=self.data_dir, record_history=True)
                 num_evaluated += 1
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
         sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".
@@ -141,7 +142,7 @@ class EvolutionarySolver(Solver):
         for ind in self.pop:
             if not ind.evaluated:
                 ind.fitness = self.fitness_func.get_fitness(ind=ind,
-                                                            output_file=output_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
+                                                            output_file=self.hist_dir)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
                 if not self.remap:
                     ind.evaluated = True
 
@@ -349,13 +350,20 @@ class NSGAII(EvolutionarySolver):
                                                                                  objectives_dict=self.pop.objectives_dict))
 
     def save_best(self, best: Individual) -> None:
-        sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        if not self.fronts:
-            self.fast_non_dominated_sort()
-        for individual in self.fronts[0]:
-            self.fitness_func.save_histories(individual=individual, input_directory=self.data_dir,
-                                             output_directory=self.hist_dir,
-                                             executables_directory=self.executables_dir)
+        for file in os.listdir(self.hist_dir):
+            bot_id = int(file.split("-")[0].split("_")[1])
+            for individual in self.fronts[0]:
+                if individual.id == bot_id:
+                    break
+            else:
+                sub.call("rm {}".format(os.path.join(self.hist_dir, file)), shell=True)
+        # sub.call("rm {}/*".format(self.hist_dir), shell=True)
+        # if not self.fronts:
+        #     self.fast_non_dominated_sort()
+        # for individual in self.fronts[0]:
+        #     self.fitness_func.save_histories(individual=individual, input_directory=self.data_dir,
+        #                                      output_directory=self.hist_dir,
+        #                                      executables_directory=self.executables_dir)
 
     @staticmethod
     def get_distance_from_diagonal(individual: Individual, objectives_dict: dict) -> float:

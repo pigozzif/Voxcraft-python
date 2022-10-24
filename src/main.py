@@ -176,14 +176,16 @@ class MyFitness(FitnessFunction):
                 vxd.write(filename=base_name + ".vxd")
 
     def get_fitness(self, ind, output_file):
-        root = etree.parse(output_file).getroot()
+        # root = etree.parse(output_file).getroot()
         values = {obj: [] for obj in self.objective_dict}
         for _, r_label in enumerate(["b"]):
             for _, p_label in enumerate(self.terrains):
                 for obj in values:
                     name = self.objective_dict[obj]["name"]
                     file_name = self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
-                    values[obj].append(self.parse_fitness(root, bot_id=file_name, fitness_tag=name))
+                    values[obj].append(self.parse_fitness_from_history(os.path.join(os.getcwd(), output_file,
+                                                                                    file_name + ".history"),
+                                                                       fitness_tag=name))
         return {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
                 for k, v in values.items()}
 

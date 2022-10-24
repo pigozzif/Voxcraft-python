@@ -1,4 +1,5 @@
 import abc
+from typing import Tuple
 
 from voxcraftevo.evo.objectives import ObjectiveDict
 from voxcraftevo.representations.population import Individual
@@ -7,7 +8,7 @@ from voxcraftevo.representations.population import Individual
 class FitnessFunction(object):
 
     @staticmethod
-    def parse_fitness(root, bot_id: str, fitness_tag: str):
+    def parse_fitness_from_xml(root, bot_id: str, fitness_tag: str) -> float:
         detail = root.findall("detail/")
         for d in detail:
             if d.tag == bot_id:
@@ -15,7 +16,15 @@ class FitnessFunction(object):
         raise IndexError
 
     @staticmethod
-    def parse_pos(root, bot_id: str, tag: str):
+    def parse_fitness_from_history(root, fitness_tag: str) -> float:
+        with open(root, "r") as file:
+            for line in file:
+                if line.startswith(fitness_tag):
+                    return float(line.split(":")[1].strip())
+        raise IndexError
+
+    @staticmethod
+    def parse_pos(root, bot_id: str, tag: str) -> Tuple[float, float, float]:
         detail = root.findall("detail/")
         for d in detail:
             if d.tag == bot_id:

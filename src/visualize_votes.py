@@ -74,6 +74,9 @@ def create_video(path, width, height):
 if __name__ == "__main__":
     for root, dirs, files in os.walk("output_one_wall"):
         for file in files:
-            if not file.endswith("history"):
+            if not file.endswith("history") or not (("history0" in root and "2002" in file) or
+                                                     ("history1" in root and "1804" in file) or
+                                                     ("history2" in root and "839" in file) or
+                                                     ("history3" in root and "1845" in file)):
                 continue
             create_video(os.path.join(os.getcwd(), root, file), 9, 9)
