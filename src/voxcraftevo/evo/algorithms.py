@@ -45,6 +45,12 @@ class Solver(object):
         self.executables_dir = executables_dir
         if not os.path.isdir(executables_dir):
             sub.call("mkdir {}".format(executables_dir), shell=True)
+        for file in os.listdir("../../logs"):
+            if int(file.split(".")[0].split("_")[1]) == self.seed:
+                self.log_file = file
+                break
+        else:
+            raise IndexError
 
     def elapsed_time(self, units: str = "s") -> float:
         if self.start_time is None:
