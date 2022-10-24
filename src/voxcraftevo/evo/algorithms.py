@@ -125,7 +125,7 @@ class EvolutionarySolver(Solver):
         num_evaluated = 0
         for ind in self.pop:
             if not ind.evaluated:
-                self.fitness_func.create_vxd(ind=ind, directory=self.data_dir, record_history=True)
+                self.fitness_func.create_vxd(ind=ind, directory=self.data_dir, record_history=False)
                 num_evaluated += 1
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
         sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".
