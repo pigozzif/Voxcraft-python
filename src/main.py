@@ -183,7 +183,7 @@ class MyFitness(FitnessFunction):
                 for obj in values:
                     name = self.objective_dict[obj]["name"]
                     # file_name = self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
-                    values[obj].append(self.parse_fitness_from_history(output_file, bot_id="bot_{:04d}".format(ind.id),
+                    values[obj].append(self.parse_fitness_from_history(output_file, bot_id=str(ind.id),
                                                                        fitness_tag=name))
         return {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
                 for k, v in values.items()}
