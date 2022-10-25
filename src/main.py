@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--reload", default=0, type=int, help="restart from last pickled population")
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
-    parser.add_argument("--output_dir", default="output_one_wall/output_nsgaii_difficult_long", type=str,
+    parser.add_argument("--output_dir", default="output", type=str,
                         help="relative path to output dir")
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
@@ -175,18 +175,21 @@ class MyFitness(FitnessFunction):
                              RecordStepSize=100 if record_history else 0)
                 vxd.write(filename=base_name + ".vxd")
 
-    def get_fitness(self, ind, output_file):
+    def get_fitness(self, individuals, output_file):
         # root = etree.parse(output_file).getroot()
-        values = {obj: [] for obj in self.objective_dict}
-        for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(self.terrains):
-                for obj in values:
-                    name = self.objective_dict[obj]["name"]
-                    # file_name = self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
-                    values[obj].append(self.parse_fitness_from_history(output_file, bot_id=str(ind.id),
-                                                                       fitness_tag=name))
-        return {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
-                for k, v in values.items()}
+        fitness = {}
+        for ind in individuals:
+            values = {obj: [] for obj in self.objective_dict}
+            for _, r_label in enumerate(["b"]):
+                for _, p_label in enumerate(self.terrains):
+                    for obj in values:
+                        name = self.objective_dict[obj]["name"]
+                        # file_name = self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
+                        values[obj].append(self.parse_fitness_from_history(output_file, bot_id=str(ind.id),
+                                                                           fitness_tag=name))
+            fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
+                               for k, v in values.items()}
+        return fitness
 
     def save_histories(self, individual, input_directory, output_directory, executables_directory):
         sub.call("rm {}/*vxd".format(input_directory), shell=True)

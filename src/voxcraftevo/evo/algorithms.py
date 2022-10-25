@@ -145,12 +145,11 @@ class EvolutionarySolver(Solver):
             except IndexError:
                 sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                 pass
-        for ind in self.pop:
-            if not ind.evaluated:
-                ind.fitness = self.fitness_func.get_fitness(ind=ind,
-                                                            output_file=self.log_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
-                if not self.remap:
-                    ind.evaluated = True
+        to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
+        fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
+        for ind in to_evaluate:
+            ind.fitness = fitness[ind.id]
+            ind.evaluated = True
 
     def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every) -> None:
         self.start_time = time.time()

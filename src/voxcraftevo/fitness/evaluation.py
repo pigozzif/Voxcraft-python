@@ -1,5 +1,5 @@
 import abc
-from typing import Tuple
+from typing import Tuple, List
 
 from voxcraftevo.evo.objectives import ObjectiveDict
 from voxcraftevo.representations.population import Individual
@@ -45,11 +45,10 @@ class FitnessFunction(object):
         pass
 
     @abc.abstractmethod
-    def get_fitness(self, ind: Individual, output_file: str) -> dict:
+    def get_fitness(self, individuals: List[Individual], output_file: str) -> dict:
         pass
 
     @abc.abstractmethod
     def save_histories(self, individual: Individual, input_directory: str, output_directory: str,
-                       executables_directory: str) \
-            -> None:
+                       executables_directory: str) -> None:
         pass
