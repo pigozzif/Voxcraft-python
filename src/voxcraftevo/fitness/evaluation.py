@@ -17,7 +17,6 @@ class FitnessFunction(object):
 
     @staticmethod
     def parse_fitness_from_history(root, bot_id: str, fitness_tag: str) -> float:
-        print(root)
         with open(root, "r") as file:
             for line in file:
                 if line.startswith("-".join([bot_id, fitness_tag])):
