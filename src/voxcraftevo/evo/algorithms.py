@@ -356,20 +356,13 @@ class NSGAII(EvolutionarySolver):
                                                                                  objectives_dict=self.pop.objectives_dict))
 
     def save_best(self, best: Individual) -> None:
-        for file in os.listdir(self.hist_dir):
-            bot_id = int(file.split("-")[0].split("_")[1])
-            for individual in self.fronts[0]:
-                if individual.id == bot_id:
-                    break
-            else:
-                sub.call("rm {}".format(os.path.join(self.hist_dir, file)), shell=True)
-        # sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        # if not self.fronts:
-        #     self.fast_non_dominated_sort()
-        # for individual in self.fronts[0]:
-        #     self.fitness_func.save_histories(individual=individual, input_directory=self.data_dir,
-        #                                      output_directory=self.hist_dir,
-        #                                      executables_directory=self.executables_dir)
+        sub.call("rm {}/*".format(self.hist_dir), shell=True)
+        if not self.fronts:
+            self.fast_non_dominated_sort()
+        for individual in self.fronts[0]:
+            self.fitness_func.save_histories(individual=individual, input_directory=self.data_dir,
+                                             output_directory=self.hist_dir,
+                                             executables_directory=self.executables_dir)
 
     @staticmethod
     def get_distance_from_diagonal(individual: Individual, objectives_dict: dict) -> float:
