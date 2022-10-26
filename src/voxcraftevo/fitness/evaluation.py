@@ -21,6 +21,7 @@ class FitnessFunction(object):
             for line in file:
                 if line.startswith(fitness_tag):
                     return float(line.split(":")[1].strip())
+        print(fitness_tag.upper())
         raise IndexError
         # return fitness
         # fitness = {}
