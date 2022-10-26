@@ -16,12 +16,22 @@ class FitnessFunction(object):
         raise IndexError
 
     @staticmethod
-    def parse_fitness_from_history(root, bot_id: str, fitness_tag: str) -> float:
+    def parse_fitness_from_history(root, fitness_tag: str) -> float:
         with open(root, "r") as file:
             for line in file:
-                if line.startswith("-".join([bot_id, fitness_tag])):
+                if line.startswith(fitness_tag):
                     return float(line.split(":")[1].strip())
         raise IndexError
+        # return fitness
+        # fitness = {}
+        # with open(root, "r") as file:
+        #     for line in file:
+        #         for bot_id in bot_ids:
+        #             if line.startswith("-".join([bot_id, fitness_tag])):
+        #                 fitness[int(bot_id)] = float(line.split(":")[1].strip())
+        # if len(fitness) != len(bot_ids):
+        #     raise IndexError
+        # return fitness
 
     @staticmethod
     def parse_pos(root, bot_id: str, tag: str) -> Tuple[float, float, float]:
@@ -29,7 +39,8 @@ class FitnessFunction(object):
         for d in detail:
             if d.tag == bot_id:
                 center = d.findall(tag)[0]
-                return float(center.findall("x")[0].text), float(center.findall("y")[0].text), float(center.findall("z")[0].text)
+                return float(center.findall("x")[0].text), float(center.findall("y")[0].text), float(
+                    center.findall("z")[0].text)
         raise IndexError
 
     @abc.abstractmethod

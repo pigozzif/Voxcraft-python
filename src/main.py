@@ -182,11 +182,17 @@ class MyFitness(FitnessFunction):
             values = {obj: [] for obj in self.objective_dict}
             for _, r_label in enumerate(["b"]):
                 for _, p_label in enumerate(self.terrains):
+                    if p_label == "impassable":
+                        terrain_id = 0
+                    elif p_label == "passable_left":
+                        terrain_id = 1
+                    else:
+                        terrain_id = 2
                     for obj in values:
                         name = self.objective_dict[obj]["name"]
-                        # file_name = self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
-                        values[obj].append(self.parse_fitness_from_history(output_file, bot_id=str(ind.id),
-                                                                           fitness_tag=name))
+                        values[obj].append(self.parse_fitness_from_history(output_file,
+                                                                           fitness_tag="-".join(
+                                                                               [str(ind.id), str(terrain_id), name])))
             fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
                                for k, v in values.items()}
         return fitness
