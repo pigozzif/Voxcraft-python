@@ -20,8 +20,7 @@ class FitnessFunction(object):
         with open(root, "r") as file:
             for line in file:
                 if line.startswith(fitness_tag):
-                    return float(line.split(":")[1].strip())
-        print(fitness_tag.upper())
+                    return float("".join(c for c in line.split(":")[1].strip() if c.isdigit() or c == "."))
         raise IndexError
         # return fitness
         # fitness = {}
