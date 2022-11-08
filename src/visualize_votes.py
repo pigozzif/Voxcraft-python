@@ -51,7 +51,7 @@ def create_video(path, width, height):
     images = []
     for line in open(path, "r"):
         frame_count += 1
-        if ("/" not in line) or "vx3_node_worker" in line or "setting" in line or frame_count % 2 == 0:
+        if ("/" not in line) or "vx3_node_worker" in line or "setting" in line or frame_count % 5 == 0:
             continue
         im = draw_robot(line, width, height, True, "impassable" not in path)
         images.append(im)
@@ -72,11 +72,10 @@ def create_video(path, width, height):
 
 
 if __name__ == "__main__":
-    for root, dirs, files in os.walk("output_one_wall"):
+    for root, dirs, files in os.walk("corrected"):
         for file in files:
-            if not file.endswith("history") or not (("history0" in root and "2002" in file) or
-                                                     ("history1" in root and "1804" in file) or
-                                                     ("history2" in root and "839" in file) or
-                                                     ("history3" in root and "1845" in file)):
+            if "passable_right" in file or not file.endswith("history") or not (("history0" in root and "1943" in file) or
+                                                     ("history2" in root and "1228" in file) or
+                                                     ("history3" in root and "1737" in file)):
                 continue
             create_video(os.path.join(os.getcwd(), root, file), 9, 9)

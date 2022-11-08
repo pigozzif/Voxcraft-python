@@ -5,7 +5,6 @@ import argparse
 import math
 
 import numpy as np
-from lxml import etree
 
 from voxcraftevo.evo.algorithms import Solver
 from voxcraftevo.listeners.listener import Listener
@@ -32,6 +31,7 @@ def parse_args():
     parser.add_argument("--reload", default=0, type=int, help="restart from last pickled population")
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
+    parser.add_argument("--logs", default="logs", type=str, help="relative path to the logs dir")
     parser.add_argument("--output_dir", default="output", type=str,
                         help="relative path to output dir")
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
@@ -176,7 +176,6 @@ class MyFitness(FitnessFunction):
                 vxd.write(filename=base_name + ".vxd")
 
     def get_fitness(self, individuals, output_file):
-        # root = etree.parse(output_file).getroot()
         fitness = {}
         for ind in individuals:
             values = {obj: [] for obj in self.objective_dict}
@@ -257,6 +256,7 @@ if __name__ == "__main__":
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
+                                       logs_dir=arguments.logs,
                                        listener=NSGAIIListener(file_path="{0}_{1}.csv".format(
                                            arguments.fitness, seed),
                                            header=["seed", "gen", "elapsed.time", "best.sensing", "best.locomotion",

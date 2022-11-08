@@ -25,7 +25,7 @@ PLOT = True
 class Solver(object):
 
     def __init__(self, seed: int, fitness_func: FitnessFunction, data_dir: str, hist_dir: str, pickle_dir: str,
-                 output_dir: str, executables_dir: str):
+                 output_dir: str, executables_dir: str, logs_dir: str):
         self.seed = seed
         self.fitness_func = fitness_func
         self.start_time = None
@@ -45,9 +45,9 @@ class Solver(object):
         self.executables_dir = executables_dir
         if not os.path.isdir(executables_dir):
             sub.call("mkdir {}".format(executables_dir), shell=True)
-        for file in os.listdir("../logs"):
+        for file in os.listdir(os.path.join("..", logs_dir)):
             if int(file.split(".")[1].split("_")[1]) == self.seed and "out" in file:
-                self.log_file = os.path.join("/".join(os.getcwd().split("/")[:-1]), "logs", file)
+                self.log_file = os.path.join("/".join(os.getcwd().split("/")[:-1]), logs_dir, file)
                 break
         else:
             raise IndexError
@@ -102,8 +102,8 @@ class EvolutionarySolver(Solver):
 
     def __init__(self, seed, pop_size: int, genotype_factory: str, solution_mapper: str, fitness_func, remap: bool,
                  genetic_operators: Dict[str, float], data_dir, hist_dir, pickle_dir, output_dir, executables_dir,
-                 listener: Listener, comparator: str, genotype_filter: str = None, **kwargs):
-        super().__init__(seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir)
+                 logs_dir, listener: Listener, comparator: str, genotype_filter: str = None, **kwargs):
+        super().__init__(seed, fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir, logs_dir)
         self.pop_size = pop_size
         self.remap = remap
         self.continued_from_checkpoint = False
@@ -193,12 +193,12 @@ class GeneticAlgorithm(EvolutionarySolver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, survival_selector: str, parent_selector: str,
                  fitness_func, offspring_size: int, overlapping: bool, remap, genetic_operators, data_dir, hist_dir,
-                 pickle_dir, output_dir, executables_dir, listener, **kwargs):
+                 pickle_dir, output_dir, executables_dir, logs_dir, listener, **kwargs):
         super().__init__(seed=seed, pop_size=pop_size, genotype_factory=genotype_factory,
                          solution_mapper=solution_mapper, fitness_func=fitness_func, remap=remap,
                          genetic_operators=genetic_operators, data_dir=data_dir, hist_dir=hist_dir,
                          pickle_dir=pickle_dir, output_dir=output_dir, executables_dir=executables_dir,
-                         listener=listener, comparator="lexicase", **kwargs)
+                         logs_dir=logs_dir, listener=listener, comparator="lexicase", **kwargs)
         self.survival_selector = Selector.create_selector(name=survival_selector, **kwargs)
         self.parent_selector = Selector.create_selector(name=parent_selector, **kwargs)
         self.offspring_size = offspring_size
@@ -232,12 +232,13 @@ class GeneticAlgorithm(EvolutionarySolver):
 class NSGAII(EvolutionarySolver):
 
     def __init__(self, seed, pop_size, genotype_factory, solution_mapper, fitness_func, offspring_size: int, remap,
-                 genetic_operators, data_dir, hist_dir, pickle_dir, output_dir, executables_dir, listener, **kwargs):
+                 genetic_operators, data_dir, hist_dir, pickle_dir, output_dir, executables_dir, logs_dir,
+                 listener, **kwargs):
         super().__init__(seed=seed, pop_size=pop_size, genotype_factory=genotype_factory,
                          solution_mapper=solution_mapper, fitness_func=fitness_func, remap=remap,
                          genetic_operators=genetic_operators, data_dir=data_dir, hist_dir=hist_dir,
                          pickle_dir=pickle_dir, output_dir=output_dir, executables_dir=executables_dir,
-                         listener=listener, comparator="pareto", **kwargs)
+                         logs_dir=logs_dir, listener=listener, comparator="pareto", **kwargs)
         self.offspring_size = offspring_size
         self.fronts = {}
         self.dominates = {}
