@@ -216,7 +216,7 @@ if __name__ == "__main__":
 
     seed = arguments.seed
     number_of_params = (9 * 9) + 9 + (9 * 8) + 8
-    remap = False
+    remap = True
     if arguments.solver == "ga":
         evolver = Solver.create_solver(name="ga", seed=seed, pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
