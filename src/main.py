@@ -262,7 +262,7 @@ if __name__ == "__main__":
                                            arguments.fitness, seed),
                                            header=["seed", "gen", "elapsed.time", "best.sensing", "best.locomotion",
                                                    "knee.locomotion", "knee.sensing", "locomotions", "sensings",
-                                                   "pareto.locomotions", "pareto.sensings" "best.sensing.g",
+                                                   "pareto.locomotions", "pareto.sensings", "best.sensing.g",
                                                    "best.locomotion.g"]),
                                        tournament_size=2, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
