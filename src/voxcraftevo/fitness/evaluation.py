@@ -8,20 +8,20 @@ from voxcraftevo.representations.population import Individual
 class FitnessFunction(object):
 
     @staticmethod
-    def parse_fitness_from_xml(root, bot_id: str, fitness_tag: str) -> float:
+    def parse_fitness_from_xml(root, bot_id: str, fitness_tag: str, worst_value: float) -> float:
         detail = root.findall("detail/")
         for d in detail:
             if d.tag == bot_id:
                 return float(d.findall(fitness_tag)[0].text)
-        raise IndexError
+        return worst_value
 
     @staticmethod
-    def parse_fitness_from_history(root, fitness_tag: str) -> float:
+    def parse_fitness_from_history(root, fitness_tag: str, worst_value: float) -> float:
         with open(root, "r") as file:
             for line in file:
                 if line.startswith(fitness_tag):
                     return float("".join(c for c in line.split(":")[1].strip() if c.isdigit() or c == "."))
-        raise IndexError
+        return worst_value
         # return fitness
         # fitness = {}
         # with open(root, "r") as file:

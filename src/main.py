@@ -191,7 +191,8 @@ class MyFitness(FitnessFunction):
                         name = self.objective_dict[obj]["name"]
                         values[obj].append(self.parse_fitness_from_history(output_file,
                                                                            fitness_tag="-".join(
-                                                                               [str(ind.id), str(terrain_id), name])))
+                                                                               [str(ind.id), str(terrain_id), name]),
+                                                                           worst_value=self.objective_dict[obj]["worst_value"]))
             fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
                                for k, v in values.items()}
         return fitness
