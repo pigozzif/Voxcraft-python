@@ -39,7 +39,8 @@ def draw_robot(data, width, height, touch, is_passable):
             fill = "red"
         draw.rectangle([x0y0, x1y1], outline="black" if not t else "yellow", fill=fill, width=2)
     draw.text(((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, 0), "  majority", fill="black")
-    majority = 1 if len(list(filter(lambda x: x[0] >= 0.0, new_voxels))) > len(list(filter(lambda x: x[0] < 0.0, new_voxels))) else 0
+    majority = 1 if len(list(filter(lambda x: x[0] >= 0.0, new_voxels))) > len(
+        list(filter(lambda x: x[0] < 0.0, new_voxels))) else 0
     draw.rectangle((((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, 0),
                     ((width + 2) * VOXEL_SIZE * 0.66 + VOXEL_SIZE / 4, VOXEL_SIZE / 2)),
                    outline="white", fill="blue" if majority else "red")
@@ -72,10 +73,11 @@ def create_video(path, width, height):
 
 
 if __name__ == "__main__":
-    for root, dirs, files in os.walk("corrected"):
+    for root, dirs, files in os.walk("long_touch"):
         for file in files:
-            if "passable_right" in file or not file.endswith("history") or not (("history0" in root and "1943" in file) or
-                                                     ("history2" in root and "1228" in file) or
-                                                     ("history3" in root and "1737" in file)):
+            if "passable_right" in file or not file.endswith("history") or not (
+                    ("history0" in root and "784" in file) or
+                    ("history1" in root and "1352" in file) or
+                    ("history2" in root and "1257" in file)):
                 continue
             create_video(os.path.join(os.getcwd(), root, file), 9, 9)

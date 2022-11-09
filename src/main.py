@@ -1,4 +1,5 @@
 import os
+import random
 from time import time
 import subprocess as sub
 import argparse
@@ -92,8 +93,7 @@ class MyFitness(FitnessFunction):
         self.soft = None
         self.special_passable = None
         self.special_impassable = None
-        self.terrains = ["passable_left"] if "locomotion" in fitness else ["passable_left", "passable_right",
-                                                                           "impassable"]
+        self.terrains = ["passable", "impassable"]
         self.solver = solver
         self.objective_dict = ObjectiveDict()
 
@@ -148,26 +148,18 @@ class MyFitness(FitnessFunction):
                 world[start, body_length - 4: body_length * 2 - 4, 0] = self.soft
                 world[body_length: body_length * 2, start - 4, 0] = self.soft
 
-                aperture_size = 1 if p_label == "impassable" else body_length - 3
-                half = math.floor(body_length * 1.5)
+                center = random.choice([start + i for i in range(-body_length // 2 + 1, body_length // 2 - 1)])
+                aperture_size = random.choice([0, 1, 3]) if p_label == "impassable" else random.choice(
+                    [body_length + 2, body_length - 2, body_length])
 
-                left_bank = half - int(aperture_size / 2) - 1
-                right_bank = half + int(aperture_size / 2) + 1
-                if p_label == "passable_left":
-                    left_bank -= math.ceil(aperture_size / 2)
-                    right_bank -= math.ceil(aperture_size / 2)
-                elif p_label == "passable_right":
-                    left_bank += math.ceil(aperture_size / 2)
-                    right_bank += math.ceil(aperture_size / 2)
-                if "locomotion" not in self.fitness:
-                    world[:half, body_length * 2, :2] = self.immovable_left
-                    world[half:, body_length * 2, :2] = self.immovable_right
-                    world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
+                world[:center, body_length * 2, :2] = self.immovable_left
+                world[center:, body_length * 2, :2] = self.immovable_right
+                world[center - aperture_size // 2: center + aperture_size // 2, body_length * 2: body_length * 3 + 1, :] = 0
 
                 if p_label != "impassable":
-                    world[half, body_length * 5 - 1, 0] = self.special_passable
+                    world[center, body_length * 5 - 1, 0] = self.special_passable
                 else:
-                    world[half, 0, 0] = self.special_impassable
+                    world[center, 0, 0] = self.special_impassable
 
                 vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable")
                 vxd.set_data(data=world)
@@ -183,8 +175,6 @@ class MyFitness(FitnessFunction):
                 for _, p_label in enumerate(self.terrains):
                     if p_label == "impassable":
                         terrain_id = 0
-                    elif p_label == "passable_left":
-                        terrain_id = 1
                     else:
                         terrain_id = 2
                     for obj in values:
