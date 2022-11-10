@@ -93,6 +93,8 @@ class MyFitness(FitnessFunction):
         self.soft = None
         self.special_passable = None
         self.special_impassable = None
+        self.wall_left = None
+        self.wall_right = None
         self.terrains = ["passable", "impassable"]
         self.solver = solver
         self.objective_dict = ObjectiveDict()
@@ -134,6 +136,10 @@ class MyFitness(FitnessFunction):
                                      CTE=0.01, isMeasured=1)
         self.special_impassable = vxa.add_material(material_id=5, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
                                                    uDynamic=0.5, isFixed=1, isMeasured=0)
+        self.wall_left = vxa.add_material(material_id=6, RGBA=(50, 50, 50, 255), E=10000, RHO=10, P=0.5,
+                                          uDynamic=0.5, isFixed=1, isMeasured=0)
+        self.wall_right = vxa.add_material(material_id=7, RGBA=(0, 50, 50, 255), E=10000, RHO=10, P=0.5,
+                                           uDynamic=0.5, isFixed=1, isMeasured=0)
         vxa.write(filename=os.path.join(directory, "base.vxa"))
 
     def create_vxd(self, ind, directory, record_history):
@@ -145,16 +151,40 @@ class MyFitness(FitnessFunction):
                 world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
                 start = math.floor(body_length * 1.5)
-                world[start, body_length - 4: body_length * 2 - 4, 0] = self.soft
-                world[body_length: body_length * 2, start - 4, 0] = self.soft
+                left_edge = body_length
+                right_edge = body_length * 2
+                wall_position = body_length * 2
+                lower_edge = body_length - 4
+                world[start, lower_edge: wall_position - 4, 0] = self.soft
+                world[left_edge: right_edge, start - 4, 0] = self.soft
 
                 center = random.choice([start + i for i in range(-body_length // 2 + 1, body_length // 2 - 1)])
                 aperture_size = random.choice([0, 1, 3]) if p_label == "impassable" else random.choice(
                     [body_length + 2, body_length - 2, body_length])
 
-                world[:center, body_length * 2, :2] = self.immovable_left
-                world[center:, body_length * 2, :2] = self.immovable_right
-                world[center - aperture_size // 2: center + aperture_size // 2, body_length * 2: body_length * 3 + 1, :] = 0
+                world[:center, wall_position, :2] = self.immovable_left
+                world[center:, wall_position, :2] = self.immovable_right
+                world[center - aperture_size // 2: center + aperture_size // 2, body_length * 2: body_length * 3 + 1,
+                :] = 0
+
+                left_wall = min(left_edge, center - aperture_size // 2) - random.choice(
+                    [i for i in range(1, body_length // 3 + 1)])
+                right_wall = max(right_edge, center + aperture_size // 2) + random.choice(
+                    [i for i in range(1, body_length // 3 + 1)])
+                left_wall_type = random.choice(["none", "straight", "knee"])
+                right_wall_type = random.choice(["none", "straight", "knee"])
+                if left_wall_type == "straight":
+                    world[left_wall, lower_edge: wall_position, :2] = self.wall_left
+                elif left_wall_type == "knee":
+                    world[left_wall - 1, lower_edge: start, :2] = self.wall_left
+                    world[left_wall - 1: left_wall + body_length // 4 - 1, start, :2] = self.wall_left
+                    world[left_wall + body_length // 4 - 1, start: wall_position, :2] = self.wall_left
+                if right_wall_type == "straight":
+                    world[right_wall, lower_edge: wall_position, :2] = self.wall_right
+                elif right_wall_type == "knee":
+                    world[right_wall, lower_edge: start, :2] = self.wall_right
+                    world[right_wall - body_length // 4:right_wall + 1, start, :2] = self.wall_right
+                    world[right_wall - body_length // 4, start: wall_position, :2] = self.wall_right
 
                 if p_label != "impassable":
                     world[center, body_length * 5 - 1, 0] = self.special_passable
@@ -182,7 +212,8 @@ class MyFitness(FitnessFunction):
                         values[obj].append(self.parse_fitness_from_history(output_file,
                                                                            fitness_tag="-".join(
                                                                                [str(ind.id), str(terrain_id), name]),
-                                                                           worst_value=self.objective_dict[obj]["worst_value"]))
+                                                                           worst_value=self.objective_dict[obj][
+                                                                               "worst_value"]))
             fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
                                for k, v in values.items()}
         return fitness

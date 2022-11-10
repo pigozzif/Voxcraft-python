@@ -54,12 +54,12 @@ def create_video(path, width, height):
         frame_count += 1
         if ("/" not in line) or "vx3_node_worker" in line or "setting" in line or frame_count % 5 == 0:
             continue
-        im = draw_robot(line, width, height, True, "impassable" not in path)
-        images.append(im)
-        # print(frame_count)
-    # print("simulation over")
+        try:
+            im = draw_robot(line, width, height, True, "impassable" not in path)
+            images.append(im)
+        except:
+            print("FAULTY FRAME: {}".format(frame_count))
     fps = len(images) // 50
-    # sub.call("rm output.avi", shell=True)
     if fps < 1:
         print("Not enough votes for {}".format(path))
         return
@@ -73,11 +73,11 @@ def create_video(path, width, height):
 
 
 if __name__ == "__main__":
-    for root, dirs, files in os.walk("long_touch"):
+    for root, dirs, files in os.walk("env_variable"):
         for file in files:
             if "passable_right" in file or not file.endswith("history") or not (
-                    ("history0" in root and "784" in file) or
-                    ("history1" in root and "1352" in file) or
-                    ("history2" in root and "1257" in file)):
+                    ("history0" in root and "2485" in file) or
+                    ("history1" in root and "1868" in file) or
+                    ("history2" in root and "2075" in file)):
                 continue
             create_video(os.path.join(os.getcwd(), root, file), 9, 9)
