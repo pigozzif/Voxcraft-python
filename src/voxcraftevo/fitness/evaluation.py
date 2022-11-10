@@ -20,7 +20,7 @@ class FitnessFunction(object):
         with open(root, "r") as file:
             for line in file:
                 if line.startswith(fitness_tag):
-                    return float("".join(c for c in line.split(":")[1].strip() if c.isdigit() or c == "."))
+                    return float("".join(c for c in line.split(":")[1].strip() if c.isdigit() or c == ".").strip("."))
         return worst_value
         # return fitness
         # fitness = {}
