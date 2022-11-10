@@ -148,54 +148,58 @@ class MyFitness(FitnessFunction):
                 base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
                                                                        p_label))
                 body_length = self.get_body_length(r_label)
-                world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
-
-                start = math.floor(body_length * 1.5)
-                left_edge = body_length
-                right_edge = body_length * 2
-                wall_position = body_length * 2
-                lower_edge = body_length - 4
-                world[start, lower_edge: wall_position - 4, 0] = self.soft
-                world[left_edge: right_edge, start - 4, 0] = self.soft
-
-                center = random.choice([start + i for i in range(-body_length // 2 + 1, body_length // 2 - 1)])
-                aperture_size = random.choice([0, 1, 3]) if p_label == "impassable" else random.choice(
-                    [body_length + 2, body_length - 2, body_length])
-
-                world[:center, wall_position, :2] = self.immovable_left
-                world[center:, wall_position, :2] = self.immovable_right
-                world[center - aperture_size // 2: center + aperture_size // 2, body_length * 2: body_length * 3 + 1,
-                :] = 0
-
-                left_wall = min(left_edge, center - aperture_size // 2) - random.choice(
-                    [i for i in range(1, body_length // 3 + 1)])
-                right_wall = max(right_edge, center + aperture_size // 2) + random.choice(
-                    [i for i in range(1, body_length // 3 + 1)])
-                left_wall_type = random.choice(["none", "straight", "knee"])
-                right_wall_type = random.choice(["none", "straight", "knee"])
-                if left_wall_type == "straight":
-                    world[left_wall, lower_edge: wall_position, :2] = self.wall_left
-                elif left_wall_type == "knee":
-                    world[left_wall - 1, lower_edge: start, :2] = self.wall_left
-                    world[left_wall - 1: left_wall + body_length // 4 - 1, start, :2] = self.wall_left
-                    world[left_wall + body_length // 4 - 1, start: wall_position, :2] = self.wall_left
-                if right_wall_type == "straight":
-                    world[right_wall, lower_edge: wall_position, :2] = self.wall_right
-                elif right_wall_type == "knee":
-                    world[right_wall, lower_edge: start, :2] = self.wall_right
-                    world[right_wall - body_length // 4:right_wall + 1, start, :2] = self.wall_right
-                    world[right_wall - body_length // 4, start: wall_position, :2] = self.wall_right
-
-                if p_label != "impassable":
-                    world[center, body_length * 5 - 1, 0] = self.special_passable
-                else:
-                    world[center, 0, 0] = self.special_impassable
+                world = self._create_world(body_length=body_length, p_label=p_label)
 
                 vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable")
                 vxd.set_data(data=world)
                 vxd.set_tags(RecordVoxel=record_history, RecordFixedVoxels=record_history,
                              RecordStepSize=100 if record_history else 0)
                 vxd.write(filename=base_name + ".vxd")
+
+    def _create_world(self, body_length, p_label):
+        world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
+
+        start = math.floor(body_length * 1.5)
+        left_edge = body_length
+        right_edge = body_length * 2
+        wall_position = body_length * 2
+        lower_edge = body_length - 4
+        world[start, lower_edge: wall_position - 4, 0] = self.soft
+        world[left_edge: right_edge, start - 4, 0] = self.soft
+
+        center = random.choice([start + i for i in range(-body_length // 2 + 1, body_length // 2 - 1)])
+        aperture_size = random.choice([0, 1, 3]) if p_label == "impassable" else random.choice(
+            [body_length + 2, body_length - 2, body_length])
+
+        world[:center, wall_position, :2] = self.immovable_left
+        world[center:, wall_position, :2] = self.immovable_right
+        world[center - aperture_size // 2: center + aperture_size // 2, body_length * 2: body_length * 3 + 1, :] = 0
+
+        left_wall = min(left_edge, center - aperture_size // 2) - random.choice(
+            [i for i in range(1, body_length // 3 + 1)])
+        right_wall = max(right_edge, center + aperture_size // 2) + random.choice(
+            [i for i in range(1, body_length // 3 + 1)])
+        left_wall_type = random.choice(["none", "straight", "knee"])
+        right_wall_type = random.choice(["none", "straight", "knee"])
+        if left_wall_type == "straight":
+            world[left_wall, lower_edge: wall_position, :2] = self.wall_left
+        elif left_wall_type == "knee":
+            world[left_wall - 1, lower_edge: start, :2] = self.wall_left
+            world[left_wall - 1: left_wall + body_length // 4 - 1, start, :2] = self.wall_left
+            world[left_wall + body_length // 4 - 1, start: wall_position, :2] = self.wall_left
+        if right_wall_type == "straight":
+            world[right_wall, lower_edge: wall_position, :2] = self.wall_right
+        elif right_wall_type == "knee":
+            world[right_wall, lower_edge: start, :2] = self.wall_right
+            world[right_wall - body_length // 4:right_wall + 1, start, :2] = self.wall_right
+            world[right_wall - body_length // 4, start: wall_position, :2] = self.wall_right
+
+        if p_label != "impassable":
+            world[center, body_length * 5 - 1, 0] = self.special_passable
+        else:
+            world[center, 0, 0] = self.special_impassable
+
+        return world
 
     def get_fitness(self, individuals, output_file):
         fitness = {}
