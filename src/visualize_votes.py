@@ -73,11 +73,12 @@ def create_video(path, width, height):
 
 
 if __name__ == "__main__":
-    for root, dirs, files in os.walk("env_variable"):
+    for root, dirs, files in os.walk("more_variable_env"):
         for file in files:
             if "passable_right" in file or not file.endswith("history") or not (
-                    ("history0" in root and "2485" in file) or
-                    ("history1" in root and "1868" in file) or
-                    ("history2" in root and "2075" in file)):
+                    ("history0" in root and "465" in file) or
+                    ("history1" in root and "3947" in file) or
+                    ("history2" in root and "2145" in file) or
+                    ("history3" in root and "3233" in file)):
                 continue
             create_video(os.path.join(os.getcwd(), root, file), 9, 9)
