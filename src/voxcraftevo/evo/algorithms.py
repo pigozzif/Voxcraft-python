@@ -343,7 +343,7 @@ class NSGAII(EvolutionarySolver):
                 loc = [float(ind.fitness["locomotion_score"]) for ind in front],
                 sens = [float(ind.fitness["sensing_score"]) for ind in front]
                 plt.scatter(loc, sens, color=color, alpha=0.5, label=str(gen))
-            plt.scatter([0.0, 1.0, 0.0, 1.0], [0.0, 0.0, 1.0, 1.0], alpha=0.0)
+            plt.scatter([0.0, 1.0, 0.0, 1.0], [-1.0, -1.0, 0.0, 0.0], alpha=0.0)
             plt.xlabel("locomotion through the aperture (m)")
             plt.ylabel("affordance detection (% of timesteps correct)")
             plt.legend()
