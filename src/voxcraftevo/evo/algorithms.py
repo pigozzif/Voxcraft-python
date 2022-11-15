@@ -360,7 +360,8 @@ class NSGAII(EvolutionarySolver):
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
         if not self.fronts:
             self.fast_non_dominated_sort()
-        for individual in self.fronts[0]:
+        for rank, goal in self.pop.objectives_dict.items():
+            individual = sorted(self.fronts[0], key=lambda x: x.fitness[goal["name"]], reverse=goal["maximize"])[0]
             self.fitness_func.save_histories(individual=individual, input_directory=self.data_dir,
                                              output_directory=self.hist_dir,
                                              executables_directory=self.executables_dir)
