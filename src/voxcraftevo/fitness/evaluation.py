@@ -16,10 +16,13 @@ class FitnessFunction(object):
         return worst_value
 
     @staticmethod
-    def parse_fitness_from_history(root, fitness_tag: str, worst_value: float) -> float:
+    def parse_fitness_from_history(root, fitness_tag: str, worst_value: float, gen: int) -> float:
         with open(root, "r") as file:
+            start = False
             for line in file:
-                if line.startswith(fitness_tag):
+                if "GENERATION {}".format(gen) in line:
+                    start = True
+                if start and line.startswith(fitness_tag):
                     return float("".join(c for c in line.split(":")[1].strip() if c.isdigit() or c == ".").strip("."))
         return worst_value
         # return fitness
@@ -56,7 +59,7 @@ class FitnessFunction(object):
         pass
 
     @abc.abstractmethod
-    def get_fitness(self, individuals: List[Individual], output_file: str) -> dict:
+    def get_fitness(self, individuals: List[Individual], output_file: str, gen: int) -> dict:
         pass
 
     @abc.abstractmethod

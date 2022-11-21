@@ -201,7 +201,7 @@ class MyFitness(FitnessFunction):
 
         return world
 
-    def get_fitness(self, individuals, output_file):
+    def get_fitness(self, individuals, output_file, gen):
         fitness = {}
         for ind in individuals:
             values = {obj: [] for obj in self.objective_dict}
@@ -217,7 +217,7 @@ class MyFitness(FitnessFunction):
                                                                            fitness_tag="-".join(
                                                                                [str(ind.id), str(terrain_id), name]),
                                                                            worst_value=self.objective_dict[obj][
-                                                                               "worst_value"]))
+                                                                               "worst_value"], gen=gen))
             fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
                                for k, v in values.items()}
         return fitness
