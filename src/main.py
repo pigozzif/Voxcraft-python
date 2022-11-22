@@ -16,7 +16,6 @@ from voxcraftevo.configs.VXD import VXD
 from voxcraftevo.fitness.evaluation import FitnessFunction
 
 
-# actuation +/- 50%
 # (1.5**(1/3)-1)/0.01 = 14.4714
 
 
