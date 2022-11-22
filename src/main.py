@@ -38,6 +38,7 @@ def parse_args():
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
+    parser.add_argument("--terrain", default="random", type=str, help="terrain for simulations")
     return parser.parse_args()
 
 
@@ -86,7 +87,7 @@ class NSGAIIListener(Listener):
 
 class MyFitness(FitnessFunction):
 
-    def __init__(self, fitness, solver):
+    def __init__(self, fitness, solver, terrain):
         self.fitness = fitness
         self.immovable_left = None
         self.immovable_right = None
@@ -95,7 +96,8 @@ class MyFitness(FitnessFunction):
         self.special_impassable = None
         self.wall_left = None
         self.wall_right = None
-        self.terrains = ["passable", "impassable"]
+        self.terrains = ["passable_left", "passable_right", "impassable"] if terrain == "fixed" \
+            else ["passable", "impassable"]
         self.solver = solver
         self.objective_dict = ObjectiveDict()
 
@@ -157,6 +159,40 @@ class MyFitness(FitnessFunction):
                 vxd.write(filename=base_name + ".vxd")
 
     def _create_world(self, body_length, p_label):
+        return self._create_fixed_world(body_length=body_length, p_label=p_label) if "passable_left" in self.terrains \
+            else self._create_random_world(body_length=body_length, p_label=p_label)
+
+    def _create_fixed_world(self, body_length, p_label):
+        world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
+
+        start = math.floor(body_length * 1.5)
+        world[start, body_length - 4: body_length * 2 - 4, 0] = self.soft
+        world[body_length: body_length * 2, start - 4, 0] = self.soft
+
+        aperture_size = 1 if p_label == "impassable" else body_length - 3
+        half = math.floor(body_length * 1.5)
+
+        left_bank = half - int(aperture_size / 2) - 1
+        right_bank = half + int(aperture_size / 2) + 1
+        if p_label == "passable_left":
+            left_bank -= math.ceil(aperture_size / 2)
+            right_bank -= math.ceil(aperture_size / 2)
+        elif p_label == "passable_right":
+            left_bank += math.ceil(aperture_size / 2)
+            right_bank += math.ceil(aperture_size / 2)
+        if "locomotion" not in self.fitness:
+            world[:half, body_length * 2, :2] = self.immovable_left
+            world[half:, body_length * 2, :2] = self.immovable_right
+            world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
+
+        if p_label != "impassable":
+            world[half, body_length * 5 - 1, 0] = self.special_passable
+        else:
+            world[half, 0, 0] = self.special_impassable
+
+        return world
+
+    def _create_random_world(self, body_length, p_label):
         world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
         start = math.floor(body_length * 1.5)
@@ -209,6 +245,8 @@ class MyFitness(FitnessFunction):
                 for _, p_label in enumerate(self.terrains):
                     if p_label == "impassable":
                         terrain_id = 0
+                    elif p_label == "passable_left":
+                        terrain_id = 1
                     else:
                         terrain_id = 2
                     for obj in values:
@@ -257,8 +295,8 @@ if __name__ == "__main__":
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct", survival_selector="worst",
                                        parent_selector="tournament",
-                                       fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=remap,
-                                       genetic_operators={"gaussian_mut": 1.0},
+                                       fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.terrain),
+                                       remap=remap, genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2, overlapping=True,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
@@ -276,8 +314,8 @@ if __name__ == "__main__":
         evolver = Solver.create_solver(name="nsgaii", seed=seed, pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct",
-                                       fitness_func=MyFitness(arguments.fitness, arguments.solver), remap=remap,
-                                       genetic_operators={"gaussian_mut": 1.0},
+                                       fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.terrain),
+                                       remap=remap, genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
