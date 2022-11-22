@@ -68,7 +68,7 @@ class NSGAIIListener(Listener):
         solver.fast_non_dominated_sort()
         pareto_front = solver.fronts[0]
         best_locomotion = min(pareto_front, key=lambda x: x.fitness["locomotion_score"])
-        best_sensing = min(pareto_front, key=lambda x: x.fitness["sensing_score"])
+        best_sensing = max(pareto_front, key=lambda x: x.fitness["sensing_score"])
         knee = solver.best_so_far
         stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
                                       str(best_sensing.id), str(best_locomotion.id),
@@ -120,8 +120,8 @@ class MyFitness(FitnessFunction):
         self.objective_dict.add_objective(name="locomotion_score", maximize=False,
                                           tag="<{}>".format("locomotion_score"),
                                           best_value=0.0, worst_value=5.0)
-        self.objective_dict.add_objective(name="sensing_score", maximize=False, tag="<{}>".format("sensing_score"),
-                                          best_value=0.0, worst_value=1.0)
+        self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("sensing_score"),
+                                          best_value=1.0, worst_value=0.0)
         return self.objective_dict
 
     def create_vxa(self, directory):
