@@ -23,7 +23,10 @@ class FitnessFunction(object):
                 if "GENERATION {}".format(gen) in line:
                     start = True
                 if start and line.startswith(fitness_tag):
-                    return float("".join(c for c in line.split(":")[1].strip() if c.isdigit() or c == ".").strip("."))
+                    try:
+                        return float("".join(c for c in line.split(":")[1].strip() if c.isdigit() or c == ".").strip("."))
+                    except:
+                        return worst_value
         return worst_value
         # return fitness
         # fitness = {}
