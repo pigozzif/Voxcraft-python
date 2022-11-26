@@ -343,9 +343,9 @@ class NSGAII(EvolutionarySolver):
                 loc = [float(ind.fitness["locomotion_score"]) for ind in front],
                 sens = [float(ind.fitness["sensing_score"]) for ind in front]
                 plt.scatter(loc, sens, color=color, alpha=0.5, label=str(gen))
-            for _, goal in self.pop.objectives_dict.items():
-                plt.scatter([goal["worst_value"], goal["best_value"]], [goal["best_value"], goal["worst_value"]],
-                            alpha=0.0)
+            plt.scatter([self.pop.objectives_dict[0]["worst_value"], self.pop.objectives_dict[1]["best_value"]],
+                        [self.pop.objectives_dict[0]["best_value"], self.pop.objectives_dict[1]["worst_value"]],
+                        alpha=0.0)
             plt.xlabel("locomotion through the aperture (m)")
             plt.ylabel("affordance detection (% of timesteps correct)")
             plt.legend()

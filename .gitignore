@@ -2,3 +2,8 @@ __pycache__
 .DS_Store
 *.csv
 *.idea
+*.png
+*.history
+*.vxa
+*.vxd
+*.xml
