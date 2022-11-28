@@ -38,6 +38,7 @@ def parse_args():
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
     parser.add_argument("--terrain", default="random", type=str, help="terrain for simulations")
+    parser.add_argument("--remap", default=None, type=int, help="recompute fitness of parents")
     return parser.parse_args()
 
 
@@ -288,7 +289,10 @@ if __name__ == "__main__":
 
     seed = arguments.seed
     number_of_params = (15 * 15) + 15 + (15 * 14) + 14
-    remap = arguments.terrain == "random"
+    if arguments.remap is None:
+        arguments.remap = arguments.terrain == "random"
+    else:
+        arguments.remap = bool(arguments.remap)
     if arguments.solver == "ga":
         evolver = Solver.create_solver(name="ga", seed=seed, pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
