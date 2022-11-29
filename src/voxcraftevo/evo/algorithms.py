@@ -150,7 +150,7 @@ class EvolutionarySolver(Solver):
         fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file, gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
         for ind in to_evaluate:
             ind.fitness = fitness[ind.id]
-            ind.evaluated = True
+            ind.evaluated = not self.remap
 
     def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every) -> None:
         self.start_time = time.time()
