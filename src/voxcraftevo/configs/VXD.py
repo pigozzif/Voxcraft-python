@@ -21,7 +21,7 @@ class VXD(object):
 
         neural = etree.SubElement(root, "Controller")
         etree.SubElement(neural, "NeuralWeights").text = self.NeuralWeights
-        etree.SubElement(neural, "Age").text = self.age
+        etree.SubElement(neural, "Age").text = str(self.age)
 
         task = etree.SubElement(root, "Task")
         etree.SubElement(task, "Passable").text = "1" if self.isPassable else "0"
