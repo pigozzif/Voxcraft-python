@@ -148,8 +148,8 @@ class MyFitness(FitnessFunction):
     def create_vxd(self, ind, directory, record_history):
         for _, r_label in enumerate(["b"]):
             for terrain_id, p_label in enumerate(self.terrains):
-                base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
-                                                                       p_label))
+                base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id),
+                                                                       r_label, p_label))
                 body_length = self.get_body_length(r_label)
                 world = self._create_world(body_length=body_length, p_label=p_label)
 
