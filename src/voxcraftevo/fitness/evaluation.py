@@ -25,16 +25,6 @@ class FitnessFunction(object):
                     except:
                         return worst_value
         return worst_value
-        # return fitness
-        # fitness = {}
-        # with open(root, "r") as file:
-        #     for line in file:
-        #         for bot_id in bot_ids:
-        #             if line.startswith("-".join([bot_id, fitness_tag])):
-        #                 fitness[int(bot_id)] = float(line.split(":")[1].strip())
-        # if len(fitness) != len(bot_ids):
-        #     raise IndexError
-        # return fitness
 
     @staticmethod
     def parse_pos(root, bot_id: str, tag: str) -> Tuple[float, float, float]:

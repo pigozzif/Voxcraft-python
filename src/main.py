@@ -98,7 +98,6 @@ class MyFitness(FitnessFunction):
         self.wall_right = None
         self.terrains = ["impassable", "passable_left", "passable_right"] if terrain == "fixed" \
             else ["passable", "impassable"] * int(terrain.split("-")[1])
-        print(self.terrains)
         self.solver = solver
         self.objective_dict = ObjectiveDict()
 
