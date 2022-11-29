@@ -4,7 +4,7 @@ from lxml import etree
 
 class VXD(object):
 
-    def __init__(self, isPassable: int = 1, NeuralWeights: np.ndarray = None):
+    def __init__(self, terrainID: int, isPassable: int = 1, NeuralWeights: np.ndarray = None, age: int = 0):
         root = etree.XML("<VXD></VXD>")
         self.tree = etree.ElementTree(root)
         if NeuralWeights is not None:
@@ -12,6 +12,8 @@ class VXD(object):
         else:
             self.NeuralWeights = ""
         self.isPassable = isPassable
+        self.terrainID = terrainID
+        self.age = age
 
     def set_tags(self, RecordVoxel: int = 1, RecordLink: int = 0, RecordFixedVoxels: int = 1,
                  RecordStepSize: float = 100) -> None:
@@ -19,9 +21,11 @@ class VXD(object):
 
         neural = etree.SubElement(root, "Controller")
         etree.SubElement(neural, "NeuralWeights").text = self.NeuralWeights
+        etree.SubElement(neural, "Age").text = self.age
 
         task = etree.SubElement(root, "Task")
         etree.SubElement(task, "Passable").text = "1" if self.isPassable else "0"
+        etree.SubElement(task, "TerrainID").text = str(self.terrainID)
 
         history = etree.SubElement(root, "RecordHistory")
         history.set('replace', 'VXA.Simulator.RecordHistory')

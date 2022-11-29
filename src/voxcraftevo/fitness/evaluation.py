@@ -16,13 +16,10 @@ class FitnessFunction(object):
         return worst_value
 
     @staticmethod
-    def parse_fitness_from_history(root, fitness_tag: str, worst_value: float, gen: int) -> float:
+    def parse_fitness_from_history(root, fitness_tag: str, worst_value: float) -> float:
         with open(root, "r") as file:
-            start = False
             for line in file:
-                if "GENERATION {}".format(gen) in line:
-                    start = True
-                if start and line.startswith(fitness_tag):
+                if line.startswith(fitness_tag):
                     try:
                         return float("".join(c for c in line.split(":")[1].strip() if c.isdigit() or c == ".").strip("."))
                     except:

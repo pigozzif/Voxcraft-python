@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
-    parser.add_argument("--terrain", default="random", type=str, help="terrain for simulations")
+    parser.add_argument("--terrain", default="random-1", type=str, help="terrain for simulations")
     parser.add_argument("--remap", default=None, type=int, help="recompute fitness of parents")
     return parser.parse_args()
 
@@ -96,8 +96,9 @@ class MyFitness(FitnessFunction):
         self.special_impassable = None
         self.wall_left = None
         self.wall_right = None
-        self.terrains = ["passable_left", "passable_right", "impassable"] if terrain == "fixed" \
-            else ["passable", "impassable"]
+        self.terrains = ["impassable", "passable_left", "passable_right"] if terrain == "fixed" \
+            else ["passable", "impassable"] * int(terrain.split("-")[1])
+        print(self.terrains)
         self.solver = solver
         self.objective_dict = ObjectiveDict()
 
@@ -146,13 +147,14 @@ class MyFitness(FitnessFunction):
 
     def create_vxd(self, ind, directory, record_history):
         for _, r_label in enumerate(["b"]):
-            for _, p_label in enumerate(self.terrains):
+            for terrain_id, p_label in enumerate(self.terrains):
                 base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), r_label,
                                                                        p_label))
                 body_length = self.get_body_length(r_label)
                 world = self._create_world(body_length=body_length, p_label=p_label)
 
-                vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable")
+                vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable", terrainID=terrain_id,
+                          age=ind.age)
                 vxd.set_data(data=world)
                 vxd.set_tags(RecordVoxel=record_history, RecordFixedVoxels=record_history,
                              RecordStepSize=100 if record_history else 0)
@@ -242,20 +244,15 @@ class MyFitness(FitnessFunction):
         for ind in individuals:
             values = {obj: [] for obj in self.objective_dict}
             for _, r_label in enumerate(["b"]):
-                for _, p_label in enumerate(self.terrains):
-                    if p_label == "impassable":
-                        terrain_id = 0
-                    elif p_label == "passable_left":
-                        terrain_id = 1
-                    else:
-                        terrain_id = 2
+                for terrain_id, p_label in enumerate(self.terrains):
                     for obj in values:
                         name = self.objective_dict[obj]["name"]
                         values[obj].append(self.parse_fitness_from_history(output_file,
                                                                            fitness_tag="-".join(
-                                                                               [str(ind.id), str(terrain_id), name]),
+                                                                               [str(ind.id), str(terrain_id),
+                                                                                str(ind.age), name]),
                                                                            worst_value=self.objective_dict[obj][
-                                                                               "worst_value"], gen=gen))
+                                                                               "worst_value"]))
             fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
                                for k, v in values.items()}
         return fitness
@@ -290,7 +287,7 @@ if __name__ == "__main__":
     seed = arguments.seed
     number_of_params = (15 * 15) + 15 + (15 * 14) + 14
     if arguments.remap is None:
-        arguments.remap = arguments.terrain == "random"
+        arguments.remap = arguments.terrain.startswith("random")
     else:
         arguments.remap = bool(arguments.remap)
     if arguments.solver == "ga":
@@ -304,6 +301,7 @@ if __name__ == "__main__":
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
+                                       logs_dir=arguments.logs,
                                        listener=MyListener(file_path="{0}_{1}.csv".format(
                                            arguments.fitness, seed),
                                            header=["seed", "gen", "elapsed.time", "best.fitness_score", "best.id",
