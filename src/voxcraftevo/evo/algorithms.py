@@ -126,7 +126,7 @@ class EvolutionarySolver(Solver):
                  format(num_evaluated, len(self.pop)), shell=True)
         to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
         fitness = {ind.id: {"locomotion_score": sum([g > 0.0 for g in ind.genotype[:100]]) / 100.0,
-                   "sensing_score": sum([g > 0.0 for g in ind.genotype[100:]]) / 100.0} for ind in to_evaluate}
+                   "sensing_score": sum([(random.random() * 2.0 - 1.0) > 0.0 for g in ind.genotype[100:]]) / 100.0} for ind in to_evaluate}
         for ind in to_evaluate:
             ind.fitness = fitness[ind.id]
             ind.evaluated = not self.remap

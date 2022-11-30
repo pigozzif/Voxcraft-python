@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
     parser.add_argument("--logs", default="logs", type=str, help="relative path to the logs dir")
-    parser.add_argument("--output_dir", default="toy_exp", type=str,
+    parser.add_argument("--output_dir", default="toy_control", type=str,
                         help="relative path to output dir")
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
