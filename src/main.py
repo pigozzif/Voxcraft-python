@@ -22,8 +22,8 @@ from voxcraftevo.fitness.evaluation import FitnessFunction
 def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
-    parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=40, type=int, help="generations for the ea")
+    parser.add_argument("--solver", default="nsgaii", type=str, help="solver for the optimization")
+    parser.add_argument("--gens", default=80, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
@@ -32,12 +32,12 @@ def parse_args():
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
     parser.add_argument("--logs", default="logs", type=str, help="relative path to the logs dir")
-    parser.add_argument("--output_dir", default="output", type=str,
+    parser.add_argument("--output_dir", default="toy_exp", type=str,
                         help="relative path to output dir")
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
-    parser.add_argument("--terrain", default="random-1", type=str, help="terrain for simulations")
+    parser.add_argument("--terrain", default="fixed", type=str, help="terrain for simulations")
     parser.add_argument("--remap", default=None, type=int, help="recompute fitness of parents")
     return parser.parse_args()
 
@@ -119,9 +119,9 @@ class MyFitness(FitnessFunction):
         if self.solver != "nsgaii":
             self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness),
                                               best_value=2.0, worst_value=-1.0)
-        self.objective_dict.add_objective(name="locomotion_score", maximize=False,
+        self.objective_dict.add_objective(name="locomotion_score", maximize=True,
                                           tag="<{}>".format("locomotion_score"),
-                                          best_value=0.0, worst_value=5.0)
+                                          best_value=1.0, worst_value=0.0)
         self.objective_dict.add_objective(name="sensing_score", maximize=True, tag="<{}>".format("sensing_score"),
                                           best_value=1.0, worst_value=0.0)
         return self.objective_dict
@@ -284,7 +284,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = (15 * 15) + 15 + (15 * 14) + 14
+    number_of_params = 200
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:

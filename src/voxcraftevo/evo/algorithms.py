@@ -45,12 +45,6 @@ class Solver(object):
         self.executables_dir = executables_dir
         if not os.path.isdir(executables_dir):
             sub.call("mkdir {}".format(executables_dir), shell=True)
-        for file in os.listdir(os.path.join("..", logs_dir)):
-            if int(file.split(".")[1].split("_")[1]) == self.seed and "out" in file:
-                self.log_file = os.path.join("/".join(os.getcwd().split("/")[:-1]), logs_dir, file)
-                break
-        else:
-            raise IndexError
 
     def elapsed_time(self, units: str = "s") -> float:
         if self.start_time is None:
@@ -130,24 +124,9 @@ class EvolutionarySolver(Solver):
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
         sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".
                  format(num_evaluated, len(self.pop)), shell=True)
-        output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
-        while True:
-            try:
-                sub.call("cd {0}; ./voxcraft-sim -i {1} -o {2}".format(self.executables_dir,
-                                                                       os.path.join("..", self.data_dir),
-                                                                       os.path.join("..", output_file)), shell=True)
-                # sub.call waits for the process to return
-                # after it does, we collect the results output by the simulator
-                break
-            except IOError:
-                sub.call("echo Dang it! There was an IOError. I'll re-simulate this batch again...", shell=True)
-                pass
-            except IndexError:
-                sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
-                pass
-        time.sleep(30)
         to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
-        fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file, gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
+        fitness = {ind.id: {"locomotion_score": sum([g > 0.0 for g in ind.genotype[:100]]) / 100.0,
+                   "sensing_score": sum([g > 0.0 for g in ind.genotype[100:]]) / 100.0} for ind in to_evaluate}
         for ind in to_evaluate:
             ind.fitness = fitness[ind.id]
             ind.evaluated = not self.remap
