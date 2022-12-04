@@ -39,6 +39,7 @@ def parse_args():
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
     parser.add_argument("--terrain", default="random-1", type=str, help="terrain for simulations")
     parser.add_argument("--remap", default=None, type=int, help="recompute fitness of parents")
+    parser.add_argument("--hebbian", default=0, type=int, help="use hebbian learning")
     return parser.parse_args()
 
 
@@ -284,7 +285,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = (15 * 15) + 15 + (15 * 14) + 14
+    number_of_params = ((15 * 8) + 8) * (4 if arguments.hebbian else 1)
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:
