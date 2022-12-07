@@ -117,9 +117,12 @@ class MyFitness(FitnessFunction):
         raise ValueError("Unknown body size: {}".format(r_label))
 
     def create_objectives_dict(self):
-        if self.solver != "nsgaii":
-            self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness),
-                                              best_value=2.0, worst_value=-1.0)
+        if self.solver == "ga":
+            # self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness),
+            #                                   best_value=2.0, worst_value=-1.0)
+            self.objective_dict.add_objective(name="locomotion_score", maximize=False,
+                                              tag="<{}>".format("locomotion_score"),
+                                              best_value=0.0, worst_value=5.0)
         self.objective_dict.add_objective(name="locomotion_score", maximize=False,
                                           tag="<{}>".format("locomotion_score"),
                                           best_value=0.0, worst_value=5.0)
@@ -285,7 +288,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = ((15 * 8) + 8) * (4 if arguments.hebbian else 1)
+    number_of_params = ((15 * 8) + (8 if not arguments.hebbian else 0)) * (4 if arguments.hebbian else 1)
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:
