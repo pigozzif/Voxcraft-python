@@ -171,8 +171,12 @@ class MyFitness(FitnessFunction):
         world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
         start = math.floor(body_length * 1.5)
-        world[start, body_length - 4: body_length * 2 - 4, 0] = self.soft
-        world[body_length: body_length * 2, start - 4, 0] = self.soft
+        distance_from_wall = math.floor(body_length * 0.5)
+        left_edge = body_length
+        right_edge = body_length * 2
+        wall_position = distance_from_wall * 2 + body_length * 2
+        world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
+        world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
 
         aperture_size = 1 if p_label == "impassable" else body_length - 3
         half = math.floor(body_length * 1.5)
@@ -185,13 +189,12 @@ class MyFitness(FitnessFunction):
         elif p_label == "passable_right":
             left_bank += math.ceil(aperture_size / 2)
             right_bank += math.ceil(aperture_size / 2)
-        if "locomotion" not in self.fitness:
-            world[:half, body_length * 2, :2] = self.immovable_left
-            world[half:, body_length * 2, :2] = self.immovable_right
-            world[left_bank + 1: right_bank, body_length * 2: body_length * 3 + 1, :] = 0
+        world[:half, wall_position, :2] = self.immovable_left
+        world[half:, wall_position, :2] = self.immovable_right
+        world[left_bank + 1: right_bank, wall_position, :] = 0
 
         if p_label != "impassable":
-            world[half, body_length * 5 - 1, 0] = self.special_passable
+            world[half, wall_position + body_length, 0] = self.special_passable
         else:
             world[half, 0, 0] = self.special_impassable
 
@@ -201,12 +204,13 @@ class MyFitness(FitnessFunction):
         world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
         start = math.floor(body_length * 1.5)
+        distance_from_wall = math.floor(body_length * 0.5)
         left_edge = body_length
         right_edge = body_length * 2
-        wall_position = body_length * 2
+        wall_position = distance_from_wall * 2 + body_length * 2
         lower_edge = body_length - 4
-        world[start, lower_edge: wall_position - 4, 0] = self.soft
-        world[left_edge: right_edge, start - 4, 0] = self.soft
+        world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
+        world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
 
         center = random.choice([start + i for i in range(-body_length // 2 + 1, body_length // 2 - 1)])
         aperture_size = random.choice([0, 1, 3]) if p_label == "impassable" else random.choice(
@@ -214,7 +218,7 @@ class MyFitness(FitnessFunction):
 
         world[:center, wall_position, :2] = self.immovable_left
         world[center:, wall_position, :2] = self.immovable_right
-        world[center - aperture_size // 2: center + aperture_size // 2, body_length * 2: body_length * 3 + 1, :] = 0
+        world[center - aperture_size // 2: center + aperture_size // 2, wall_position, :] = 0
 
         left_wall = min(left_edge, center - aperture_size // 2) - random.choice(
             [i for i in range(1, body_length // 3 + 1)])
@@ -236,7 +240,7 @@ class MyFitness(FitnessFunction):
             world[right_wall - body_length // 4, start: wall_position, :2] = self.wall_right
 
         if p_label != "impassable":
-            world[center, body_length * 5 - 1, 0] = self.special_passable
+            world[center, wall_position + body_length, 0] = self.special_passable
         else:
             world[center, 0, 0] = self.special_impassable
 
