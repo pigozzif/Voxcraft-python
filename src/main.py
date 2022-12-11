@@ -131,7 +131,7 @@ class MyFitness(FitnessFunction):
         return self.objective_dict
 
     def create_vxa(self, directory):
-        vxa = VXA(TempAmplitude=14.4714, TempPeriod=0.2, TempBase=0, EnableCollision=1)
+        vxa = VXA(TempAmplitude=1.44714, TempPeriod=0.2, TempBase=0, EnableCollision=1)
         self.immovable_left = vxa.add_material(material_id=1, RGBA=(50, 50, 50, 255), E=10000, RHO=10, P=0.5,
                                                uDynamic=0.5, isFixed=1, isMeasured=0)
         self.immovable_right = vxa.add_material(material_id=2, RGBA=(0, 50, 50, 255), E=10000, RHO=10, P=0.5,
@@ -292,7 +292,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = ((17 * 2) + (2 if not arguments.hebbian else 0)) * (4 if arguments.hebbian else 1)
+    number_of_params = ((17 * 8) + (8 if not arguments.hebbian else 0)) * (4 if arguments.hebbian else 1)
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:
