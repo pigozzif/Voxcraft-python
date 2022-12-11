@@ -288,7 +288,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = ((17 * 8) + (8 if not arguments.hebbian else 0)) * (4 if arguments.hebbian else 1)
+    number_of_params = ((17 * 2) + (2 if not arguments.hebbian else 0)) * (4 if arguments.hebbian else 1)
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:
