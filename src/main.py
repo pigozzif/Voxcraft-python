@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
     parser.add_argument("--terrain", default="random-1", type=str, help="terrain for simulations")
     parser.add_argument("--remap", default=None, type=int, help="recompute fitness of parents")
-    parser.add_argument("--hebbian", default=0, type=int, help="use hebbian learning")
+    parser.add_argument("--rnn", default=0, type=int, help="use recurrent policy")
     return parser.parse_args()
 
 
@@ -88,7 +88,7 @@ class NSGAIIListener(Listener):
 
 class MyFitness(FitnessFunction):
 
-    def __init__(self, fitness, solver, terrain):
+    def __init__(self, fitness, solver, terrain, is_recurrent):
         self.fitness = fitness
         self.immovable_left = None
         self.immovable_right = None
@@ -101,6 +101,7 @@ class MyFitness(FitnessFunction):
             else ["passable", "impassable"] * int(terrain.split("-")[1])
         self.solver = solver
         self.objective_dict = ObjectiveDict()
+        self.is_recurrent = is_recurrent
 
     @staticmethod
     def get_file_name(*args):
@@ -156,8 +157,14 @@ class MyFitness(FitnessFunction):
                 body_length = self.get_body_length(r_label)
                 world = self._create_world(body_length=body_length, p_label=p_label)
 
-                vxd = VXD(NeuralWeights=ind.genotype, isPassable=p_label != "impassable", terrainID=terrain_id,
-                          age=ind.age)
+                if not self.is_recurrent:
+                    vxd = VXD(NeuralWeightsX=ind.genotype, isPassable=p_label != "impassable", terrainID=terrain_id,
+                              age=ind.age)
+                else:
+                    vxd = VXD(NeuralWeightsX=ind.genotype[17 * 6:],
+                              NeuralWeightsH=ind.genotype[17 * 6: 17 * 6 + 6 * 6 + 6],
+                              NeuralWeightsY=ind.genotype[17 * 6 + 6 * 6 + 6:], isPassable=p_label != "impassable",
+                              terrainID=terrain_id, age=ind.age)
                 vxd.set_data(data=world)
                 vxd.set_tags(RecordVoxel=record_history, RecordFixedVoxels=record_history,
                              RecordStepSize=100 if record_history else 0)
@@ -292,7 +299,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = ((17 * 2) + (2 if not arguments.hebbian else 0)) * (4 if arguments.hebbian else 1)
+    number_of_params = ((17 * 2) + 2) if not arguments.rnn else (17 * 6 + 6 * 6 + 6 + 6 * 8 + 8)
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:
@@ -302,7 +309,8 @@ if __name__ == "__main__":
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct", survival_selector="worst",
                                        parent_selector="tournament",
-                                       fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.terrain),
+                                       fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.terrain,
+                                                              arguments.rnn == 1),
                                        remap=arguments.remap, genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2, overlapping=True,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
@@ -322,7 +330,8 @@ if __name__ == "__main__":
         evolver = Solver.create_solver(name="nsgaii", seed=seed, pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct",
-                                       fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.terrain),
+                                       fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.terrain,
+                                                              arguments.rnn == 1),
                                        remap=arguments.remap, genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),

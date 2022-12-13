@@ -4,13 +4,22 @@ from lxml import etree
 
 class VXD(object):
 
-    def __init__(self, terrainID: int, isPassable: int = 1, NeuralWeights: np.ndarray = None, age: int = 0):
+    def __init__(self, terrainID: int, isPassable: int = 1, NeuralWeightsX: np.ndarray = None,
+                 NeuralWeightsH: np.ndarray = None, NeuralWeightsY: np.ndarray = None, age: int = 0):
         root = etree.XML("<VXD></VXD>")
         self.tree = etree.ElementTree(root)
-        if NeuralWeights is not None:
-            self.NeuralWeights = ",".join([str(w) for w in NeuralWeights])
+        if NeuralWeightsX is not None:
+            self.NeuralWeightsX = ",".join([str(w) for w in NeuralWeightsX])
         else:
-            self.NeuralWeights = ""
+            self.NeuralWeightsX = ""
+        if NeuralWeightsH is not None:
+            self.NeuralWeightsH = ",".join([str(w) for w in NeuralWeightsH])
+        else:
+            self.NeuralWeightsH = ""
+        if NeuralWeightsY is not None:
+            self.NeuralWeightsY = ",".join([str(w) for w in NeuralWeightsY])
+        else:
+            self.NeuralWeightsY = ""
         self.isPassable = isPassable
         self.terrainID = terrainID
         self.age = age
@@ -20,7 +29,9 @@ class VXD(object):
         root = self.tree.getroot()
 
         neural = etree.SubElement(root, "Controller")
-        etree.SubElement(neural, "NeuralWeights").text = self.NeuralWeights
+        etree.SubElement(neural, "NeuralWeightsX").text = self.NeuralWeightsX
+        etree.SubElement(neural, "NeuralWeightsH").text = self.NeuralWeightsH
+        etree.SubElement(neural, "NeuralWeightsY").text = self.NeuralWeightsY
         etree.SubElement(neural, "Age").text = str(self.age)
 
         task = etree.SubElement(root, "Task")
