@@ -299,7 +299,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = ((17 * 2) + 2) if not arguments.rnn else (17 * 6 + 6 * 6 + 6 + 6 * 8 + 8)
+    number_of_params = ((17 * 2) + 2) if not arguments.rnn else (17 * 6 + 6 * 6 + 6 + 6 * 2 + 2)
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:
