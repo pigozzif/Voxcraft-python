@@ -161,7 +161,7 @@ class MyFitness(FitnessFunction):
                     vxd = VXD(NeuralWeightsX=ind.genotype, isPassable=p_label != "impassable", terrainID=terrain_id,
                               age=ind.age)
                 else:
-                    vxd = VXD(NeuralWeightsX=ind.genotype[17 * 6:],
+                    vxd = VXD(NeuralWeightsX=ind.genotype[:17 * 6],
                               NeuralWeightsH=ind.genotype[17 * 6: 17 * 6 + 6 * 6 + 6],
                               NeuralWeightsY=ind.genotype[17 * 6 + 6 * 6 + 6:], isPassable=p_label != "impassable",
                               terrainID=terrain_id, age=ind.age)
