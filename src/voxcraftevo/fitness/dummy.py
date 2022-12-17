@@ -63,8 +63,8 @@ class DummyVoxel(object):
 
 def dummy_simulation(genotype, steps, idx, is_passable, terrain_id, age, log_file, record_file=None):
     brain = DummyVoxel.create_brain(genotype=genotype)
-    body = [DummyVoxel(i, 5, 0, 7, 7) for i in range(9)] + [DummyVoxel(5, i, 0, 7, 7) for i in range(4)] + \
-           [DummyVoxel(5, i, 0, 7, 7) for i in range(5, 9)]
+    body = [DummyVoxel(i, 4, 0, 7, 7) for i in range(9)] + [DummyVoxel(4, i, 0, 7, 7) for i in range(4)] + \
+           [DummyVoxel(4, i, 0, 7, 7) for i in range(5, 9)]
     votes = []
 
     for i in range(steps):
@@ -89,10 +89,13 @@ def dummy_simulation(genotype, steps, idx, is_passable, terrain_id, age, log_fil
             with open(record_file, "a") as file:
                 file.write("{}: ".format(i))
                 for voxel in body:
-                    file.write("{1},{2},{3},{4}/".format(voxel.outputs[0], voxel.x, voxel.y, voxel.z, voxel.inputs[0]))
+                    file.write("{0},{1},{2},{3},{4}/".format(voxel.outputs[0], voxel.x, voxel.y, voxel.z,
+                                                         1 if voxel.inputs[0] == 1.0 else 0))
                 file.write("\n")
 
     sensing = sum([v == is_passable for v in votes]) / steps
     if log_file is not None:
         with open(log_file, "a") as file:
             file.write("{0}-{1}-{2}-sensing_score: {3}\n".format(idx, terrain_id, age, sensing))
+    else:
+        print("sensing: {}".format(sensing))
