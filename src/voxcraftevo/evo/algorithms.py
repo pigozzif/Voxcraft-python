@@ -12,6 +12,7 @@ import subprocess as sub
 from .operators.operator import GeneticOperator
 from .selection.filters import Filter
 from .selection.selector import Selector
+from ..fitness.dummy import dummy_simulation
 from ..fitness.evaluation import FitnessFunction
 from ..listeners.listener import Listener
 from ..representations.factory import GenotypeFactory
@@ -45,12 +46,14 @@ class Solver(object):
         self.executables_dir = executables_dir
         if not os.path.isdir(executables_dir):
             sub.call("mkdir {}".format(executables_dir), shell=True)
-        for file in os.listdir(os.path.join("..", logs_dir)):
+        for file in os.listdir(os.path.join(".", logs_dir)):
             if int(file.split(".")[1].split("_")[1]) == self.seed and "out" in file:
                 self.log_file = os.path.join("/".join(os.getcwd().split("/")[:-1]), logs_dir, file)
                 break
         else:
-            raise IndexError
+            self.log_file = os.path.join(logs_dir, ".".join([str(self.seed), "txt"]))
+            with open(self.log_file, "w") as file:
+                file.write("")
 
     def elapsed_time(self, units: str = "s") -> float:
         if self.start_time is None:
@@ -125,27 +128,11 @@ class EvolutionarySolver(Solver):
         num_evaluated = 0
         for ind in self.pop:
             if not ind.evaluated:
-                self.fitness_func.create_vxd(ind=ind, directory=self.data_dir, record_history=False)
+                for i, p in enumerate([0, 1]):
+                    dummy_simulation(ind.genotype, 500, ind.id, p, i, ind.age, self.log_file)
                 num_evaluated += 1
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
-        sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".
-                 format(num_evaluated, len(self.pop)), shell=True)
-        output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
-        while True:
-            try:
-                sub.call("cd {0}; ./voxcraft-sim -i {1} -o {2}".format(self.executables_dir,
-                                                                       os.path.join("..", self.data_dir),
-                                                                       os.path.join("..", output_file)), shell=True)
-                # sub.call waits for the process to return
-                # after it does, we collect the results output by the simulator
-                break
-            except IOError:
-                sub.call("echo Dang it! There was an IOError. I'll re-simulate this batch again...", shell=True)
-                pass
-            except IndexError:
-                sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
-                pass
-        time.sleep(30)
+        time.sleep(1)
         to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
         fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file, gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
         for ind in to_evaluate:

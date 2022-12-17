@@ -7,6 +7,7 @@ import math
 
 import numpy as np
 
+from voxcraftevo.fitness.dummy import dummy_simulation
 from voxcraftevo.evo.algorithms import Solver
 from voxcraftevo.listeners.listener import Listener
 from voxcraftevo.utils.utilities import set_seed
@@ -23,8 +24,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=40, type=int, help="generations for the ea")
-    parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
+    parser.add_argument("--gens", default=0, type=int, help="generations for the ea")
+    parser.add_argument("--popsize", default=1, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
     parser.add_argument("--time", default=48, type=int, help="maximum hours for the ea")
@@ -32,13 +33,13 @@ def parse_args():
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
     parser.add_argument("--logs", default="logs", type=str, help="relative path to the logs dir")
-    parser.add_argument("--output_dir", default="output", type=str,
+    parser.add_argument("--output_dir", default="output_dummy", type=str,
                         help="relative path to output dir")
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
-    parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
-    parser.add_argument("--terrain", default="random-1", type=str, help="terrain for simulations")
-    parser.add_argument("--remap", default=None, type=int, help="recompute fitness of parents")
+    parser.add_argument("--fitness", default="sensing_score", type=str, help="fitness tag")
+    parser.add_argument("--terrain", default="fixed", type=str, help="terrain for simulations")
+    parser.add_argument("--remap", default=0, type=int, help="recompute fitness of parents")
     parser.add_argument("--rnn", default=0, type=int, help="use recurrent policy")
     return parser.parse_args()
 
@@ -48,16 +49,8 @@ class MyListener(Listener):
     def listen(self, solver):
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
-                                             str(solver.best_so_far.fitness["locomotion_score"] +
-                                                 solver.best_so_far.fitness["sensing_score"]),
+                                             str(solver.best_so_far.fitness["sensing_score"]),
                                              str(solver.best_so_far.id),
-                                             str(np.median([ind.fitness["locomotion_score"] +
-                                                            ind.fitness["sensing_score"] for ind in solver.pop])),
-                                             str(min([ind.fitness["locomotion_score"] + ind.fitness["sensing_score"]
-                                                      for ind in solver.pop])),
-                                             str(solver.best_so_far.fitness["locomotion_score"]),
-                                             str(np.median([ind.fitness["locomotion_score"] for ind in solver.pop])),
-                                             str(min([ind.fitness["locomotion_score"] for ind in solver.pop])),
                                              str(solver.best_so_far.fitness["sensing_score"]),
                                              str(np.median([ind.fitness["sensing_score"] for ind in solver.pop])),
                                              str(min([ind.fitness["sensing_score"] for ind in solver.pop]))
@@ -121,9 +114,10 @@ class MyFitness(FitnessFunction):
         if self.solver == "ga":
             # self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness),
             #                                   best_value=2.0, worst_value=-1.0)
-            self.objective_dict.add_objective(name="locomotion_score", maximize=False,
-                                              tag="<{}>".format("locomotion_score"),
-                                              best_value=0.0, worst_value=5.0)
+            self.objective_dict.add_objective(name="sensing_score", maximize=True,
+                                              tag="<{}>".format("sensing_score"),
+                                              best_value=1.0, worst_value=0.0)
+            return self.objective_dict
         self.objective_dict.add_objective(name="locomotion_score", maximize=False,
                                           tag="<{}>".format("locomotion_score"),
                                           best_value=0.0, worst_value=5.0)
@@ -258,7 +252,7 @@ class MyFitness(FitnessFunction):
         for ind in individuals:
             values = {obj: [] for obj in self.objective_dict}
             for _, r_label in enumerate(["b"]):
-                for terrain_id, p_label in enumerate(self.terrains):
+                for terrain_id, p_label in enumerate([0, 1]):
                     for obj in values:
                         name = self.objective_dict[obj]["name"]
                         values[obj].append(self.parse_fitness_from_history(output_file,
@@ -272,24 +266,15 @@ class MyFitness(FitnessFunction):
         return fitness
 
     def save_histories(self, individual, input_directory, output_directory, executables_directory):
-        sub.call("rm {}/*vxd".format(input_directory), shell=True)
-        self.create_vxd(ind=individual, directory=input_directory, record_history=True)
-        temp_dir = input_directory.replace("data", "temp")
-        sub.call("mkdir {}".format(temp_dir), shell=True)
-        self.create_vxa(directory=temp_dir)
-        for file in os.listdir(input_directory):
-            if file.endswith("vxd"):
-                sub.call("cp {0} {1}/".format(os.path.join(input_directory, file), temp_dir), shell=True)
-                sub.call("cd {0}; ./voxcraft-sim -i {1} -o output.xml > {2}".format(
-                    executables_directory,
-                    os.path.join("..", temp_dir),
-                    os.path.join("..", output_directory, file.replace("vxd", "history"))), shell=True)
-                sub.call("cd {}; rm output.xml".format(executables_directory), shell=True)
-                sub.call("rm {}/*.vxd".format(temp_dir), shell=True)
-        sub.call("rm -rf {}".format(temp_dir), shell=True)
+        for i, p in enumerate([0, 1]):
+            dummy_simulation(individual.genotype, 500, individual.id, p, i, individual.age, None,
+                             record_file=os.path.join(output_directory,
+                                                      self.get_file_name(str(individual.id), str(p), str(i))
+                                                      + ".history"))
 
 
 if __name__ == "__main__":
+    sub.call("rm logs/*", shell=True)
     arguments = parse_args()
     set_seed(arguments.seed)
 
@@ -299,7 +284,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = ((17 * 2) + 2) if not arguments.rnn else (17 * 6 + 6 * 6 + 6 + 6 * 2 + 2)
+    number_of_params = ((7 * 7) + 7) if not arguments.rnn else (17 * 6 + 6 * 6 + 6 + 6 * 2 + 2)
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:
@@ -320,9 +305,7 @@ if __name__ == "__main__":
                                        listener=MyListener(file_path="{0}_{1}.csv".format(
                                            arguments.fitness, seed),
                                            header=["seed", "gen", "elapsed.time", "best.fitness_score", "best.id",
-                                                   "median.fitness_score", "min.fitness_score", "best.locomotion_score",
-                                                   "median.locomotion_score", "min.locomotion_score", "best"
-                                                                                                      ".sensing_score",
+                                                   "best.sensing_score",
                                                    "median.sensing_score", "min.sensing_score"]),
                                        tournament_size=5, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
