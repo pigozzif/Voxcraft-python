@@ -6,7 +6,6 @@ import pickle
 from typing import Dict
 
 import numpy as np
-import matplotlib.pyplot as plt
 import subprocess as sub
 
 from .operators.operator import GeneticOperator
@@ -320,24 +319,6 @@ class NSGAII(EvolutionarySolver):
         self.trim_population()
         if not PLOT:
             return
-        if self.pop.gen == 1:
-            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
-        elif self.pop.gen == 40:
-            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
-        elif self.pop.gen == 80:
-            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
-            for color, (gen, front) in zip(["orange", "blue", "red"], self._fronts_to_plot.items()):
-                loc = [float(ind.fitness["locomotion_score"]) for ind in front],
-                sens = [float(ind.fitness["sensing_score"]) for ind in front]
-                plt.scatter(loc, sens, color=color, alpha=0.5, label=str(gen))
-            plt.scatter([self.pop.objectives_dict[0]["worst_value"], self.pop.objectives_dict[1]["best_value"]],
-                        [self.pop.objectives_dict[0]["best_value"], self.pop.objectives_dict[1]["worst_value"]],
-                        alpha=0.0)
-            plt.xlabel("locomotion through the aperture (m)")
-            plt.ylabel("affordance detection (% of timesteps correct)")
-            plt.legend()
-            plt.savefig("pareto_front_{}.png".format(self.seed))
-            plt.clf()
 
     def get_best(self) -> Individual:
         if not self.fronts:
