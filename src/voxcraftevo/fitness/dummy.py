@@ -81,9 +81,10 @@ def dummy_simulation(genotype, steps, idx, is_passable, terrain_id, age, log_fil
 
         for voxel in body:
             voxel.update_signals()
-
-        votes.append(1 if len(list(filter(lambda x: x.outputs[0] >= 0.0, body))) >
-                          len(list(filter(lambda x: x.outputs[0] < 0.0, body))) else 0)
+        if is_passable == 1:
+            votes.append(len(list(filter(lambda x: x.outputs[0] >= 0.0, body))) / 17.0)
+        else:
+            votes.append((17.0 - len(list(filter(lambda x: x.outputs[0] < 0.0, body)))) / 17.0)
 
         if record_file is not None:
             with open(record_file, "a") as file:
@@ -93,7 +94,7 @@ def dummy_simulation(genotype, steps, idx, is_passable, terrain_id, age, log_fil
                                                          1 if voxel.inputs[0] == 1.0 else 0))
                 file.write("\n")
 
-    sensing = sum([v == is_passable for v in votes]) / steps
+    sensing = sum(votes) / steps
     if log_file is not None:
         with open(log_file, "a") as file:
             file.write("{0}-{1}-{2}-sensing_score: {3}\n".format(idx, terrain_id, age, sensing))
