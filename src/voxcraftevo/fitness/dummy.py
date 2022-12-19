@@ -84,7 +84,7 @@ def dummy_simulation(genotype, steps, idx, is_passable, terrain_id, age, log_fil
         if is_passable == 1:
             votes.append(len(list(filter(lambda x: x.outputs[0] >= 0.0, body))) / 17.0)
         else:
-            votes.append((17.0 - len(list(filter(lambda x: x.outputs[0] < 0.0, body)))) / 17.0)
+            votes.append(len(list(filter(lambda x: x.outputs[0] < 0.0, body))) / 17.0)
 
         if record_file is not None:
             with open(record_file, "a") as file:
