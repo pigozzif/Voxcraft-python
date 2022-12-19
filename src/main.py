@@ -249,7 +249,7 @@ class MyFitness(FitnessFunction):
         if p_label != "impassable":
             world[center, wall_position + body_length, 0] = self.special_passable
         else:
-            world[center, 0, 0] = self.special_impassable
+            world[center, wall_position + 1, 0] = self.special_impassable
 
         return world
 
