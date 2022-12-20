@@ -183,7 +183,7 @@ class MyFitness(FitnessFunction):
         world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
         world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
 
-        aperture_size = 1 if p_label == "impassable" else body_length - 3
+        aperture_size = 1 if p_label == "impassable" else body_length - 1
         half = math.floor(body_length * 1.5)
 
         left_bank = half - int(aperture_size / 2) - 1
