@@ -24,8 +24,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
     parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=0, type=int, help="generations for the ea")
-    parser.add_argument("--popsize", default=1, type=int, help="population size for the ea")
+    parser.add_argument("--gens", default=20, type=int, help="generations for the ea")
+    parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
     parser.add_argument("--time", default=48, type=int, help="maximum hours for the ea")
@@ -112,8 +112,6 @@ class MyFitness(FitnessFunction):
 
     def create_objectives_dict(self):
         if self.solver == "ga":
-            # self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness),
-            #                                   best_value=2.0, worst_value=-1.0)
             self.objective_dict.add_objective(name="sensing_score", maximize=True,
                                               tag="<{}>".format("sensing_score"),
                                               best_value=1.0, worst_value=0.0)
