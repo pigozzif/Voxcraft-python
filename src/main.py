@@ -119,8 +119,6 @@ class MyFitness(FitnessFunction):
 
     def create_objectives_dict(self):
         if self.solver == "ga":
-            # self.objective_dict.add_objective(name="fitness_score", maximize=True, tag="<{}>".format(self.fitness),
-            #                                   best_value=2.0, worst_value=-1.0)
             self.objective_dict.add_objective(name="locomotion_score", maximize=False,
                                               tag="<{}>".format("locomotion_score"),
                                               best_value=0.0, worst_value=5.0)
@@ -203,7 +201,7 @@ class MyFitness(FitnessFunction):
         if p_label != "impassable":
             world[half, wall_position + body_length, 0] = self.special_passable
         else:
-            world[half, 0, 0] = self.special_impassable
+            world[half, wall_position + 1, 0] = self.special_impassable
 
         return world
 
