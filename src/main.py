@@ -94,8 +94,8 @@ if __name__ == "__main__":
                                        listener=MyListener(file_path="my.{}.txt".format(
                                            seed), header=["iteration", "elapsed.time", "best.fitness", "avg.test",
                                                           "std.test"]),
-                                       sigma=0.03, sigma_decay=0.999, sigma_limit=0.01, lrate_init=0.02,
-                                       lrate_decay=0.999, lrate_limit=0.001, n=number_of_params, range=(-1, 1),
+                                       sigma=0.03, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
+                                       l_rate_decay=0.999, l_rate_limit=0.001, n=number_of_params, range=(-1, 1),
                                        upper=2.0, lower=-1.0)
     else:
         raise ValueError("Invalid solver name: {}".format(arguments.solver))
