@@ -91,9 +91,9 @@ if __name__ == "__main__":
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
                                        logs_dir=None,
-                                       listener=MyListener(file_path="{0}_{1}.csv".format(
-                                           arguments.fitness, seed), header=["iteration", "elapsed.time",
-                                                                             "best.fitness", "avg.test", "std.test"]),
+                                       listener=MyListener(file_path="my.{}.txt".format(
+                                           seed), header=["iteration", "elapsed.time", "best.fitness", "avg.test",
+                                                          "std.test"]),
                                        sigma=0.03, sigma_decay=0.999, sigma_limit=0.01, lrate_init=0.02,
                                        lrate_decay=0.999, lrate_limit=0.001, n=number_of_params, range=(-1, 1),
                                        upper=2.0, lower=-1.0)
