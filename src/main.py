@@ -101,4 +101,4 @@ if __name__ == "__main__":
         raise ValueError("Invalid solver name: {}".format(arguments.solver))
 
     start_time = time()
-    sub.call("echo That took a total of {} minutes".format((time() - start_time) / 60.), shell=True)
+    sub.call("echo That took a total of {} seconds".format((time() - start_time)), shell=True)
