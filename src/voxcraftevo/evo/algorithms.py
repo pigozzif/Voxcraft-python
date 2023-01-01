@@ -177,6 +177,7 @@ class EvolutionaryStrategy(EvolutionarySolver):
                               l_rate_limit=l_rate_limit)
         self.mode = np.zeros(num_dims)
         self.best_fitness = float("-inf")
+        self.temp_best = None
 
     def build_offspring(self) -> list:
         z_plus = np.random.normal(loc=0.0, scale=self.sigma, size=(self.pop_size, self.num_dims))
@@ -199,11 +200,15 @@ class EvolutionaryStrategy(EvolutionarySolver):
             self.pop.add_individual(genotype=child_genotype)
         self.evaluate_individuals()
         self.update_mode()
+        self.temp_best = self.pop.get_best()
         self.pop.clear()
         self.sigma = exp_decay(self.sigma, self.sigma_decay, self.sigma_limit)
 
     def get_best_fitness(self) -> float:
         return self.best_fitness
+
+    def get_best(self) -> Individual:
+        return self.temp_best
 
 
 @dataclass
