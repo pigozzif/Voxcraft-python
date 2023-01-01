@@ -173,7 +173,7 @@ class EvolutionaryStrategy(EvolutionarySolver):
         self.num_dims = num_dims
         self.optimizer = Adam(num_dims=num_dims, l_rate_init=l_rate_init, l_rate_decay=l_rate_decay,
                               l_rate_limit=l_rate_limit)
-        self.mode = None
+        self.mode = np.zeros(num_dims)
         self.best_fitness = float("-inf")
 
     def build_offspring(self) -> list:

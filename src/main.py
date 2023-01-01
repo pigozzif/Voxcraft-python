@@ -100,5 +100,7 @@ if __name__ == "__main__":
     else:
         raise ValueError("Invalid solver name: {}".format(arguments.solver))
 
+    evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
+                  save_hist_every=arguments.history)
     start_time = time()
-    sub.call("echo That took a total of {} seconds".format((time() - start_time)), shell=True)
+    sub.call("echo That took a total of {} minutes".format((time() - start_time) / 60.), shell=True)

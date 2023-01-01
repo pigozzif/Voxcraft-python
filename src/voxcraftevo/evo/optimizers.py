@@ -2,6 +2,8 @@ import abc
 
 import numpy as np
 
+from voxcraftevo.utils.utilities import exp_decay
+
 
 class Optimizer(abc.ABC):
 
