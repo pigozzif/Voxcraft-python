@@ -36,3 +36,9 @@ def dominates(ind1, ind2, attribute_name, maximize):
     else:
         ans = 0
     return ans if maximize else -ans
+
+
+def exp_decay(param, param_decay, param_limit):
+    """Exponentially decay parameter and clip by minimal value."""
+    param = param * param_decay
+    return max(param, param_limit)

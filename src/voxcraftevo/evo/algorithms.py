@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import subprocess as sub
 
 from .operators.operator import GeneticOperator
+from .optimizers import Optimizer, Adam
 from .selection.filters import Filter
 from .selection.selector import Selector
 from ..fitness.evaluation import FitnessFunction
@@ -17,7 +18,7 @@ from ..listeners.listener import Listener
 from ..representations.factory import GenotypeFactory
 from ..representations.mapper import SolutionMapper
 from ..representations.population import Population, Individual
-from ..utils.utilities import weighted_random_by_dct
+from ..utils.utilities import weighted_random_by_dct, exp_decay
 
 PLOT = True
 
@@ -227,6 +228,49 @@ class GeneticAlgorithm(EvolutionarySolver):
         self.evaluate_individuals()
         # apply selection
         self.trim_population()
+
+
+class EvolutionaryStrategy(EvolutionarySolver):
+
+    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, sigma: float, sigma_decay: float,
+                 sigma_limit: float, num_dims: int, l_rate_init: float, l_rate_decay: float, l_rate_limit: float,
+                 fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir, logs_dir, listener,
+                 **kwargs):
+        super().__init__(seed=seed, pop_size=pop_size, genotype_factory=genotype_factory,
+                         solution_mapper=solution_mapper, fitness_func=fitness_func, remap=False,
+                         genetic_operators={}, data_dir=data_dir, hist_dir=hist_dir,
+                         pickle_dir=pickle_dir, output_dir=output_dir, executables_dir=executables_dir,
+                         logs_dir=logs_dir, listener=listener, comparator="lexicase", **kwargs)
+        self.survival_selector = Selector.create_selector(name="worst", **kwargs)
+        self.sigma = sigma
+        self.sigma_decay = sigma_decay
+        self.sigma_limit = sigma_limit
+        self.num_dims = num_dims
+        self.optimizer = Adam(num_dims=num_dims, l_rate_init=l_rate_init, l_rate_decay=l_rate_decay,
+                              l_rate_limit=l_rate_limit)
+        self.mode = None
+
+    def build_offspring(self) -> list:
+        z_plus = np.random.normal(loc=0.0, scale=self.sigma, size=(self.pop_size, self.num_dims))
+        z = np.concatenate([z_plus, -1.0 * z_plus])
+        return [self.mode + x * self.sigma for x in z]
+
+    def update_mode(self) -> None:
+        noise = np.array([(x.genotype - self.mode) / self.sigma for x in self.pop])
+        fitness = np.array([x.fitness["fitness_score"] for x in self.pop])
+        theta_grad = (1.0 / (self.pop_size * self.sigma)) * np.dot(noise.T, fitness)
+        self.mode = self.optimizer.optimize(mean=self.mode, t=self.pop.gen, theta_grad=theta_grad)
+
+    def exp_decay(self):
+        self.sigma = self.sigma * self.sigma_decay
+        self.sigma = max(self.sigma, self.sigma_limit)
+
+    def evolve(self) -> None:
+        for child_genotype in self.build_offspring():
+            self.pop.add_individual(genotype=child_genotype)
+        self.evaluate_individuals()
+        self.update_mode()
+        self.sigma = exp_decay(self.sigma, self.sigma_decay, self.sigma_limit)
 
 
 class NSGAII(EvolutionarySolver):
