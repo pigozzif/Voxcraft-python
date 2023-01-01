@@ -1,8 +1,5 @@
 import abc
-import os
-import random
 import time
-import pickle
 from typing import Dict
 
 import numpy as np
@@ -32,28 +29,6 @@ class Solver(object):
         self.start_time = None
         self.best_so_far = None
         self.data_dir = data_dir
-        if not os.path.isdir(self.data_dir):
-            sub.call("mkdir {}".format(data_dir), shell=True)
-        self.hist_dir = hist_dir
-        if not os.path.isdir(self.hist_dir):
-            sub.call("mkdir {}".format(hist_dir), shell=True)
-        self.pickle_dir = pickle_dir
-        if not os.path.isdir(self.pickle_dir):
-            sub.call("mkdir {}".format(pickle_dir), shell=True)
-        self.output_dir = output_dir
-        if not os.path.isdir(self.output_dir):
-            sub.call("mkdir {}".format(output_dir), shell=True)
-        self.executables_dir = executables_dir
-        if not os.path.isdir(executables_dir):
-            sub.call("mkdir {}".format(executables_dir), shell=True)
-        if logs_dir is None:
-            return
-        for file in os.listdir(os.path.join("..", logs_dir)):
-            if int(file.split(".")[1].split("_")[1]) == self.seed and "out" in file:
-                self.log_file = os.path.join("/".join(os.getcwd().split("/")[:-1]), logs_dir, file)
-                break
-        else:
-            raise IndexError
 
     def elapsed_time(self, units: str = "s") -> float:
         if self.start_time is None:
@@ -65,28 +40,6 @@ class Solver(object):
             return s / 60.0
         elif units == "h":
             return s / 3600.0
-
-    def save_checkpoint(self, pop: Population) -> None:
-        random_state = random.getstate()
-        numpy_random_state = np.random.get_state()
-        data = [self, random_state, numpy_random_state]
-
-        with open(os.path.join(self.pickle_dir, "gen_{}.pickle".format(pop.gen)), "wb") as handle:
-            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-    def save_best(self, best: Individual) -> None:
-        sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        self.fitness_func.save_histories(individual=best, input_directory=self.data_dir, output_directory=self.hist_dir,
-                                         executables_directory=self.executables_dir)
-        sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
-
-    def reload(self):
-        pickled_pops = os.listdir(self.pickle_dir)
-        last_gen = sorted(pickled_pops, reverse=True)[0]
-        with open(os.path.join(self.pickle_dir, last_gen), "rb") as handle:
-            [optimizer, random_state, numpy_random_state] = pickle.load(handle)
-        best = optimizer.pop.get_best()
-        optimizer.save_best(best=best)
 
     @abc.abstractmethod
     def solve(self, max_hours_runtime: int, max_gens: int, checkpoint_every: int, save_hist_every: int):
@@ -126,33 +79,8 @@ class EvolutionarySolver(Solver):
         self.listener = listener
 
     def evaluate_individuals(self) -> None:
-        sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        num_evaluated = 0
-        for ind in self.pop:
-            if not ind.evaluated:
-                self.fitness_func.create_vxd(ind=ind, directory=self.data_dir, record_history=False)
-                num_evaluated += 1
-        sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
-        sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".
-                 format(num_evaluated, len(self.pop)), shell=True)
-        output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
-        while True:
-            try:
-                sub.call("cd {0}; ./voxcraft-sim -i {1} -o {2}".format(self.executables_dir,
-                                                                       os.path.join("..", self.data_dir),
-                                                                       os.path.join("..", output_file)), shell=True)
-                # sub.call waits for the process to return
-                # after it does, we collect the results output by the simulator
-                break
-            except IOError:
-                sub.call("echo Dang it! There was an IOError. I'll re-simulate this batch again...", shell=True)
-                pass
-            except IndexError:
-                sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
-                pass
-        time.sleep(30)
         to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
-        fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file, gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
+        fitness = self.fitness_func.get_fitness(individuals=to_evaluate)
         for ind in to_evaluate:
             ind.fitness = fitness[ind.id]
             ind.evaluated = not self.remap
@@ -169,11 +97,6 @@ class EvolutionarySolver(Solver):
             sub.call("rm -rf {}/*".format(self.data_dir), shell=True)
             self.fitness_func.create_vxa(directory=self.data_dir)
 
-            # checkpoint population
-            if self.pop.gen % checkpoint_every == 0:  # and self.pop.gen > 0:
-                sub.call("echo Saving checkpoint at generation {0}".format(self.pop.gen + 1), shell=True)
-                self.save_checkpoint(pop=self.pop)
-
             # update population stats
             self.pop.gen += 1
             self.pop.update_ages()
@@ -181,10 +104,8 @@ class EvolutionarySolver(Solver):
             # update evolution
             self.listener.listen(solver=self)
             self.evolve()
-        self.save_checkpoint(pop=self.pop)
         self.listener.listen(solver=self)
         sub.call("echo Saving history of run champ at generation {0}".format(self.pop.gen + 1), shell=True)
-        self.save_best(best=self.pop.get_best())
 
     @abc.abstractmethod
     def evolve(self):
@@ -253,6 +174,7 @@ class EvolutionaryStrategy(EvolutionarySolver):
         self.optimizer = Adam(num_dims=num_dims, l_rate_init=l_rate_init, l_rate_decay=l_rate_decay,
                               l_rate_limit=l_rate_limit)
         self.mode = None
+        self.best_fitness = float("-inf")
 
     def build_offspring(self) -> list:
         z_plus = np.random.normal(loc=0.0, scale=self.sigma, size=(self.pop_size, self.num_dims))
@@ -262,6 +184,7 @@ class EvolutionaryStrategy(EvolutionarySolver):
     def update_mode(self) -> None:
         noise = np.array([(x.genotype - self.mode) / self.sigma for x in self.pop])
         fitness = np.array([x.fitness["fitness_score"] for x in self.pop])
+        self.best_fitness = max(self.best_fitness, np.max(fitness))
         theta_grad = (1.0 / (self.pop_size * self.sigma)) * np.dot(noise.T, fitness)
         self.mode = self.optimizer.optimize(mean=self.mode, t=self.pop.gen, theta_grad=theta_grad)
 
@@ -275,6 +198,9 @@ class EvolutionaryStrategy(EvolutionarySolver):
         self.evaluate_individuals()
         self.update_mode()
         self.sigma = exp_decay(self.sigma, self.sigma_decay, self.sigma_limit)
+
+    def get_best_fitness(self) -> float:
+        return self.best_fitness
 
 
 class NSGAII(EvolutionarySolver):
@@ -405,16 +331,6 @@ class NSGAII(EvolutionarySolver):
             self.fast_non_dominated_sort()
         return min(self.fronts[0], key=lambda x: self.get_distance_from_diagonal(individual=x,
                                                                                  objectives_dict=self.pop.objectives_dict))
-
-    def save_best(self, best: Individual) -> None:
-        sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        if not self.fronts:
-            self.fast_non_dominated_sort()
-        for _, goal in self.pop.objectives_dict.items():
-            individual = sorted(self.fronts[0], key=lambda x: x.fitness[goal["name"]], reverse=goal["maximize"])[0]
-            self.fitness_func.save_histories(individual=individual, input_directory=self.data_dir,
-                                             output_directory=self.hist_dir,
-                                             executables_directory=self.executables_dir)
 
     @staticmethod
     def get_distance_from_diagonal(individual: Individual, objectives_dict: dict) -> float:

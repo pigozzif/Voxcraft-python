@@ -41,7 +41,7 @@ class MyListener(Listener):
     def listen(self, solver):
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([str(solver.pop.gen), str(solver.elapsed_time()),
-                                             str(solver.best_so_far.fitness["fitness_score"]), str(np.nan), str(np.nan)]
+                                             str(solver.best_fitness), str(np.nan), str(np.nan)]
                                             ) + "\n")
 
 
@@ -63,7 +63,7 @@ class MyFitness(FitnessFunction):
     def create_vxd(self, ind, directory, record_history):
         pass
 
-    def get_fitness(self, individuals, output_file, gen):
+    def get_fitness(self, individuals):
         fitness = {}
         for ind in individuals:
             fitness[ind.id] = {"fitness_score": np.sum([(x - self.target) ** 2 for x in ind.genotype])}
