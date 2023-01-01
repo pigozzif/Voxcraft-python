@@ -41,7 +41,7 @@ class MyListener(Listener):
     def listen(self, solver):
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([str(solver.pop.gen), str(solver.elapsed_time()),
-                                             str(solver.best_fitness), str(np.nan), str(np.nan)]
+                                             str(solver.get_best_fitness()), str(np.nan), str(np.nan)]
                                             ) + "\n")
 
 

@@ -89,7 +89,6 @@ class EvolutionarySolver(Solver):
 
     def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every) -> None:
         self.start_time = time.time()
-        self.fitness_func.create_vxa(directory=self.data_dir)
 
         if not self.continued_from_checkpoint:  # generation zero
             self.evaluate_individuals()
@@ -97,7 +96,6 @@ class EvolutionarySolver(Solver):
         # iterate until stop conditions met
         while self.pop.gen < max_gens and self.elapsed_time(units="h") <= max_hours_runtime:
             sub.call("rm -rf {}/*".format(self.data_dir), shell=True)
-            self.fitness_func.create_vxa(directory=self.data_dir)
 
             # update population stats
             self.pop.gen += 1
@@ -168,7 +166,6 @@ class EvolutionaryStrategy(EvolutionarySolver):
                          genetic_operators={}, data_dir=data_dir, hist_dir=hist_dir,
                          pickle_dir=pickle_dir, output_dir=output_dir, executables_dir=executables_dir,
                          logs_dir=logs_dir, listener=listener, comparator="lexicase", **kwargs)
-        self.survival_selector = Selector.create_selector(name="worst", **kwargs)
         self.sigma = sigma
         self.sigma_decay = sigma_decay
         self.sigma_limit = sigma_limit
@@ -176,7 +173,7 @@ class EvolutionaryStrategy(EvolutionarySolver):
         self.optimizer = Adam(num_dims=num_dims, l_rate_init=l_rate_init, l_rate_decay=l_rate_decay,
                               l_rate_limit=l_rate_limit)
         self.mode = np.zeros(num_dims)
-        self.best_fitness = float("-inf")
+        self.best_fitness = float("inf")
         self.temp_best = None
 
     def build_offspring(self) -> list:
@@ -187,7 +184,7 @@ class EvolutionaryStrategy(EvolutionarySolver):
     def update_mode(self) -> None:
         noise = np.array([(x.genotype - self.mode) / self.sigma for x in self.pop])
         fitness = np.array([x.fitness["fitness_score"] for x in self.pop])
-        self.best_fitness = max(self.best_fitness, np.max(fitness))
+        self.best_fitness = min(self.best_fitness, np.min(fitness))
         theta_grad = (1.0 / (self.pop_size * self.sigma)) * np.dot(noise.T, fitness)
         self.mode = self.optimizer.optimize(mean=self.mode, t=self.pop.gen, theta_grad=theta_grad)
 
@@ -196,6 +193,7 @@ class EvolutionaryStrategy(EvolutionarySolver):
         self.sigma = max(self.sigma, self.sigma_limit)
 
     def evolve(self) -> None:
+        self.pop.clear()
         for child_genotype in self.build_offspring():
             self.pop.add_individual(genotype=child_genotype)
         self.evaluate_individuals()
