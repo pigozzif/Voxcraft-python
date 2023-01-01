@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import subprocess as sub
 
 from .operators.operator import GeneticOperator
-from .optimizers import Optimizer, Adam
+from .optimizers import Adam
 from .selection.filters import Filter
 from .selection.selector import Selector
 from ..fitness.evaluation import FitnessFunction
