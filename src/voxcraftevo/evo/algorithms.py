@@ -55,6 +55,8 @@ class Solver(object):
             return NSGAII(**kwargs)
         elif name == "es":
             return EvolutionaryStrategy(**kwargs)
+        elif name == "kmeans":
+            return KMeansStrategy(**kwargs)
         raise ValueError("Invalid solver name: {}".format(name))
 
 
@@ -188,10 +190,6 @@ class EvolutionaryStrategy(EvolutionarySolver):
         theta_grad = (1.0 / (self.pop_size * self.sigma)) * np.dot(noise.T, fitness)
         self.mode = self.optimizer.optimize(mean=self.mode, t=self.pop.gen, theta_grad=theta_grad)
 
-    def exp_decay(self):
-        self.sigma = self.sigma * self.sigma_decay
-        self.sigma = max(self.sigma, self.sigma_limit)
-
     def evolve(self) -> None:
         self.pop.clear()
         for child_genotype in self.build_offspring():
@@ -235,43 +233,42 @@ class KMeansStrategy(EvolutionarySolver):
         self.sigma_limit = sigma_limit
         self.num_dims = num_dims
         self.optimizers = [Adam(num_dims=num_dims, l_rate_init=l_rate_init, l_rate_decay=l_rate_decay,
-                           l_rate_limit=l_rate_limit) for _ in range(num_modes)]
-        self.pop.clear()
+                                l_rate_limit=l_rate_limit) for _ in range(num_modes)]
         self.num_modes = num_modes
         self.clustering = KMeans(n_clusters=self.num_modes, random_state=seed).fit(np.array([ind.genotype
                                                                                              for ind in self.pop]))
-        self.sub_pops = [SubPopulation(id=i, mean=self.clustering.cluster_centers_[i],
-                                       n=self.pop_size // self.num_modes,
-                                       members=list(filter(lambda x: x == i, self.clustering.labels_)),
-                                       best_fitness=float("inf")) for i in range(self.num_modes)]
+        self.sub_pops = []
+        for idx, center in enumerate(self.clustering.cluster_centers_):
+            self.sub_pops.append(SubPopulation(id=idx, mean=center, n=self.pop_size // self.num_modes,
+                                               members=[self.pop._individuals[i] for i in
+                                                        list(filter(lambda x: x == idx, self.clustering.labels_))],
+                                               best_fitness=float("inf")))
 
-    def build_offspring(self) -> list:
+    def build_offspring(self) -> None:
         for sub_pop in self.sub_pops:
-            z_plus = np.random.normal(loc=0.0, scale=self.sigma, size=(self.pop_size // sub_pop.n, self.num_dims))
+            z_plus = np.random.normal(loc=0.0, scale=self.sigma, size=(sub_pop.n, self.num_dims))
             z = np.concatenate([z_plus, -1.0 * z_plus])
+            sub_pop.members.clear()
+            sub_pop.members.extend([self.pop.add_individual(genotype=sub_pop.mean + x * self.sigma)
+                                    for i, x in enumerate(z)])
 
-        return [self.mode + x * self.sigma for x in z]
-
-    def update_mode(self) -> None:
-        noise = np.array([(x.genotype - self.mode) / self.sigma for x in self.pop])
-        fitness = np.array([x.fitness["fitness_score"] for x in self.pop])
-        self.best_fitness = min(self.best_fitness, np.min(fitness))
-        theta_grad = (1.0 / (self.pop_size * self.sigma)) * np.dot(noise.T, fitness)
-        self.mode = self.optimizer.optimize(mean=self.mode, t=self.pop.gen, theta_grad=theta_grad)
-
-    def exp_decay(self):
-        self.sigma = self.sigma * self.sigma_decay
-        self.sigma = max(self.sigma, self.sigma_limit)
+    def update_modes(self) -> None:
+        for sub_pop, opt in zip(self.sub_pops, self.optimizers):
+            noise = np.array([(x.genotype - sub_pop.mean) / self.sigma for x in sub_pop.members])
+            fitness = np.array([x.fitness["fitness_score"] for x in sub_pop.members])
+            sub_pop.best_fitness = min(sub_pop.best_fitness, np.min(fitness))
+            theta_grad = (1.0 / (self.pop_size * self.sigma)) * np.dot(noise.T, fitness)
+            sub_pop.mean = opt.optimize(mean=sub_pop.mean, t=self.pop.gen, theta_grad=theta_grad)
 
     def evolve(self) -> None:
-        for child_genotype in self.build_offspring():
-            self.pop.add_individual(genotype=child_genotype)
+        if self.pop.gen > 1:
+            self.build_offspring()
         self.evaluate_individuals()
-        self.update_mode()
+        self.update_modes()
         self.sigma = exp_decay(self.sigma, self.sigma_decay, self.sigma_limit)
 
     def get_best_fitness(self) -> float:
-        return self.best_fitness
+        return min([sub_pop.best_fitness for sub_pop in self.sub_pops])
 
 
 class NSGAII(EvolutionarySolver):

@@ -111,12 +111,13 @@ class Population(object):
     def __contains__(self, item):
         return any([ind.id == item.id for ind in self])
 
-    def add_individual(self, genotype) -> None:
+    def add_individual(self, genotype) -> Individual:
         self._individuals.append(Individual(id=self._max_id,
                                             genotype=genotype,
                                             solution=self.solution_mapper(genotype),
                                             comparator=self.comparator))
         self._max_id += 1
+        return self._individuals[-1]
 
     def remove_individual(self, ind: Individual) -> None:
         for idx, individual in enumerate(self):

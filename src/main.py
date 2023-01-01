@@ -17,7 +17,7 @@ from voxcraftevo.fitness.evaluation import FitnessFunction
 def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
-    parser.add_argument("--solver", default="es", type=str, help="solver for the optimization")
+    parser.add_argument("--solver", default="kmeans", type=str, help="solver for the optimization")
     parser.add_argument("--gens", default=40, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
@@ -97,10 +97,24 @@ if __name__ == "__main__":
                                        sigma=0.03, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
                                        l_rate_decay=0.999, l_rate_limit=0.001, n=number_of_params, range=(-1, 1),
                                        upper=2.0, lower=-1.0)
+    elif arguments.solver == "kmeans":
+        evolver = Solver.create_solver(name="kmeans", seed=seed, pop_size=arguments.popsize, num_dims=number_of_params,
+                                       num_modes=2, genotype_factory="uniform_float",
+                                       solution_mapper="direct",
+                                       fitness_func=MyFitness(),
+                                       data_dir=data_dir, hist_dir="history{}".format(seed),
+                                       pickle_dir=pickle_dir, output_dir=arguments.output_dir,
+                                       executables_dir=arguments.execs,
+                                       logs_dir=None,
+                                       listener=MyListener(file_path="my.{}.txt".format(
+                                           seed), header=["iteration", "elapsed.time", "best.fitness", "avg.test",
+                                                          "std.test"]),
+                                       sigma=0.03, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
+                                       l_rate_decay=0.999, l_rate_limit=0.001, n=number_of_params, range=(-1, 1),
+                                       upper=2.0, lower=-1.0)
     else:
         raise ValueError("Invalid solver name: {}".format(arguments.solver))
-
+    start_time = time()
     evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
                   save_hist_every=arguments.history)
-    start_time = time()
-    sub.call("echo That took a total of {} minutes".format((time() - start_time) / 60.), shell=True)
+    sub.call("echo That took a total of {} seconds".format(time() - start_time), shell=True)
