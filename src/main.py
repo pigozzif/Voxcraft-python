@@ -76,7 +76,7 @@ class VizListener(Listener):
         plt.clf()
 
     def save_gif(self):
-        with imageio.get_writer("test.gif", mode="I") as writer:
+        with imageio.get_writer(self._file.replace("txt", "gif"), mode="I") as writer:
             for filename in self.images:
                 image = imageio.imread(filename)
                 writer.append_data(image)
@@ -148,7 +148,7 @@ if __name__ == "__main__":
                                        executables_dir=arguments.execs,
                                        logs_dir=None,
                                        listener=listener,
-                                       sigma=0.1, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
+                                       sigma=0.3, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
                                        l_rate_decay=0.999, l_rate_limit=0.001, n=number_of_params, range=(-1, 1),
                                        upper=2.0, lower=-1.0)
     else:
