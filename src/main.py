@@ -1,8 +1,12 @@
+import os
 from time import time
 import subprocess as sub
 import argparse
+from typing import Iterable
 
 import numpy as np
+import matplotlib.pyplot as plt
+import imageio
 
 from voxcraftevo.evo.algorithms import Solver
 from voxcraftevo.listeners.listener import Listener
@@ -45,11 +49,44 @@ class MyListener(Listener):
                                             ) + "\n")
 
 
+class VizListener(Listener):
+
+    def __init__(self, file_path: str, header: Iterable[str]):
+        super().__init__(file_path, header)
+        self._inner_listener = MyListener(file_path=file_path, header=header)
+        self.images = []
+        os.system("rm -rf frames")
+        os.makedirs("frames")
+
+    def listen(self, solver) -> None:
+        self._inner_listener.listen(solver=solver)
+        r_min, r_max = -1.0, 1.1
+        x_axis = np.arange(r_min, r_max, 0.05)
+        y_axis = np.arange(r_min, r_max, 0.05)
+        x, y = np.meshgrid(x_axis, y_axis)
+        results = np.array([[MyFitness.point_aiming([x[i, j], y[i, j]]) for i in range(len(x_axis))]
+                            for j in range(len(y_axis))])
+        plt.pcolormesh(x_axis, y_axis, results, cmap="plasma")
+        plt.scatter(0.0, 0.0, marker="o", color="white")
+        plt.scatter([ind.genotype[0] for ind in solver.pop], [ind.genotype[1] for ind in solver.pop], marker="x",
+                    color="red")
+        image = "frames/{}.png".format(solver.pop.gen)
+        plt.savefig(image)
+        self.images.append(image)
+        plt.clf()
+
+    def save_gif(self):
+        with imageio.get_writer("test.gif", mode="I") as writer:
+            for filename in self.images:
+                image = imageio.imread(filename)
+                writer.append_data(image)
+        os.system("rm -rf frames")
+
+
 class MyFitness(FitnessFunction):
 
-    def __init__(self, target=2.0):
+    def __init__(self):
         self.objective_dict = ObjectiveDict()
-        self.target = target
 
     def create_objectives_dict(self):
         self.objective_dict.add_objective(name="fitness_score", maximize=False,
@@ -66,11 +103,15 @@ class MyFitness(FitnessFunction):
     def get_fitness(self, individuals):
         fitness = {}
         for ind in individuals:
-            fitness[ind.id] = {"fitness_score": np.sum([(x - self.target) ** 2 for x in ind.genotype])}
+            fitness[ind.id] = {"fitness_score": self.point_aiming(ind.genotype)}
         return fitness
 
     def save_histories(self, individual, input_directory, output_directory, executables_directory):
         pass
+
+    @staticmethod
+    def point_aiming(x, target=0.0):
+        return np.sum([(i - target) ** 2 for i in x])
 
 
 if __name__ == "__main__":
@@ -82,6 +123,8 @@ if __name__ == "__main__":
 
     seed = arguments.seed
     number_of_params = arguments.num_dims
+    listener = VizListener(file_path="my.{}.txt".format(seed), header=["iteration", "elapsed.time", "best.fitness",
+                                                                       "avg.test", "std.test"])
     if arguments.solver == "es":
         evolver = Solver.create_solver(name="es", seed=seed, pop_size=arguments.popsize, num_dims=number_of_params,
                                        genotype_factory="uniform_float",
@@ -91,10 +134,8 @@ if __name__ == "__main__":
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
                                        logs_dir=None,
-                                       listener=MyListener(file_path="my.{}.txt".format(
-                                           seed), header=["iteration", "elapsed.time", "best.fitness", "avg.test",
-                                                          "std.test"]),
-                                       sigma=0.03, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
+                                       listener=listener,
+                                       sigma=0.1, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
                                        l_rate_decay=0.999, l_rate_limit=0.001, n=number_of_params, range=(-1, 1),
                                        upper=2.0, lower=-1.0)
     elif arguments.solver == "kmeans":
@@ -106,10 +147,8 @@ if __name__ == "__main__":
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
                                        logs_dir=None,
-                                       listener=MyListener(file_path="my.{}.txt".format(
-                                           seed), header=["iteration", "elapsed.time", "best.fitness", "avg.test",
-                                                          "std.test"]),
-                                       sigma=0.03, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
+                                       listener=listener,
+                                       sigma=0.1, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
                                        l_rate_decay=0.999, l_rate_limit=0.001, n=number_of_params, range=(-1, 1),
                                        upper=2.0, lower=-1.0)
     else:
@@ -117,4 +156,6 @@ if __name__ == "__main__":
     start_time = time()
     evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
                   save_hist_every=arguments.history)
+    if isinstance(listener, VizListener):
+        listener.save_gif()
     sub.call("echo That took a total of {} seconds".format(time() - start_time), shell=True)

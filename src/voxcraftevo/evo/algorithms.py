@@ -179,7 +179,7 @@ class EvolutionaryStrategy(EvolutionarySolver):
         self.temp_best = None
 
     def build_offspring(self) -> list:
-        z_plus = np.random.normal(loc=0.0, scale=self.sigma, size=(self.pop_size, self.num_dims))
+        z_plus = np.random.normal(loc=0.0, scale=self.sigma, size=(self.pop_size // 2, self.num_dims))
         z = np.concatenate([z_plus, -1.0 * z_plus])
         return [self.mode + x * self.sigma for x in z]
 
@@ -197,7 +197,6 @@ class EvolutionaryStrategy(EvolutionarySolver):
         self.evaluate_individuals()
         self.update_mode()
         self.temp_best = self.pop.get_best()
-        self.pop.clear()
         self.sigma = exp_decay(self.sigma, self.sigma_decay, self.sigma_limit)
 
     def get_best_fitness(self) -> float:
@@ -246,7 +245,7 @@ class KMeansStrategy(EvolutionarySolver):
 
     def build_offspring(self) -> None:
         for sub_pop in self.sub_pops:
-            z_plus = np.random.normal(loc=0.0, scale=self.sigma, size=(sub_pop.n, self.num_dims))
+            z_plus = np.random.normal(loc=0.0, scale=self.sigma, size=(sub_pop.n // 2, self.num_dims))
             z = np.concatenate([z_plus, -1.0 * z_plus])
             sub_pop.members.clear()
             sub_pop.members.extend([self.pop.add_individual(genotype=sub_pop.mean + x * self.sigma)
@@ -262,6 +261,7 @@ class KMeansStrategy(EvolutionarySolver):
 
     def evolve(self) -> None:
         if self.pop.gen > 1:
+            self.pop.clear()
             self.build_offspring()
         self.evaluate_individuals()
         self.update_modes()
