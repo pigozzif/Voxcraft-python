@@ -60,14 +60,15 @@ class VizListener(Listener):
 
     def listen(self, solver) -> None:
         self._inner_listener.listen(solver=solver)
-        r_min, r_max = -1.0, 1.1
+        r_min, r_max = -6.0, 6.0
         x_axis = np.arange(r_min, r_max, 0.05)
         y_axis = np.arange(r_min, r_max, 0.05)
         x, y = np.meshgrid(x_axis, y_axis)
-        results = np.array([[MyFitness.point_aiming([x[i, j], y[i, j]]) for i in range(len(x_axis))]
+        results = np.array([[MyFitness.point_aiming(np.array([x[i, j], y[i, j]])) for i in range(len(x_axis))]
                             for j in range(len(y_axis))])
         plt.pcolormesh(x_axis, y_axis, results, cmap="plasma")
-        plt.scatter(0.0, 0.0, marker="o", color="white")
+        plt.scatter(2.0, 2.0, marker="o", color="white")
+        plt.scatter(-2.0, -2.0, marker="o", color="white")
         plt.scatter([ind.genotype[0] for ind in solver.pop], [ind.genotype[1] for ind in solver.pop], marker="x",
                     color="red")
         image = "frames/{}.png".format(solver.pop.gen)
@@ -110,8 +111,8 @@ class MyFitness(FitnessFunction):
         pass
 
     @staticmethod
-    def point_aiming(x, target=0.0):
-        return np.sum([(i - target) ** 2 for i in x])
+    def point_aiming(x, target_1=2.0, target_2=-2.0):
+        return min(np.sum(np.square(x - target_1)), np.sum(np.square(x - target_2)))
 
 
 if __name__ == "__main__":
@@ -135,7 +136,7 @@ if __name__ == "__main__":
                                        executables_dir=arguments.execs,
                                        logs_dir=None,
                                        listener=listener,
-                                       sigma=0.1, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
+                                       sigma=0.3, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
                                        l_rate_decay=0.999, l_rate_limit=0.001, n=number_of_params, range=(-1, 1),
                                        upper=2.0, lower=-1.0)
     elif arguments.solver == "kmeans":
@@ -147,10 +148,10 @@ if __name__ == "__main__":
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
                                        logs_dir=None,
-                                       listener=listener,
-                                       sigma=0.3, sigma_decay=0.999, sigma_limit=0.01, l_rate_init=0.02,
-                                       l_rate_decay=0.999, l_rate_limit=0.001, n=number_of_params, range=(-1, 1),
-                                       upper=2.0, lower=-1.0)
+                                       listener=listener, elite_ratio=0.5,
+                                       sigma=0.3, sigma_decay=1.0 - 1.0 / arguments.gens, sigma_limit=0.01,
+                                       l_rate_init=0.02, l_rate_decay=0.999, l_rate_limit=0.001, n=number_of_params,
+                                       range=(-1, 1), upper=2.0, lower=-1.0)
     else:
         raise ValueError("Invalid solver name: {}".format(arguments.solver))
     start_time = time()

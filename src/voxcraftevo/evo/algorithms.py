@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import subprocess as sub
 from sklearn.cluster import KMeans
+from sklearn.mixture import GaussianMixture
 
 from .operators.operator import GeneticOperator
 from .optimizers import Adam
@@ -186,7 +187,7 @@ class EvolutionaryStrategy(EvolutionarySolver):
     def update_mode(self) -> None:
         noise = np.array([(x.genotype - self.mode) / self.sigma for x in self.pop])
         fitness = np.array([x.fitness["fitness_score"] for x in self.pop])
-        self.best_fitness = min(self.best_fitness, np.min(fitness))
+        self.best_fitness = np.min(fitness)
         theta_grad = (1.0 / (self.pop_size * self.sigma)) * np.dot(noise.T, fitness)
         self.mode = self.optimizer.optimize(mean=self.mode, t=self.pop.gen, theta_grad=theta_grad)
 
@@ -210,14 +211,13 @@ class EvolutionaryStrategy(EvolutionarySolver):
 class SubPopulation:
     id: int
     n: int
-    mean: np.ndarray
     members: List[Individual]
     best_fitness: float
 
 
 class KMeansStrategy(EvolutionarySolver):
 
-    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, sigma: float, sigma_decay: float,
+    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, elite_ratio: float, sigma: float, sigma_decay: float,
                  sigma_limit: float, num_dims: int, l_rate_init: float, l_rate_decay: float, l_rate_limit: float,
                  num_modes: int, fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir, logs_dir,
                  listener, **kwargs):
@@ -226,7 +226,7 @@ class KMeansStrategy(EvolutionarySolver):
                          genetic_operators={}, data_dir=data_dir, hist_dir=hist_dir,
                          pickle_dir=pickle_dir, output_dir=output_dir, executables_dir=executables_dir,
                          logs_dir=logs_dir, listener=listener, comparator="lexicase", **kwargs)
-        self.survival_selector = Selector.create_selector(name="worst", **kwargs)
+        self.elite_ratio = elite_ratio
         self.sigma = sigma
         self.sigma_decay = sigma_decay
         self.sigma_limit = sigma_limit
@@ -234,41 +234,31 @@ class KMeansStrategy(EvolutionarySolver):
         self.optimizers = [Adam(num_dims=num_dims, l_rate_init=l_rate_init, l_rate_decay=l_rate_decay,
                                 l_rate_limit=l_rate_limit) for _ in range(num_modes)]
         self.num_modes = num_modes
-        self.clustering = KMeans(n_clusters=self.num_modes, random_state=seed).fit(np.array([ind.genotype
-                                                                                             for ind in self.pop]))
-        self.sub_pops = []
-        for idx, center in enumerate(self.clustering.cluster_centers_):
-            self.sub_pops.append(SubPopulation(id=idx, mean=center, n=self.pop_size // self.num_modes,
-                                               members=[self.pop._individuals[i] for i in
-                                                        list(filter(lambda x: x == idx, self.clustering.labels_))],
-                                               best_fitness=float("inf")))
+        self.temp_best = None
+        self.best_fitness = float("inf")
+        self.mixture = GaussianMixture(n_components=self.num_modes, covariance_type="diag")
+        self.mixture.weights_ = np.full(shape=(self.num_modes,), fill_value=1 / self.num_modes)
+        self.mixture.means_ = np.zeros(shape=(self.num_modes, self.num_dims))
+        self.mixture.covariances_ = np.full(shape=(self.num_modes, self.num_dims), fill_value=self.sigma)
+        self.clustering = KMeans(n_clusters=self.num_modes, random_state=seed)
 
-    def build_offspring(self) -> None:
-        for sub_pop in self.sub_pops:
-            z_plus = np.random.normal(loc=0.0, scale=self.sigma, size=(sub_pop.n // 2, self.num_dims))
-            z = np.concatenate([z_plus, -1.0 * z_plus])
-            sub_pop.members.clear()
-            sub_pop.members.extend([self.pop.add_individual(genotype=sub_pop.mean + x * self.sigma)
-                                    for i, x in enumerate(z)])
+    def build_offspring(self) -> List[Individual]:
+        return self.mixture.sample(self.pop_size)[0]
 
     def update_modes(self) -> None:
-        for sub_pop, opt in zip(self.sub_pops, self.optimizers):
-            noise = np.array([(x.genotype - sub_pop.mean) / self.sigma for x in sub_pop.members])
-            fitness = np.array([x.fitness["fitness_score"] for x in sub_pop.members])
-            sub_pop.best_fitness = min(sub_pop.best_fitness, np.min(fitness))
-            theta_grad = (1.0 / (self.pop_size * self.sigma)) * np.dot(noise.T, fitness)
-            sub_pop.mean = opt.optimize(mean=sub_pop.mean, t=self.pop.gen, theta_grad=theta_grad)
+        self.best_fitness = np.min(np.array([x.fitness["fitness_score"] for x in self.pop]))
+        self.mixture.means_ = self.clustering.fit(np.array([ind.genotype for ind in sorted(self.pop, key=lambda x: x.fitness["fitness_score"])[:int(self.elite_ratio * self.pop_size)]])).cluster_centers_
 
     def evolve(self) -> None:
-        if self.pop.gen > 1:
-            self.pop.clear()
-            self.build_offspring()
+        self.pop.clear()
+        for child in self.build_offspring():
+            self.pop.add_individual(genotype=child)
         self.evaluate_individuals()
         self.update_modes()
         self.sigma = exp_decay(self.sigma, self.sigma_decay, self.sigma_limit)
 
     def get_best_fitness(self) -> float:
-        return min([sub_pop.best_fitness for sub_pop in self.sub_pops])
+        return self.best_fitness
 
 
 class NSGAII(EvolutionarySolver):
