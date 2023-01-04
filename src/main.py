@@ -140,11 +140,13 @@ if __name__ == "__main__":
                    np.array([2.0 if i % 2 == 0 else -2.0 for i in range(number_of_params)]),
                    np.array([-2.0 if i % 2 == 0 else 2.0 for i in range(number_of_params)])]
     if number_of_params == 2:
-        listener = VizListener(file_path="my.{}.txt".format(seed),
+        listener = VizListener(file_path=".".join([str(arguments.clustering), str(seed), str(arguments.num_clusters),
+                                                   str(arguments.num_dims), str(arguments.num_targets), "txt"]),
                                header=["iteration", "elapsed.time", "best.fitness", "avg.distance", "distances"],
                                targets=targets)
     else:
-        listener = MyListener(file_path="my.{}.txt".format(seed),
+        listener = MyListener(file_path=".".join([str(arguments.clustering), str(seed), str(arguments.num_clusters),
+                                                   str(arguments.num_dims), str(arguments.num_targets), "txt"]),
                               header=["iteration", "elapsed.time", "best.fitness", "avg.distance", "distances"],
                               targets=targets)
     if arguments.solver == "es":
