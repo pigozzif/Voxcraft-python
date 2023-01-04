@@ -49,7 +49,7 @@ class FitnessFunction(object):
         pass
 
     @abc.abstractmethod
-    def get_fitness(self, individuals: List[Individual]) -> dict:
+    def get_fitness(self, individual: Individual) -> dict:
         pass
 
     @abc.abstractmethod

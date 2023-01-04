@@ -37,23 +37,33 @@ def parse_args():
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
     parser.add_argument("--num_dims", default=10, type=int, help="number of problem dimensions")
+    parser.add_argument("--num_targets", default=1, type=int, help="number of targets")
+    parser.add_argument("--num_clusters", default=1, type=int, help="number of clusters")
+    parser.add_argument("--clustering", default=None, type=str, help="clustering algorithm")
     return parser.parse_args()
 
 
 class MyListener(Listener):
 
+    def __init__(self, file_path: str, header: Iterable[str], targets: Iterable[float]):
+        super().__init__(file_path, header)
+        self.targets = targets
+
     def listen(self, solver):
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([str(solver.pop.gen), str(solver.elapsed_time()),
-                                             str(solver.get_best_fitness()), str(np.nan), str(np.nan)]
+                                             str(solver.get_best_fitness()),
+                                             str(solver.get_average_distance(self.targets)),
+                                             "/".join([str(solver.get_best_distance(target))
+                                                       for target in self.targets])]
                                             ) + "\n")
 
 
 class VizListener(Listener):
 
-    def __init__(self, file_path: str, header: Iterable[str]):
+    def __init__(self, file_path: str, header: Iterable[str], targets: Iterable[float]):
         super().__init__(file_path, header)
-        self._inner_listener = MyListener(file_path=file_path, header=header)
+        self._inner_listener = MyListener(file_path=file_path, header=header, targets=targets)
         self.images = []
         os.system("rm -rf frames")
         os.makedirs("frames")
@@ -64,7 +74,7 @@ class VizListener(Listener):
         x_axis = np.arange(r_min, r_max, 0.05)
         y_axis = np.arange(r_min, r_max, 0.05)
         x, y = np.meshgrid(x_axis, y_axis)
-        results = np.array([[MyFitness.point_aiming(np.array([x[i, j], y[i, j]])) for i in range(len(x_axis))]
+        results = np.array([[solver.fitness_func.point_aiming(np.array([x[i, j], y[i, j]])) for i in range(len(x_axis))]
                             for j in range(len(y_axis))])
         plt.pcolormesh(x_axis, y_axis, results, cmap="plasma")
         plt.scatter(2.0, 2.0, marker="o", color="white")
@@ -86,8 +96,9 @@ class VizListener(Listener):
 
 class MyFitness(FitnessFunction):
 
-    def __init__(self):
+    def __init__(self, targets: Iterable[float]):
         self.objective_dict = ObjectiveDict()
+        self.targets = targets
 
     def create_objectives_dict(self):
         self.objective_dict.add_objective(name="fitness_score", maximize=False,
@@ -101,18 +112,14 @@ class MyFitness(FitnessFunction):
     def create_vxd(self, ind, directory, record_history):
         pass
 
-    def get_fitness(self, individuals):
-        fitness = {}
-        for ind in individuals:
-            fitness[ind.id] = {"fitness_score": self.point_aiming(ind.genotype)}
-        return fitness
+    def get_fitness(self, individual):
+        return {"fitness_score": self.point_aiming(individual.genotype)}
 
     def save_histories(self, individual, input_directory, output_directory, executables_directory):
         pass
 
-    @staticmethod
-    def point_aiming(x, target_1=2.0, target_2=-2.0):
-        return min(np.sum(np.square(x - target_1)), np.sum(np.square(x - target_2)))
+    def point_aiming(self, x):
+        return min([np.sum(np.square(x - target)) for target in self.targets])
 
 
 if __name__ == "__main__":
@@ -124,13 +131,27 @@ if __name__ == "__main__":
 
     seed = arguments.seed
     number_of_params = arguments.num_dims
-    listener = VizListener(file_path="my.{}.txt".format(seed), header=["iteration", "elapsed.time", "best.fitness",
-                                                                       "avg.test", "std.test"])
+    if arguments.num_targets == 1:
+        targets = [np.array([2.0 for _ in range(number_of_params)])]
+    elif arguments.num_targets == 2:
+        targets = [np.array([2.0 for _ in range(number_of_params)]), np.array([-2.0 for _ in range(number_of_params)])]
+    else:
+        targets = [np.array([2.0 for _ in range(number_of_params)]), np.array([-2.0 for _ in range(number_of_params)]),
+                   np.array([2.0 if i % 2 == 0 else -2.0 for i in range(number_of_params)]),
+                   np.array([-2.0 if i % 2 == 0 else 2.0 for i in range(number_of_params)])]
+    if number_of_params == 2:
+        listener = VizListener(file_path="my.{}.txt".format(seed),
+                               header=["iteration", "elapsed.time", "best.fitness", "avg.distance", "distances"],
+                               targets=targets)
+    else:
+        listener = MyListener(file_path="my.{}.txt".format(seed),
+                              header=["iteration", "elapsed.time", "best.fitness", "avg.distance", "distances"],
+                              targets=targets)
     if arguments.solver == "es":
         evolver = Solver.create_solver(name="es", seed=seed, pop_size=arguments.popsize, num_dims=number_of_params,
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct",
-                                       fitness_func=MyFitness(),
+                                       fitness_func=MyFitness(targets=targets),
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
@@ -141,14 +162,14 @@ if __name__ == "__main__":
                                        upper=2.0, lower=-1.0)
     elif arguments.solver == "kmeans":
         evolver = Solver.create_solver(name="kmeans", seed=seed, pop_size=arguments.popsize, num_dims=number_of_params,
-                                       num_modes=2, genotype_factory="uniform_float",
+                                       num_modes=arguments.num_clusters, genotype_factory="uniform_float",
                                        solution_mapper="direct",
-                                       fitness_func=MyFitness(),
+                                       fitness_func=MyFitness(targets=targets),
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
                                        logs_dir=None,
-                                       listener=listener, elite_ratio=0.5,
+                                       listener=listener, elite_ratio=0.5, clustering=arguments.clustering,
                                        sigma=0.3, sigma_decay=1.0 - 1.0 / arguments.gens, sigma_limit=0.01,
                                        l_rate_init=0.02, l_rate_decay=0.999, l_rate_limit=0.001, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)

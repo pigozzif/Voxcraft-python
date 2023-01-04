@@ -1,6 +1,5 @@
 import abc
 import time
-from dataclasses import dataclass
 from typing import Dict, List
 
 import numpy as np
@@ -85,10 +84,9 @@ class EvolutionarySolver(Solver):
 
     def evaluate_individuals(self) -> None:
         to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
-        fitness = self.fitness_func.get_fitness(individuals=to_evaluate)
         for ind in to_evaluate:
-            ind.fitness = fitness[ind.id]
-            ind.evaluated = not self.remap
+            ind.fitness = self.fitness_func.get_fitness(individual=ind)
+            ind.evaluated = True
 
     def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every) -> None:
         self.start_time = time.time()
@@ -207,17 +205,9 @@ class EvolutionaryStrategy(EvolutionarySolver):
         return self.temp_best
 
 
-@dataclass
-class SubPopulation:
-    id: int
-    n: int
-    members: List[Individual]
-    best_fitness: float
-
-
 class KMeansStrategy(EvolutionarySolver):
 
-    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, elite_ratio: float, sigma: float, sigma_decay: float,
+    def __init__(self, seed, pop_size, genotype_factory, solution_mapper, clustering: str, elite_ratio: float, sigma: float, sigma_decay: float,
                  sigma_limit: float, num_dims: int, l_rate_init: float, l_rate_decay: float, l_rate_limit: float,
                  num_modes: int, fitness_func, data_dir, hist_dir, pickle_dir, output_dir, executables_dir, logs_dir,
                  listener, **kwargs):
@@ -236,18 +226,27 @@ class KMeansStrategy(EvolutionarySolver):
         self.num_modes = num_modes
         self.temp_best = None
         self.best_fitness = float("inf")
-        self.mixture = GaussianMixture(n_components=self.num_modes, covariance_type="diag")
+        self.mixture = GaussianMixture(n_components=self.num_modes, covariance_type="diag", max_iter=1)
         self.mixture.weights_ = np.full(shape=(self.num_modes,), fill_value=1 / self.num_modes)
         self.mixture.means_ = np.zeros(shape=(self.num_modes, self.num_dims))
         self.mixture.covariances_ = np.full(shape=(self.num_modes, self.num_dims), fill_value=self.sigma)
-        self.clustering = KMeans(n_clusters=self.num_modes, random_state=seed)
+        self.clustering = clustering
+        if self.clustering == "kmeans":
+            self.optimizer = KMeans(n_clusters=self.num_modes, random_state=seed)
+        elif self.clustering != "em":
+            raise ValueError("Invalid clustering method: {}".format(self.clustering))
 
     def build_offspring(self) -> List[Individual]:
         return self.mixture.sample(self.pop_size)[0]
 
     def update_modes(self) -> None:
-        self.best_fitness = np.min(np.array([x.fitness["fitness_score"] for x in self.pop]))
-        self.mixture.means_ = self.clustering.fit(np.array([ind.genotype for ind in sorted(self.pop, key=lambda x: x.fitness["fitness_score"])[:int(self.elite_ratio * self.pop_size)]])).cluster_centers_
+        self.best_fitness = min([x.fitness["fitness_score"] for x in self.pop])
+        if self.clustering == "kmeans":
+            self.mixture.means_ = self.optimizer.fit([ind.genotype for ind in sorted(self.pop, key=lambda x: x.fitness["fitness_score"])[:int(self.elite_ratio * self.pop_size)]]).cluster_centers_
+        else:
+            self.mixture.fit([ind.genotype for ind in sorted(self.pop, key=lambda x: x.fitness["fitness_score"])[:int(self.elite_ratio * self.pop_size)]])
+            self.mixture.weights_ = np.full(shape=(self.num_modes,), fill_value=1 / self.num_modes)
+            self.mixture.covariances_ = np.full(shape=(self.num_modes, self.num_dims), fill_value=self.sigma)
 
     def evolve(self) -> None:
         self.pop.clear()
@@ -259,6 +258,15 @@ class KMeansStrategy(EvolutionarySolver):
 
     def get_best_fitness(self) -> float:
         return self.best_fitness
+
+    def get_best_distance(self, target) -> float:
+        return np.min([np.linalg.norm(ind.genotype - target) for ind in self.pop])
+
+    def get_average_distance(self, targets) -> float:
+        closest = []
+        for target in targets:
+            closest.append(self.get_best_distance(target=target))
+        return sum(closest) / len(closest)
 
 
 class NSGAII(EvolutionarySolver):
