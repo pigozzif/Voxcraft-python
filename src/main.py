@@ -145,15 +145,15 @@ if __name__ == "__main__":
         n_modes = len(targets) / 2
     elif arguments.n_clusters == 4:
         n_modes = len(targets)
-    elif arguments.n_clusters == 8:
+    else:
         n_modes = len(targets) * 2
     if number_of_params == 2:
-        listener = VizListener(file_path=".".join([str(arguments.clustering), str(seed), str(arguments.num_clusters),
+        listener = VizListener(file_path=".".join([str(arguments.clustering), str(seed), str(n_modes),
                                                    str(arguments.num_dims), str(arguments.num_targets), "txt"]),
                                header=["iteration", "elapsed.time", "best.fitness", "avg.distance", "distances"],
                                targets=targets)
     else:
-        listener = MyListener(file_path=".".join([str(arguments.clustering), str(seed), str(arguments.num_clusters),
+        listener = MyListener(file_path=".".join([str(arguments.clustering), str(seed), str(n_modes),
                                                   str(arguments.num_dims), str(arguments.num_targets), "txt"]),
                               header=["iteration", "elapsed.time", "best.fitness", "avg.distance", "distances"],
                               targets=targets)
