@@ -139,6 +139,14 @@ if __name__ == "__main__":
         targets = [np.array([2.0 for _ in range(number_of_params)]), np.array([-2.0 for _ in range(number_of_params)]),
                    np.array([2.0 if i % 2 == 0 else -2.0 for i in range(number_of_params)]),
                    np.array([-2.0 if i % 2 == 0 else 2.0 for i in range(number_of_params)])]
+    if arguments.n_clusters == 1:
+        n_modes = 1
+    elif arguments.n_clusters == 2:
+        n_modes = len(targets) / 2
+    elif arguments.n_clusters == 4:
+        n_modes = len(targets)
+    elif arguments.n_clusters == 8:
+        n_modes = len(targets) * 2
     if number_of_params == 2:
         listener = VizListener(file_path=".".join([str(arguments.clustering), str(seed), str(arguments.num_clusters),
                                                    str(arguments.num_dims), str(arguments.num_targets), "txt"]),
@@ -146,7 +154,7 @@ if __name__ == "__main__":
                                targets=targets)
     else:
         listener = MyListener(file_path=".".join([str(arguments.clustering), str(seed), str(arguments.num_clusters),
-                                                   str(arguments.num_dims), str(arguments.num_targets), "txt"]),
+                                                  str(arguments.num_dims), str(arguments.num_targets), "txt"]),
                               header=["iteration", "elapsed.time", "best.fitness", "avg.distance", "distances"],
                               targets=targets)
     if arguments.solver == "es":
@@ -164,7 +172,7 @@ if __name__ == "__main__":
                                        upper=2.0, lower=-1.0)
     elif arguments.solver == "kmeans":
         evolver = Solver.create_solver(name="kmeans", seed=seed, pop_size=arguments.popsize, num_dims=number_of_params,
-                                       num_modes=arguments.num_clusters, genotype_factory="uniform_float",
+                                       num_modes=n_modes, genotype_factory="uniform_float",
                                        solution_mapper="direct",
                                        fitness_func=MyFitness(targets=targets),
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
