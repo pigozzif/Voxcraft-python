@@ -124,6 +124,9 @@ class MyFitness(FitnessFunction):
 
 if __name__ == "__main__":
     arguments = parse_args()
+    if (arguments.num_targets == 1 and arguments.n_clusters == 2) or \
+            (arguments.num_targets == 2 and arguments.n_clusters == 2):
+        exit()
     set_seed(arguments.seed)
 
     pickle_dir = "{0}{1}".format(arguments.pickle_dir, arguments.seed)
@@ -146,7 +149,7 @@ if __name__ == "__main__":
     elif arguments.num_clusters == 4:
         n_modes = len(targets)
     else:
-        n_modes = int(len(targets) * 2)
+        n_modes = len(targets) * 2
     if number_of_params == 2:
         listener = VizListener(file_path=".".join([str(arguments.clustering), str(seed), str(n_modes),
                                                    str(arguments.num_dims), str(arguments.num_targets), "txt"]),
