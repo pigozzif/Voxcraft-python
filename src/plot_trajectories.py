@@ -22,7 +22,11 @@ if __name__ == "__main__":
     directory = "state"
     for root, dirs, files in os.walk(directory):
         for file in files:
-            if not file.endswith("history"):
+            if not file.endswith("history") or not (
+                    ("history0" in root and "3094" in file) or
+                    ("history1" in root and "1921" in file) or
+                    ("history2" in root and "3959" in file) or
+                    ("history3" in root and "1880" in file)):
                 continue
             points = get_trajectory(file_name=os.path.join(root, file))
             plt.plot([p[0] for p in points], [p[1] for p in points],

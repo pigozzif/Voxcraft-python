@@ -52,13 +52,15 @@ def create_video(path, width, height):
     images = []
     for line in open(path, "r"):
         frame_count += 1
-        if ("/" not in line) or "vx3_node_worker" in line or "setting" in line or frame_count % 5 == 0:
+        if ("/" not in line) or "vx3_node_worker" in line or "setting" in line or frame_count % 5 == 0 \
+                or line.startswith("?"):
             continue
         try:
-            im = draw_robot(line, width, height, True, "impassable" not in path)
+            im = draw_robot(line, width, height, True, "-0" not in path)
             images.append(im)
         except:
             print("FAULTY FRAME: {}".format(frame_count))
+            raise
     fps = len(images) // 50
     if fps < 1:
         print("Not enough votes for {}".format(path))
@@ -73,12 +75,12 @@ def create_video(path, width, height):
 
 
 if __name__ == "__main__":
-    for root, dirs, files in os.walk("sum_entropy"):
+    for root, dirs, files in os.walk("state"):
         for file in files:
             if "passable_right" in file or not file.endswith("history") or not (
-                    ("history0" in root and "3971" in file) or
-                    ("history1" in root and "2646" in file) or
-                    ("history2" in root and "3447" in file) or
-                    ("history3" in root and "4028" in file)):
+                    ("history0" in root and "1791" in file) or
+                    ("history1" in root and "3243" in file) or
+                    ("history2" in root and "3643" in file) or
+                    ("history3" in root and "4040" in file)):
                 continue
             create_video(os.path.join(os.getcwd(), root, file), 9, 9)

@@ -1,6 +1,6 @@
 import os
 
-for dir in ["data1"]:
-    for root, dirs, files in os.walk(dir):
-        for file in files:
+for root, dirs, files in os.walk("."):
+    for file in files:
+        if file.endswith(".avi") or file.endswith(".pickle"):
             os.system("git rm --cached {}".format(os.path.join(root, file)))
