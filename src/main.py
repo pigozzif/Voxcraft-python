@@ -139,11 +139,11 @@ if __name__ == "__main__":
         targets = [np.array([2.0 for _ in range(number_of_params)]), np.array([-2.0 for _ in range(number_of_params)]),
                    np.array([2.0 if i % 2 == 0 else -2.0 for i in range(number_of_params)]),
                    np.array([-2.0 if i % 2 == 0 else 2.0 for i in range(number_of_params)])]
-    if arguments.n_clusters == 1:
+    if arguments.num_clusters == 1:
         n_modes = 1
-    elif arguments.n_clusters == 2:
+    elif arguments.num_clusters == 2:
         n_modes = len(targets) / 2
-    elif arguments.n_clusters == 4:
+    elif arguments.num_clusters == 4:
         n_modes = len(targets)
     else:
         n_modes = len(targets) * 2
