@@ -90,7 +90,7 @@ def dummy_simulation(genotype, steps, idx, is_passable, terrain_id, age, log_fil
             else:
                 voxel.inputs[0] = 1.0 if voxel.x > 5 else -1.0
             voxel.get_last_signals(body=body)
-            outputs = voxel.think(torch.from_numpy(voxel.inputs).float())
+            outputs = voxel.think(inputs=torch.from_numpy(voxel.inputs).float())
             voxel.outputs = outputs.detach().numpy()
             for d in range(NUM_SIGNALS):
                 voxel.curr_signals[d] = voxel.outputs[1 + d]
@@ -110,7 +110,7 @@ def dummy_simulation(genotype, steps, idx, is_passable, terrain_id, age, log_fil
                                                              1 if voxel.inputs[0] == 1.0 else 0))
                 file.write("\n")
 
-    sensing = sum(votes) / steps
+    sensing = votes[-1]  # sum(votes) / steps
     if log_file is not None:
         with open(log_file, "a") as file:
             file.write("{0}-{1}-{2}-sensing_score: {3}\n".format(idx, terrain_id, age, sensing))
