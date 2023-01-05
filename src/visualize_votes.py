@@ -73,10 +73,10 @@ def create_video(path, width, height):
 
 
 if __name__ == "__main__":
-    for root, dirs, files in os.walk("sum_entropy"):
+    for root, dirs, files in os.walk("history0"):
         for file in files:
             if "passable_right" in file or not file.endswith("history") or not (
-                    ("history0" in root and "3971" in file) or
+                    ("history0" in root and "918" in file) or
                     ("history1" in root and "2646" in file) or
                     ("history2" in root and "3447" in file) or
                     ("history3" in root and "4028" in file)):

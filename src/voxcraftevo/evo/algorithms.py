@@ -3,6 +3,7 @@ import os
 import random
 import time
 import pickle
+from multiprocessing import Pool
 from typing import Dict
 
 import numpy as np
@@ -124,19 +125,21 @@ class EvolutionarySolver(Solver):
 
     def evaluate_individuals(self) -> None:
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        num_evaluated = 0
-        for ind in self.pop:
-            if not ind.evaluated:
-                for i, p in enumerate([0, 1]):
-                    dummy_simulation(ind.genotype, 500, ind.id, p, i, ind.age, self.log_file)
-                num_evaluated += 1
+        to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
+        with Pool(7) as pool:
+            results = pool.map(self.parallel_wrapper, [(i, ind) for i, ind in enumerate(to_evaluate)])
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
         time.sleep(1)
-        to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
         fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file, gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
         for ind in to_evaluate:
             ind.fitness = fitness[ind.id]
             ind.evaluated = not self.remap
+
+    def parallel_wrapper(self, args):
+        idx, ind = args
+        for i, p in enumerate([0, 1]):
+            dummy_simulation(ind.genotype, 500, ind.id, p, i, ind.age, self.log_file)
+        return idx
 
     def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every) -> None:
         self.start_time = time.time()

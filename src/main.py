@@ -40,7 +40,7 @@ def parse_args():
     parser.add_argument("--fitness", default="sensing_score", type=str, help="fitness tag")
     parser.add_argument("--terrain", default="fixed", type=str, help="terrain for simulations")
     parser.add_argument("--remap", default=0, type=int, help="recompute fitness of parents")
-    parser.add_argument("--rnn", default=0, type=int, help="use recurrent policy")
+    parser.add_argument("--rnn", default=1, type=int, help="use recurrent policy")
     return parser.parse_args()
 
 
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = ((7 * 7) + 7) if not arguments.rnn else (17 * 6 + 6 * 6 + 6 + 6 * 2 + 2)
+    number_of_params = ((7 * 7) + 7) if not arguments.rnn else (7 * 6 + 6 + 6 * 6 + 6 + 6 * 7 + 7)
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:

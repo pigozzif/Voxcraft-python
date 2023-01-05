@@ -7,7 +7,7 @@ NUM_SIGNALS = 6
 
 class DummyVoxel(object):
 
-    def __init__(self, x, y, z, input_dim, output_dim):
+    def __init__(self, x, y, z, input_dim, output_dim, genotype):
         self.x = x
         self.y = y
         self.z = z
@@ -15,6 +15,12 @@ class DummyVoxel(object):
         self.outputs = np.zeros(output_dim)
         self.curr_signals = np.zeros(6)
         self.last_signals = np.zeros(6)
+        self.h = torch.zeros(1, 1, 6)
+        self.rnn = torch.nn.RNN(input_size=NUM_SIGNALS + NUM_SENSORS, hidden_size=6, num_layers=1)
+        self.fc = torch.nn.Sequential(torch.nn.Linear(in_features=6, out_features=1 + NUM_SIGNALS),
+                                      torch.nn.Tanh()
+                                      )
+        self._create_brain(genotype)
 
     def get_last_signals(self, body):
         for d in range(NUM_SIGNALS):
@@ -45,37 +51,47 @@ class DummyVoxel(object):
         else:
             return [0, 0, -1]
 
-    @classmethod
-    def create_brain(cls, genotype):
-        brain = torch.nn.Sequential(
-            torch.nn.Linear(in_features=NUM_SIGNALS + NUM_SENSORS, out_features=1 + NUM_SIGNALS),
-            torch.nn.Tanh()
-        )
-        state_dict = brain.state_dict()
+    def _create_brain(self, genotype):
+        state_dict = self.rnn.state_dict()
         start = 0
         for key, coeffs in state_dict.items():
             num = coeffs.numel()
             state_dict[key] = torch.tensor(np.array(genotype[start:start + num]).reshape(state_dict[key].shape))
             start += num
-        brain.load_state_dict(state_dict)
-        return brain
+        self.rnn.load_state_dict(state_dict)
+        state_dict = self.fc.state_dict()
+        for key, coeffs in state_dict.items():
+            num = coeffs.numel()
+            state_dict[key] = torch.tensor(np.array(genotype[start:start + num]).reshape(state_dict[key].shape))
+            start += num
+        self.fc.load_state_dict(state_dict)
+
+    def think(self, inputs):
+        out, hidden = self.rnn(inputs.reshape(1, 1, -1), self.h)
+        out = out.contiguous().view(-1, 6)
+        out = self.fc(out)
+        self.h = hidden
+        return out.squeeze()
 
 
 def dummy_simulation(genotype, steps, idx, is_passable, terrain_id, age, log_file, record_file=None):
-    brain = DummyVoxel.create_brain(genotype=genotype)
-    body = [DummyVoxel(i, 4, 0, 7, 7) for i in range(9)] + [DummyVoxel(4, i, 0, 7, 7) for i in range(4)] + \
-           [DummyVoxel(4, i, 0, 7, 7) for i in range(5, 9)]
+    body = [DummyVoxel(i, 4, 0, 7, 7, genotype) for i in range(9)] + \
+           [DummyVoxel(4, i, 0, 7, 7, genotype) for i in range(4)] + \
+           [DummyVoxel(4, i, 0, 7, 7, genotype) for i in range(5, 9)]
     votes = []
 
     for i in range(steps):
 
         for voxel in body:
-            if is_passable == 0:
+            if i >= 300:
+                voxel.inputs[0] = -1.0
+            elif is_passable == 0:
                 voxel.inputs[0] = 1.0 if voxel.x == 4 and voxel.y == 0 else -1.0
             else:
                 voxel.inputs[0] = 1.0 if voxel.x > 5 else -1.0
             voxel.get_last_signals(body=body)
-            voxel.outputs = brain(torch.from_numpy(voxel.inputs).float()).detach().numpy()
+            outputs = voxel.think(torch.from_numpy(voxel.inputs).float())
+            voxel.outputs = outputs.detach().numpy()
             for d in range(NUM_SIGNALS):
                 voxel.curr_signals[d] = voxel.outputs[1 + d]
 
@@ -91,7 +107,7 @@ def dummy_simulation(genotype, steps, idx, is_passable, terrain_id, age, log_fil
                 file.write("{}: ".format(i))
                 for voxel in body:
                     file.write("{0},{1},{2},{3},{4}/".format(voxel.outputs[0], voxel.x, voxel.y, voxel.z,
-                                                         1 if voxel.inputs[0] == 1.0 else 0))
+                                                             1 if voxel.inputs[0] == 1.0 else 0))
                 file.write("\n")
 
     sensing = sum(votes) / steps
