@@ -124,9 +124,6 @@ class MyFitness(FitnessFunction):
 
 if __name__ == "__main__":
     arguments = parse_args()
-    if (arguments.num_targets == 1 and arguments.num_clusters == 2) or \
-            (arguments.num_targets == 2 and arguments.num_clusters == 2):
-        exit()
     set_seed(arguments.seed)
 
     pickle_dir = "{0}{1}".format(arguments.pickle_dir, arguments.seed)
