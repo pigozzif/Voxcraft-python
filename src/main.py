@@ -334,7 +334,7 @@ if __name__ == "__main__":
                                        solution_mapper="direct",
                                        fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.terrain,
                                                               arguments.rnn == 1),
-                                       remap=arguments.remap, genetic_operators={"gaussian_mut": 0.2},
+                                       remap=arguments.remap, genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
