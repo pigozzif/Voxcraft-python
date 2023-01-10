@@ -217,7 +217,7 @@ class MyFitness(FitnessFunction):
         world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
         world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
 
-        center = random.choice([start + i for i in range(-body_length // 2 + 1, body_length // 2 - 1)])
+        center = random.choice([start + i - 2 for i in range(body_length // 2 + 1)])
         aperture_size = random.choice([0, 1, 3]) if p_label == "impassable" else random.choice(
             [body_length + 2, body_length - 2, body_length])
 
@@ -232,17 +232,21 @@ class MyFitness(FitnessFunction):
         left_wall_type = random.choice(["none", "straight", "knee"])
         right_wall_type = random.choice(["none", "straight", "knee"])
         if left_wall_type == "straight":
-            world[left_wall, lower_edge: wall_position, :2] = self.wall_left
+            world[left_wall, lower_edge: wall_position, :2] = self.immovable_left
         elif left_wall_type == "knee":
-            world[left_wall - 1, lower_edge: start, :2] = self.wall_left
-            world[left_wall - 1: left_wall + body_length // 4 - 1, start, :2] = self.wall_left
-            world[left_wall + body_length // 4 - 1, start: wall_position, :2] = self.wall_left
+            world[left_wall - 1, lower_edge: body_length // 2 + distance_from_wall + start, :2] = self.immovable_left
+            world[left_wall - 1: left_wall + body_length // 4 - 1, body_length // 2 + distance_from_wall + start, :2] =\
+                self.immovable_left
+            world[left_wall + body_length // 4 - 1, body_length // 2 + distance_from_wall + start: wall_position, :2] =\
+                self.immovable_left
         if right_wall_type == "straight":
-            world[right_wall, lower_edge: wall_position, :2] = self.wall_right
+            world[right_wall, lower_edge: wall_position, :2] = self.immovable_right
         elif right_wall_type == "knee":
-            world[right_wall, lower_edge: start, :2] = self.wall_right
-            world[right_wall - body_length // 4:right_wall + 1, start, :2] = self.wall_right
-            world[right_wall - body_length // 4, start: wall_position, :2] = self.wall_right
+            world[right_wall, lower_edge: body_length // 2 + distance_from_wall + start, :2] = self.immovable_right
+            world[right_wall - body_length // 4:right_wall + 1, body_length // 2 + distance_from_wall + start, :2] = \
+                self.immovable_right
+            world[right_wall - body_length // 4, body_length // 2 + distance_from_wall + start: wall_position, :2] = \
+                self.immovable_right
 
         if p_label != "impassable":
             world[center, wall_position + body_length, 0] = self.special_passable
@@ -297,7 +301,7 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = ((18 * 3) + 3) if not arguments.rnn else (17 * 6 + 6 * 6 + 6 + 6 * 8 + 8)
+    number_of_params = ((18 * 3) + 3) if not arguments.rnn else (17 * 6 + 6 * 6 + 6 + 6 * 2 + 2)
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:
@@ -330,8 +334,7 @@ if __name__ == "__main__":
                                        solution_mapper="direct",
                                        fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.terrain,
                                                               arguments.rnn == 1),
-                                       remap=arguments.remap, genetic_operators={"gaussian_mut": 0.2,
-                                                                                 "geometric_cx": 0.8},
+                                       remap=arguments.remap, genetic_operators={"gaussian_mut": 0.2},
                                        offspring_size=arguments.popsize // 2,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
                                        pickle_dir=pickle_dir, output_dir=arguments.output_dir,
