@@ -37,6 +37,7 @@ def parse_args():
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
+    parser.add_argument("--shape", default="starfish", type=str, help="shape to employ")
     parser.add_argument("--terrain", default="random-1", type=str, help="terrain for simulations")
     parser.add_argument("--remap", default=None, type=int, help="recompute fitness of parents")
     parser.add_argument("--rnn", default=0, type=int, help="use recurrent policy")
@@ -88,7 +89,7 @@ class NSGAIIListener(Listener):
 
 class MyFitness(FitnessFunction):
 
-    def __init__(self, fitness, solver, terrain, is_recurrent):
+    def __init__(self, fitness, solver, shape, terrain, is_recurrent):
         self.fitness = fitness
         self.immovable_left = None
         self.immovable_right = None
@@ -100,6 +101,7 @@ class MyFitness(FitnessFunction):
         self.terrains = ["impassable", "passable_left", "passable_right"] if terrain == "fixed" \
             else ["passable", "impassable"] * int(terrain.split("-")[1])
         self.solver = solver
+        self.shape = shape
         self.objective_dict = ObjectiveDict()
         self.is_recurrent = is_recurrent
 
@@ -107,15 +109,12 @@ class MyFitness(FitnessFunction):
     def get_file_name(*args):
         return "-".join(list(args))
 
-    @staticmethod
-    def get_body_length(r_label):
-        if r_label == "a":
-            return 3
-        elif r_label == "b":
+    def get_body_length(self):
+        if self.shape == "flatworm":
+            return 5
+        elif self.shape == "starfish":
             return 9
-        elif r_label == "c":
-            return 27
-        raise ValueError("Unknown body size: {}".format(r_label))
+        raise ValueError("Unknown shape: {}".format(self.shape))
 
     def create_objectives_dict(self):
         if self.solver == "ga":
@@ -148,11 +147,11 @@ class MyFitness(FitnessFunction):
         vxa.write(filename=os.path.join(directory, "base.vxa"))
 
     def create_vxd(self, ind, directory, record_history):
-        for _, r_label in enumerate(["b"]):
+        for _, r_label in enumerate([self.shape]):
             for terrain_id, p_label in enumerate(self.terrains):
                 base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id),
                                                                        r_label, p_label))
-                body_length = self.get_body_length(r_label)
+                body_length = self.get_body_length()
                 world = self._create_world(body_length=body_length, p_label=p_label)
 
                 if not self.is_recurrent:
@@ -180,8 +179,13 @@ class MyFitness(FitnessFunction):
         left_edge = body_length
         right_edge = body_length * 2
         wall_position = distance_from_wall * 2 + body_length * 2
-        world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
-        world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
+        if self.shape == "starfish":
+            world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
+            world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
+        else:
+            world[start - body_length // 2: start + body_length // 2 + 1,
+            distance_from_wall + start - body_length // 2: distance_from_wall + start + body_length // 2 + 1,
+            0] = self.soft
 
         aperture_size = 1 if p_label == "impassable" else body_length - 1
         half = math.floor(body_length * 1.5)
@@ -214,8 +218,13 @@ class MyFitness(FitnessFunction):
         right_edge = body_length * 2
         wall_position = distance_from_wall * 2 + body_length * 2
         lower_edge = body_length - 4
-        world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
-        world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
+        if self.shape == "starfish":
+            world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
+            world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
+        else:
+            world[start - body_length // 2: start + body_length // 2 + 1,
+            distance_from_wall + start - body_length // 2: distance_from_wall + start + body_length // 2 + 1,
+            0] = self.soft
 
         center = random.choice([start + i - 2 for i in range(body_length // 2 + 1)])
         aperture_size = random.choice([0, 1, 3]) if p_label == "impassable" else random.choice(
@@ -235,9 +244,9 @@ class MyFitness(FitnessFunction):
             world[left_wall, lower_edge: wall_position, :2] = self.immovable_left
         elif left_wall_type == "knee":
             world[left_wall - 1, lower_edge: body_length // 2 + distance_from_wall + start, :2] = self.immovable_left
-            world[left_wall - 1: left_wall + body_length // 4 - 1, body_length // 2 + distance_from_wall + start, :2] =\
+            world[left_wall - 1: left_wall + body_length // 4 - 1, body_length // 2 + distance_from_wall + start, :2] = \
                 self.immovable_left
-            world[left_wall + body_length // 4 - 1, body_length // 2 + distance_from_wall + start: wall_position, :2] =\
+            world[left_wall + body_length // 4 - 1, body_length // 2 + distance_from_wall + start: wall_position, :2] = \
                 self.immovable_left
         if right_wall_type == "straight":
             world[right_wall, lower_edge: wall_position, :2] = self.immovable_right
