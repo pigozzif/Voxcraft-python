@@ -45,12 +45,12 @@ class Solver(object):
         self.executables_dir = executables_dir
         if not os.path.isdir(executables_dir):
             sub.call("mkdir {}".format(executables_dir), shell=True)
-        #for file in os.listdir(os.path.join("..", logs_dir)):
-        #    if int(file.split(".")[1].split("_")[1]) == self.seed and "out" in file:
-        #        self.log_file = os.path.join("/".join(os.getcwd().split("/")[:-1]), logs_dir, file)
-        #        break
-        #else:
-        #    raise IndexError
+        for file in os.listdir(os.path.join("..", logs_dir)):
+            if int(file.split(".")[1].split("_")[1]) == self.seed and "out" in file:
+                self.log_file = os.path.join("/".join(os.getcwd().split("/")[:-1]), logs_dir, file)
+                break
+        else:
+            raise IndexError
 
     def elapsed_time(self, units: str = "s") -> float:
         if self.start_time is None:
@@ -145,11 +145,11 @@ class EvolutionarySolver(Solver):
             except IndexError:
                 sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                 pass
-        #time.sleep(30)
+        time.sleep(30)
         to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
-        #fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file, gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
+        fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file, gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
         for ind in to_evaluate:
-            ind.fitness = {"locomotion_score": random.random()}#fitness[ind.id]
+            ind.fitness = fitness[ind.id]
             ind.evaluated = not self.remap
 
     def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every) -> None:
