@@ -329,7 +329,7 @@ if __name__ == "__main__":
                                        executables_dir=arguments.execs,
                                        logs_dir=arguments.logs,
                                        listener=MyListener(file_path="{0}_{1}.csv".format(
-                                           arguments.fitness, seed),
+                                           arguments.shape, seed),
                                            header=["seed", "gen", "elapsed.time", "best.fitness_score", "best.id",
                                                    "median.fitness_score", "min.fitness_score", "best.locomotion_score",
                                                    "median.locomotion_score", "min.locomotion_score", "best"
@@ -350,7 +350,7 @@ if __name__ == "__main__":
                                        executables_dir=arguments.execs,
                                        logs_dir=arguments.logs,
                                        listener=NSGAIIListener(file_path="{0}_{1}.csv".format(
-                                           arguments.fitness, seed),
+                                           arguments.shape, seed),
                                            header=["seed", "gen", "elapsed.time", "best.sensing", "best.locomotion",
                                                    "knee.locomotion", "knee.sensing", "locomotions", "sensings",
                                                    "pareto.locomotions", "pareto.sensings", "best.sensing.g",
