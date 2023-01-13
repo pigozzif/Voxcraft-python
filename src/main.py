@@ -38,7 +38,7 @@ def parse_args():
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
     parser.add_argument("--shape", default="starfish", type=str, help="shape to employ")
-    parser.add_argument("--terrain", default="random-1", type=str, help="terrain for simulations")
+    parser.add_argument("--terrain", default="fixed", type=str, help="terrain for simulations")
     parser.add_argument("--remap", default=None, type=int, help="recompute fitness of parents")
     parser.add_argument("--rnn", default=0, type=int, help="use recurrent policy")
     return parser.parse_args()
@@ -49,19 +49,9 @@ class MyListener(Listener):
     def listen(self, solver):
         with open(self._file, "a") as file:
             file.write(self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
-                                             str(solver.best_so_far.fitness["locomotion_score"] +
-                                                 solver.best_so_far.fitness["sensing_score"]),
-                                             str(solver.best_so_far.id),
-                                             str(np.median([ind.fitness["locomotion_score"] +
-                                                            ind.fitness["sensing_score"] for ind in solver.pop])),
-                                             str(min([ind.fitness["locomotion_score"] + ind.fitness["sensing_score"]
-                                                      for ind in solver.pop])),
                                              str(solver.best_so_far.fitness["locomotion_score"]),
                                              str(np.median([ind.fitness["locomotion_score"] for ind in solver.pop])),
-                                             str(min([ind.fitness["locomotion_score"] for ind in solver.pop])),
-                                             str(solver.best_so_far.fitness["sensing_score"]),
-                                             str(np.median([ind.fitness["sensing_score"] for ind in solver.pop])),
-                                             str(min([ind.fitness["sensing_score"] for ind in solver.pop]))
+                                             str(max([ind.fitness["locomotion_score"] for ind in solver.pop]))
                                              ]) + "\n")
 
 
@@ -121,6 +111,7 @@ class MyFitness(FitnessFunction):
             self.objective_dict.add_objective(name="locomotion_score", maximize=False,
                                               tag="<{}>".format("locomotion_score"),
                                               best_value=0.0, worst_value=5.0)
+            return self.objective_dict
         self.objective_dict.add_objective(name="locomotion_score", maximize=False,
                                           tag="<{}>".format("locomotion_score"),
                                           best_value=0.0, worst_value=5.0)
@@ -320,8 +311,8 @@ if __name__ == "__main__":
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct", survival_selector="worst",
                                        parent_selector="tournament",
-                                       fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.terrain,
-                                                              arguments.shape, arguments.rnn == 1),
+                                       fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.shape,
+                                                              arguments.terrain, arguments.rnn == 1),
                                        remap=arguments.remap, genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2, overlapping=True,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
@@ -330,11 +321,8 @@ if __name__ == "__main__":
                                        logs_dir=arguments.logs,
                                        listener=MyListener(file_path="{0}_{1}.csv".format(
                                            arguments.shape, seed),
-                                           header=["seed", "gen", "elapsed.time", "best.fitness_score", "best.id",
-                                                   "median.fitness_score", "min.fitness_score", "best.locomotion_score",
-                                                   "median.locomotion_score", "min.locomotion_score", "best"
-                                                                                                      ".sensing_score",
-                                                   "median.sensing_score", "min.sensing_score"]),
+                                           header=["seed", "gen", "elapsed.time", "best.locomotion_score",
+                                                   "median.locomotion_score", "min.locomotion_score"]),
                                        tournament_size=5, mu=0.0, sigma=0.35, n=number_of_params,
                                        range=(-1, 1), upper=2.0, lower=-1.0)
     elif arguments.solver == "nsgaii":
