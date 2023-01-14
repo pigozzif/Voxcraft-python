@@ -178,7 +178,7 @@ class MyFitness(FitnessFunction):
             distance_from_wall + start - body_length // 2: distance_from_wall + start + body_length // 2 + 1,
             0] = self.soft
 
-        aperture_size = 1 if p_label == "impassable" else body_length - 1
+        aperture_size = 1 if p_label == "impassable" else body_length - 3
         half = math.floor(body_length * 1.5)
 
         left_bank = half - int(aperture_size / 2) - 1
@@ -196,7 +196,7 @@ class MyFitness(FitnessFunction):
         if p_label != "impassable":
             world[half, wall_position + body_length, 0] = self.special_passable
         else:
-            world[half, wall_position + 1, 0] = self.special_impassable
+            world[half, 0, 0] = self.special_impassable
 
         return world
 
@@ -251,7 +251,7 @@ class MyFitness(FitnessFunction):
         if p_label != "impassable":
             world[center, wall_position + body_length, 0] = self.special_passable
         else:
-            world[center, wall_position + 1, 0] = self.special_impassable
+            world[center, 0, 0] = self.special_impassable
 
         return world
 
