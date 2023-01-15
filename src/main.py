@@ -174,7 +174,7 @@ class MyFitness(FitnessFunction):
             world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
             world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
         else:
-            world[start - body_length // 2: start + body_length // 2 + 1,
+            world[start - body_length // 2 + 1: start + body_length // 2,
             distance_from_wall + start - body_length // 2: distance_from_wall + start + body_length // 2 + 1,
             0] = self.soft
 
