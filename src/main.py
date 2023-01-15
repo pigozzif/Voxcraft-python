@@ -104,6 +104,8 @@ class MyFitness(FitnessFunction):
             return 5
         elif self.shape == "starfish":
             return 9
+        elif self.shape == "gecko":
+            return 6
         raise ValueError("Unknown shape: {}".format(self.shape))
 
     def create_objectives_dict(self):
@@ -173,10 +175,15 @@ class MyFitness(FitnessFunction):
         if self.shape == "starfish":
             world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
             world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
-        else:
+        elif self.shape == "flatworm":
             world[start - body_length // 2 + 1: start + body_length // 2,
             distance_from_wall + start - body_length // 2: distance_from_wall + start + body_length // 2 + 1,
             0] = self.soft
+        else:
+            world[start + 1, distance_from_wall + start - 3: distance_from_wall + start + 3, 0] = self.soft
+            world[start - 2, distance_from_wall + start - 3: distance_from_wall + start + 3, 0] = self.soft
+            world[start - 3: start + 3, distance_from_wall + start - 2, 0] = self.soft
+            world[start - 3: start + 3, distance_from_wall + start + 1, 0] = self.soft
 
         aperture_size = 1 if p_label == "impassable" else body_length - 1
         half = math.floor(body_length * 1.5)
@@ -212,10 +219,15 @@ class MyFitness(FitnessFunction):
         if self.shape == "starfish":
             world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
             world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
-        else:
-            world[start - body_length // 2: start + body_length // 2 + 1,
+        elif self.shape == "flatworm":
+            world[start - body_length // 2 + 1: start + body_length // 2,
             distance_from_wall + start - body_length // 2: distance_from_wall + start + body_length // 2 + 1,
             0] = self.soft
+        else:
+            world[start + 1, distance_from_wall + start - 3: distance_from_wall + start + 3, 0] = self.soft
+            world[start - 2, distance_from_wall + start - 3: distance_from_wall + start + 3, 0] = self.soft
+            world[start - 3: start + 3, distance_from_wall + start - 2, 0] = self.soft
+            world[start - 3: start + 3, distance_from_wall + start + 1, 0] = self.soft
 
         center = random.choice([start + i - 2 for i in range(body_length // 2 + 1)])
         aperture_size = random.choice([0, 1, 3]) if p_label == "impassable" else random.choice(
