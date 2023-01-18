@@ -60,8 +60,8 @@ class NSGAIIListener(Listener):
     def listen(self, solver):
         solver.fast_non_dominated_sort()
         pareto_front = solver.fronts[0]
-        best_locomotion = min(pareto_front, key=lambda x: x.fitness["locomotion_score"])
-        best_sensing = max(pareto_front, key=lambda x: x.fitness["sensing_score"])
+        best_locomotion = solver.best_locomotion
+        best_sensing = solver.best_sensing
         knee = solver.best_so_far
         stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
                                       str(best_sensing.id), str(best_locomotion.id),

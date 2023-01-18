@@ -147,7 +147,8 @@ class EvolutionarySolver(Solver):
                 pass
         time.sleep(30)
         to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
-        fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file, gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
+        fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file,
+                                                gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
         for ind in to_evaluate:
             ind.fitness = fitness[ind.id]
             ind.evaluated = not self.remap
@@ -248,6 +249,8 @@ class NSGAII(EvolutionarySolver):
                                                         crowding_distances=self.crowding_distances, fronts=self.fronts,
                                                         **kwargs)
         self._fronts_to_plot = {}
+        self.best_sensing = None
+        self.best_locomotion = None
 
     def fast_non_dominated_sort(self) -> None:
         self.fronts.clear()
@@ -331,6 +334,12 @@ class NSGAII(EvolutionarySolver):
             self.pop.add_individual(genotype=child_genotype)
         self.evaluate_individuals()
         self.trim_population()
+        temp_best_sensing = max(self.pop, key=lambda x: x.fitness["sensing_score"])
+        self.best_sensing = temp_best_sensing if self.best_sensing is None else \
+            max([temp_best_sensing, self.best_sensing], key=lambda x: x.fitness["sensing_score"])
+        temp_best_locomotion = min(self.pop, key=lambda x: x.fitness["locomotion_score"])
+        self.best_locomotion = temp_best_locomotion if self.best_locomotion is None else \
+            min([temp_best_locomotion, self.best_locomotion], key=lambda x: x.fitness["locomotion_score"])
         if not PLOT:
             return
         if self.pop.gen == 1:
@@ -343,7 +352,7 @@ class NSGAII(EvolutionarySolver):
                 loc = [float(ind.fitness["locomotion_score"]) for ind in front],
                 sens = [float(ind.fitness["sensing_score"]) for ind in front]
                 plt.scatter(loc, sens, color=color, alpha=0.5, label=str(gen))
-            plt.scatter([self.pop.objectives_dict[0]["worst_value"], self.pop.objectives_dict[1]["best_value"]],
+            plt.scatter([0.3, self.pop.objectives_dict[1]["best_value"]],
                         [self.pop.objectives_dict[0]["best_value"], self.pop.objectives_dict[1]["worst_value"]],
                         alpha=0.0)
             plt.xlabel("locomotion through the aperture (m)")
@@ -360,13 +369,12 @@ class NSGAII(EvolutionarySolver):
 
     def save_best(self, best: Individual) -> None:
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        if not self.fronts:
-            self.fast_non_dominated_sort()
-        for _, goal in self.pop.objectives_dict.items():
-            individual = sorted(self.fronts[0], key=lambda x: x.fitness[goal["name"]], reverse=goal["maximize"])[0]
-            self.fitness_func.save_histories(individual=individual, input_directory=self.data_dir,
-                                             output_directory=self.hist_dir,
-                                             executables_directory=self.executables_dir)
+        self.fitness_func.save_histories(individual=self.best_locomotion, input_directory=self.data_dir,
+                                         output_directory=self.hist_dir,
+                                         executables_directory=self.executables_dir)
+        self.fitness_func.save_histories(individual=self.best_sensing, input_directory=self.data_dir,
+                                         output_directory=self.hist_dir,
+                                         executables_directory=self.executables_dir)
 
     @staticmethod
     def get_distance_from_diagonal(individual: Individual, objectives_dict: dict) -> float:
