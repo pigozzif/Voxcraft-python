@@ -62,6 +62,10 @@ class NSGAIIListener(Listener):
         pareto_front = solver.fronts[0]
         best_locomotion = solver.best_locomotion
         best_sensing = solver.best_sensing
+        if best_sensing is None:
+            best_sensing = max(solver.pop, key=lambda x: x.fitness["sensing_score"])
+        if best_locomotion is None:
+            best_locomotion = min(solver.pop, key=lambda x: x.fitness["locomotion_score"])
         knee = solver.best_so_far
         stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
                                       str(best_sensing.id), str(best_locomotion.id),
