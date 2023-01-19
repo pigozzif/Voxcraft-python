@@ -105,7 +105,7 @@ class MyFitness(FitnessFunction):
 
     def get_body_length(self):
         if self.shape == "flatworm":
-            return 5
+            return 4
         elif self.shape == "starfish":
             return 9
         elif self.shape == "gecko":
@@ -180,7 +180,7 @@ class MyFitness(FitnessFunction):
             world[start, distance_from_wall + body_length: wall_position - distance_from_wall, 0] = self.soft
             world[left_edge: right_edge, distance_from_wall + start, 0] = self.soft
         elif self.shape == "flatworm":
-            world[start - body_length // 2 + 1: start + body_length // 2,
+            world[start - body_length // 2: start + body_length // 2 + 1,
             distance_from_wall + start - body_length // 2: distance_from_wall + start + body_length // 2 + 1,
             0] = self.soft
         else:
