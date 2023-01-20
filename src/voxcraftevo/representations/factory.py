@@ -1,4 +1,5 @@
 import abc
+import copy
 import random
 from typing import Tuple
 
@@ -11,11 +12,16 @@ class GenotypeFactory(object):
 
     def __init__(self, genotype_filter: Filter):
         self.genotype_filter = genotype_filter
+        self.prototype = None
 
     def create_population(self, pop_size: int) -> list:
         pop = []
         while len(pop) < pop_size:
-            new_born = self.create()
+            if self.prototype is None:
+                new_born = self.create()
+                self.prototype = new_born
+            else:
+                new_born = copy.deepcopy(self.prototype)
             if self.genotype_filter(new_born):
                 pop.append(new_born)
         return pop
