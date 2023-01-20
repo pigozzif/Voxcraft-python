@@ -22,8 +22,8 @@ from voxcraftevo.fitness.evaluation import FitnessFunction
 def parse_args():
     parser = argparse.ArgumentParser(description="arguments")
     parser.add_argument("--seed", default=0, type=int, help="seed for random number generation")
-    parser.add_argument("--solver", default="ga", type=str, help="solver for the optimization")
-    parser.add_argument("--gens", default=40, type=int, help="generations for the ea")
+    parser.add_argument("--solver", default="nsgaii", type=str, help="solver for the optimization")
+    parser.add_argument("--gens", default=199, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
     parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
@@ -37,10 +37,10 @@ def parse_args():
     parser.add_argument("--data_dir", default="data", type=str, help="relative path to data dir")
     parser.add_argument("--pickle_dir", default="pickledPops", type=str, help="relative path to pickled dir")
     parser.add_argument("--fitness", default="fitness_score", type=str, help="fitness tag")
-    parser.add_argument("--shape", default="starfish", type=str, help="shape to employ")
+    parser.add_argument("--shape", default="gecko", type=str, help="shape to employ")
     parser.add_argument("--terrain", default="fixed", type=str, help="terrain for simulations")
-    parser.add_argument("--remap", default=None, type=int, help="recompute fitness of parents")
-    parser.add_argument("--rnn", default=0, type=int, help="use recurrent policy")
+    parser.add_argument("--remap", default=0, type=int, help="recompute fitness of parents")
+    parser.add_argument("--rnn", default=1, type=int, help="use recurrent policy")
     return parser.parse_args()
 
 
@@ -313,7 +313,8 @@ if __name__ == "__main__":
 
     pickle_dir = "{0}{1}".format(arguments.pickle_dir, arguments.seed)
     data_dir = "{0}{1}".format(arguments.data_dir, arguments.seed)
-    sub.call("rm -rf {0}".format(pickle_dir), shell=True)
+    if not arguments.reload:
+        sub.call("rm -rf {0}".format(pickle_dir), shell=True)
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
