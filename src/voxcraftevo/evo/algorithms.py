@@ -83,8 +83,7 @@ class Solver(object):
         with open(os.path.join(self.pickle_dir, last_gen), "rb") as handle:
             [optimizer, random_state, numpy_random_state] = pickle.load(handle)
         best = optimizer.pop.get_best()
-        for _ in range(10):
-            optimizer.save_best(best=best)
+        optimizer.save_best(best=best)
 
     @abc.abstractmethod
     def solve(self, max_hours_runtime: int, max_gens: int, checkpoint_every: int, save_hist_every: int):
@@ -369,10 +368,10 @@ class NSGAII(EvolutionarySolver):
                                                                                  objectives_dict=self.pop.objectives_dict))
 
     def save_best(self, best: Individual) -> None:
-        #sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        #self.fitness_func.save_histories(individual=self.best_locomotion, input_directory=self.data_dir,
-        #                                 output_directory=self.hist_dir,
-        #                                 executables_directory=self.executables_dir)
+        sub.call("rm {}/*".format(self.hist_dir), shell=True)
+        self.fitness_func.save_histories(individual=self.best_locomotion, input_directory=self.data_dir,
+                                         output_directory=self.hist_dir,
+                                         executables_directory=self.executables_dir)
         self.fitness_func.save_histories(individual=self.best_sensing, input_directory=self.data_dir,
                                          output_directory=self.hist_dir,
                                          executables_directory=self.executables_dir)
