@@ -66,7 +66,7 @@ class NSGAIIListener(Listener):
             best_sensing = max(solver.pop, key=lambda x: x.fitness["sensing_score"])
         if best_locomotion is None:
             best_locomotion = min(solver.pop, key=lambda x: x.fitness["locomotion_score"])
-        knee = solver.best_so_far
+        knee = best_sensing
         stats = self._delimiter.join([str(solver.seed), str(solver.pop.gen), str(solver.elapsed_time()),
                                       str(best_sensing.id), str(best_locomotion.id),
                                       str(knee.fitness["locomotion_score"]), str(knee.fitness["sensing_score"])])
