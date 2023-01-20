@@ -79,7 +79,7 @@ class Solver(object):
 
     def reload(self):
         pickled_pops = os.listdir(self.pickle_dir)
-        last_gen = sorted(pickled_pops, reverse=True)[0]
+        last_gen = sorted(pickled_pops, key=lambda x: int(x.split("_")[1].split(".")[0]), reverse=True)[0]
         with open(os.path.join(self.pickle_dir, last_gen), "rb") as handle:
             [optimizer, random_state, numpy_random_state] = pickle.load(handle)
         best = optimizer.pop.get_best()
@@ -145,7 +145,7 @@ class EvolutionarySolver(Solver):
             except IndexError:
                 sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                 pass
-        time.sleep(30)
+        time.sleep(20)
         to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
         fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file,
                                                 gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
