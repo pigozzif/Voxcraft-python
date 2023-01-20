@@ -362,10 +362,7 @@ class NSGAII(EvolutionarySolver):
             plt.clf()
 
     def get_best(self) -> Individual:
-        if not self.fronts:
-            self.fast_non_dominated_sort()
-        return min(self.fronts[0], key=lambda x: self.get_distance_from_diagonal(individual=x,
-                                                                                 objectives_dict=self.pop.objectives_dict))
+        return self.best_sensing
 
     def save_best(self, best: Individual) -> None:
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
