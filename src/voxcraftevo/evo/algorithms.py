@@ -370,9 +370,9 @@ class NSGAII(EvolutionarySolver):
 
     def save_best(self, best: Individual) -> None:
         sub.call("rm {}/*".format(self.hist_dir), shell=True)
-        self.fitness_func.save_histories(individual=self.best_locomotion, input_directory=self.data_dir,
-                                         output_directory=self.hist_dir,
-                                         executables_directory=self.executables_dir)
+        #self.fitness_func.save_histories(individual=self.best_locomotion, input_directory=self.data_dir,
+        #                                 output_directory=self.hist_dir,
+        #                                 executables_directory=self.executables_dir)
         self.fitness_func.save_histories(individual=self.best_sensing, input_directory=self.data_dir,
                                          output_directory=self.hist_dir,
                                          executables_directory=self.executables_dir)
