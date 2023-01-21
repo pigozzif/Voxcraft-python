@@ -19,8 +19,6 @@ from ..representations.mapper import SolutionMapper
 from ..representations.population import Population, Individual
 from ..utils.utilities import weighted_random_by_dct
 
-PLOT = True
-
 
 class Solver(object):
 
@@ -248,7 +246,6 @@ class NSGAII(EvolutionarySolver):
         self.parent_selector = Selector.create_selector(name="tournament_crowded",
                                                         crowding_distances=self.crowding_distances, fronts=self.fronts,
                                                         **kwargs)
-        self._fronts_to_plot = {}
         self.best_sensing = None
         self.best_locomotion = None
 
@@ -340,26 +337,6 @@ class NSGAII(EvolutionarySolver):
         temp_best_locomotion = min(self.pop, key=lambda x: x.fitness["locomotion_score"])
         self.best_locomotion = temp_best_locomotion if self.best_locomotion is None else \
             min([temp_best_locomotion, self.best_locomotion], key=lambda x: x.fitness["locomotion_score"])
-        if not PLOT:
-            return
-        if self.pop.gen == 1:
-            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
-        elif self.pop.gen == 40:
-            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
-        elif self.pop.gen == 80:
-            self._fronts_to_plot[self.pop.gen] = self.fronts[0]
-            for color, (gen, front) in zip(["orange", "blue", "red"], self._fronts_to_plot.items()):
-                loc = [float(ind.fitness["locomotion_score"]) for ind in front],
-                sens = [float(ind.fitness["sensing_score"]) for ind in front]
-                plt.scatter(loc, sens, color=color, alpha=0.5, label=str(gen))
-            plt.scatter([0.3, self.pop.objectives_dict[1]["best_value"]],
-                        [self.pop.objectives_dict[0]["best_value"], self.pop.objectives_dict[1]["worst_value"]],
-                        alpha=0.0)
-            plt.xlabel("locomotion through the aperture (m)")
-            plt.ylabel("affordance detection (% of timesteps correct)")
-            plt.legend()
-            plt.savefig("pareto_front_{}.png".format(self.seed))
-            plt.clf()
 
     def get_best(self) -> Individual:
         if not self.fronts:
