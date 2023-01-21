@@ -148,7 +148,7 @@ class EvolutionarySolver(Solver):
             except IndexError:
                 sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                 pass
-        time.sleep(10)
+        time.sleep(1)
         to_evaluate = list(filter(lambda x: not x.evaluated and x.id != self.future_best, self.pop))
         fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.reload_log_file,
                                                 gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
