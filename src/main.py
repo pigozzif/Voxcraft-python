@@ -25,9 +25,7 @@ def parse_args():
     parser.add_argument("--solver", default="nsgaii", type=str, help="solver for the optimization")
     parser.add_argument("--gens", default=199, type=int, help="generations for the ea")
     parser.add_argument("--popsize", default=100, type=int, help="population size for the ea")
-    parser.add_argument("--history", default=100, type=int, help="how many generations for saving history")
     parser.add_argument("--checkpoint", default=1, type=int, help="how many generations for checkpointing")
-    parser.add_argument("--time", default=48, type=int, help="maximum hours for the ea")
     parser.add_argument("--reload", default=0, type=int, help="restart from last pickled population")
     parser.add_argument("--execs", default="executables", type=str,
                         help="relative path to the dir containing Voxcraft executables")
@@ -98,7 +96,6 @@ class MyFitness(FitnessFunction):
         self.shape = shape
         self.objective_dict = ObjectiveDict()
         self.is_recurrent = is_recurrent
-        self.saved = 0
 
     @staticmethod
     def get_file_name(*args):
@@ -302,12 +299,11 @@ class MyFitness(FitnessFunction):
                 sub.call("cd {0}; ./voxcraft-sim -i {1} -o output.xml > {2}".format(
                     executables_directory,
                     os.path.join("..", temp_dir),
-                    os.path.join("..", output_directory, str(self.saved) + "-" + file.replace("vxd", "history"))),
+                    os.path.join("..", output_directory, file.replace("vxd", "history"))),
                     shell=True)
                 sub.call("cd {}; rm output.xml".format(executables_directory), shell=True)
                 sub.call("rm {}/*.vxd".format(temp_dir), shell=True)
         sub.call("rm -rf {}".format(temp_dir), shell=True)
-        self.saved += 1
 
 
 if __name__ == "__main__":
@@ -316,8 +312,6 @@ if __name__ == "__main__":
 
     pickle_dir = "{0}{1}".format(arguments.pickle_dir, arguments.seed)
     data_dir = "{0}{1}".format(arguments.data_dir, arguments.seed)
-    if not arguments.reload:
-        sub.call("rm -rf {0}".format(pickle_dir), shell=True)
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
@@ -371,7 +365,6 @@ if __name__ == "__main__":
     if arguments.reload:
         evolver.reload()
     else:
-        evolver.solve(max_hours_runtime=arguments.time, max_gens=arguments.gens, checkpoint_every=arguments.checkpoint,
-                      save_hist_every=arguments.history)
+        evolver.solve(max_gens=arguments.gens, checkpoint_every=arguments.checkpoint)
     start_time = time()
     sub.call("echo That took a total of {} minutes".format((time() - start_time) / 60.), shell=True)

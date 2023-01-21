@@ -79,13 +79,10 @@ class Solver(object):
         with open(os.path.join(self.pickle_dir, last_gen), "rb") as handle:
             [optimizer, random_state, numpy_random_state] = pickle.load(handle)
         best = optimizer.pop.get_best()
-        optimizer.fitness_func = self.fitness_func
-        optimizer.save_best = self.save_best
-        for _ in range(25):
-            optimizer.save_best(best=best)
+        optimizer.save_best(best=best)
 
     @abc.abstractmethod
-    def solve(self, max_hours_runtime: int, max_gens: int, checkpoint_every: int, save_hist_every: int):
+    def solve(self, max_gens: int, checkpoint_every: int):
         pass
 
     @classmethod
@@ -144,7 +141,7 @@ class EvolutionarySolver(Solver):
                 except IndexError:
                     sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                     pass
-            time.sleep(6)
+            time.sleep(7)
         to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
         fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file,
                                                 gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
@@ -152,7 +149,7 @@ class EvolutionarySolver(Solver):
             ind.fitness = fitness[ind.id]
             ind.evaluated = not self.remap
 
-    def solve(self, max_hours_runtime, max_gens, checkpoint_every, save_hist_every) -> None:
+    def solve(self, max_gens, checkpoint_every) -> None:
         self.start_time = time.time()
         self.fitness_func.create_vxa(directory=self.data_dir)
 
@@ -160,7 +157,7 @@ class EvolutionarySolver(Solver):
             self.evaluate_individuals()
         self.best_so_far = self.get_best()
         # iterate until stop conditions met
-        while self.pop.gen < max_gens and self.elapsed_time(units="h") <= max_hours_runtime:
+        while self.pop.gen < max_gens:
             sub.call("rm -rf {}/*".format(self.data_dir), shell=True)
             self.fitness_func.create_vxa(directory=self.data_dir)
 
@@ -346,15 +343,9 @@ class NSGAII(EvolutionarySolver):
                                                                                  objectives_dict=self.pop.objectives_dict))
 
     def save_best(self, best: Individual) -> None:
-        temp_best_sensing = max(self.pop, key=lambda x: x.fitness["sensing_score"])
-        self.best_sensing = temp_best_sensing if self.best_sensing is None else \
-            max([temp_best_sensing, self.best_sensing], key=lambda x: x.fitness["sensing_score"])
-        temp_best_locomotion = min(self.pop, key=lambda x: x.fitness["locomotion_score"])
-        self.best_locomotion = temp_best_locomotion if self.best_locomotion is None else \
-            min([temp_best_locomotion, self.best_locomotion], key=lambda x: x.fitness["locomotion_score"])
-        #self.fitness_func.save_histories(individual=self.best_locomotion, input_directory=self.data_dir,
-        #                                 output_directory=self.hist_dir,
-        #                                 executables_directory=self.executables_dir)
+        self.fitness_func.save_histories(individual=self.best_locomotion, input_directory=self.data_dir,
+                                         output_directory=self.hist_dir,
+                                         executables_directory=self.executables_dir)
         self.fitness_func.save_histories(individual=self.best_sensing, input_directory=self.data_dir,
                                          output_directory=self.hist_dir,
                                          executables_directory=self.executables_dir)
