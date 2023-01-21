@@ -6,7 +6,6 @@ import pickle
 from typing import Dict
 
 import numpy as np
-import matplotlib.pyplot as plt
 import subprocess as sub
 
 from .operators.operator import GeneticOperator
