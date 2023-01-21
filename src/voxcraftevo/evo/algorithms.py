@@ -52,7 +52,7 @@ class Solver(object):
         else:
             raise IndexError
         self.reload_log_file = os.path.join("/".join(os.getcwd().split("/")[:-1]), logs_dir,
-                                            "reload_{}.csv".format(seed))
+                                            "reload_{}.txt".format(seed))
         self.future_best = 2980
 
     def elapsed_time(self, units: str = "s") -> float:
