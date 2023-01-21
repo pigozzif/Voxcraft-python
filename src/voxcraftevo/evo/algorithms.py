@@ -79,6 +79,8 @@ class Solver(object):
         with open(os.path.join(self.pickle_dir, last_gen), "rb") as handle:
             [optimizer, random_state, numpy_random_state] = pickle.load(handle)
         best = optimizer.pop.get_best()
+        optimizer.fitness_func = self.fitness_func
+        optimizer.save_best = self.save_best
         for _ in range(25):
             optimizer.save_best(best=best)
 
