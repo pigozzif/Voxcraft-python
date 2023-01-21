@@ -98,6 +98,7 @@ class MyFitness(FitnessFunction):
         self.shape = shape
         self.objective_dict = ObjectiveDict()
         self.is_recurrent = is_recurrent
+        self.saved = 0
 
     @staticmethod
     def get_file_name(*args):
@@ -301,10 +302,12 @@ class MyFitness(FitnessFunction):
                 sub.call("cd {0}; ./voxcraft-sim -i {1} -o output.xml > {2}".format(
                     executables_directory,
                     os.path.join("..", temp_dir),
-                    os.path.join("..", output_directory, file.replace("vxd", "history"))), shell=True)
+                    os.path.join("..", output_directory, str(self.saved) + "-" + file.replace("vxd", "history"))),
+                    shell=True)
                 sub.call("cd {}; rm output.xml".format(executables_directory), shell=True)
                 sub.call("rm {}/*.vxd".format(temp_dir), shell=True)
         sub.call("rm -rf {}".format(temp_dir), shell=True)
+        self.saved += 1
 
 
 if __name__ == "__main__":
