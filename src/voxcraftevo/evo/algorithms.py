@@ -75,7 +75,6 @@ class Solver(object):
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def save_best(self, best: Individual) -> None:
-        sub.call("rm {}/*".format(self.hist_dir), shell=True)
         self.fitness_func.save_histories(individual=best, input_directory=self.data_dir, output_directory=self.hist_dir,
                                          executables_directory=self.executables_dir)
         sub.call("rm {}/*.vxd".format(self.data_dir), shell=True)
@@ -124,7 +123,6 @@ class EvolutionarySolver(Solver):
         self.listener = listener
 
     def evaluate_individuals(self) -> None:
-        sub.call("rm {}/*".format(self.hist_dir), shell=True)
         num_evaluated = 0
         for ind in self.pop:
             if not ind.evaluated and ind.id == self.future_best:
@@ -379,7 +377,6 @@ class NSGAII(EvolutionarySolver):
                                                                                  objectives_dict=self.pop.objectives_dict))
 
     def save_best(self, best: Individual) -> None:
-        sub.call("rm {}/*".format(self.hist_dir), shell=True)
         self.fitness_func.save_histories(individual=self.best_locomotion, input_directory=self.data_dir,
                                          output_directory=self.hist_dir,
                                          executables_directory=self.executables_dir)
