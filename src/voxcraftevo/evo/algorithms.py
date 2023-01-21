@@ -368,6 +368,12 @@ class NSGAII(EvolutionarySolver):
                                                                                  objectives_dict=self.pop.objectives_dict))
 
     def save_best(self, best: Individual) -> None:
+        temp_best_sensing = max(self.pop, key=lambda x: x.fitness["sensing_score"])
+        self.best_sensing = temp_best_sensing if self.best_sensing is None else \
+            max([temp_best_sensing, self.best_sensing], key=lambda x: x.fitness["sensing_score"])
+        temp_best_locomotion = min(self.pop, key=lambda x: x.fitness["locomotion_score"])
+        self.best_locomotion = temp_best_locomotion if self.best_locomotion is None else \
+            min([temp_best_locomotion, self.best_locomotion], key=lambda x: x.fitness["locomotion_score"])
         #self.fitness_func.save_histories(individual=self.best_locomotion, input_directory=self.data_dir,
         #                                 output_directory=self.hist_dir,
         #                                 executables_directory=self.executables_dir)
