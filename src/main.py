@@ -279,7 +279,7 @@ class MyFitness(FitnessFunction):
                 for terrain_id, p_label in enumerate(self.terrains):
                     for obj in values:
                         name = self.objective_dict[obj]["name"]
-                        file_name = self.get_file_name("bot_{:04d}".format(ind.id), r_label, p_label)
+                        file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), self.shape, p_label)
                         values[obj].append(self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
                                                                        worst_value=self.objective_dict[obj][
                                                                                "worst_value"]))
