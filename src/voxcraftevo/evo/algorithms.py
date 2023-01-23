@@ -48,6 +48,8 @@ class Solver(object):
                 break
         else:
             raise IndexError
+        self.reload_log = os.path.join("/".join(os.getcwd().split("/")[:-1]), logs_dir, "reload_log.txt")
+        self.future_best = 3533
 
     def elapsed_time(self, units: str = "s") -> float:
         if self.start_time is None:
@@ -119,7 +121,7 @@ class EvolutionarySolver(Solver):
     def evaluate_individuals(self) -> None:
         num_evaluated = 0
         for ind in self.pop:
-            if not ind.evaluated:
+            if not ind.evaluated and ind.id == self.future_best:
                 self.fitness_func.create_vxd(ind=ind, directory=self.data_dir, record_history=False)
                 num_evaluated += 1
         sub.call("echo " + "GENERATION {}".format(self.pop.gen), shell=True)
@@ -141,13 +143,20 @@ class EvolutionarySolver(Solver):
                 except IndexError:
                     sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                     pass
-            time.sleep(7)
-        to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
-        fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.log_file,
+            time.sleep(1)
+        to_evaluate = list(filter(lambda x: not x.evaluated and ind.id != self.future_best, self.pop))
+        fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.reload_log,
                                                 gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
         for ind in to_evaluate:
             ind.fitness = fitness[ind.id]
             ind.evaluated = not self.remap
+
+        for ind in self.pop:
+            if ind.id == self.future_best:
+                ind.fitness = self.fitness_func.get_fitness(individuals=[ind], output_file=self.log_file,
+                                                            gen=self.pop.gen)
+                ind.evaluated = not self.remap
+                break
 
     def solve(self, max_gens, checkpoint_every) -> None:
         self.start_time = time.time()
