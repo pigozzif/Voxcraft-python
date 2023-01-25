@@ -270,7 +270,7 @@ class MyFitness(FitnessFunction):
 
         return world
 
-    def get_fitness(self, individuals, output_file, gen):
+    def get_fitness(self, individuals, output_file, log_file, gen):
         fitness = {}
         root = etree.parse(output_file).getroot()
         for ind in individuals:
@@ -279,10 +279,19 @@ class MyFitness(FitnessFunction):
                 for terrain_id, p_label in enumerate(self.terrains):
                     for obj in values:
                         name = self.objective_dict[obj]["name"]
-                        file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), self.shape, p_label)
-                        values[obj].append(self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
-                                                                       worst_value=self.objective_dict[obj][
-                                                                               "worst_value"]))
+                        file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), self.shape,
+                                                       p_label)
+                        test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
+                                                            worst_value=self.objective_dict[obj][
+                                                                "worst_value"])
+                        test2 = self.parse_fitness_from_history(log_file,
+                                                                fitness_tag="-".join(
+                                                                    [str(ind.id), str(terrain_id),
+                                                                     str(ind.age), name]),
+                                                                worst_value=self.objective_dict[obj][
+                                                                    "worst_value"])
+                        values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
+                                           else max(test1, test2))
             fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
                                for k, v in values.items()}
         return fitness

@@ -42,12 +42,12 @@ class Solver(object):
         self.executables_dir = executables_dir
         if not os.path.isdir(executables_dir):
             sub.call("mkdir {}".format(executables_dir), shell=True)
-        #for file in os.listdir(os.path.join("..", logs_dir)):
-        #    if int(file.split(".")[1].split("_")[1]) == self.seed and "out" in file:
-        #        self.log_file = os.path.join("/".join(os.getcwd().split("/")[:-1]), logs_dir, file)
-        #        break
-        #else:
-        #    raise IndexError
+        for file in os.listdir(os.path.join("..", logs_dir)):
+            if int(file.split(".")[1].split("_")[1]) == self.seed and "out" in file:
+                self.log_file = os.path.join("/".join(os.getcwd().split("/")[:-1]), logs_dir, file)
+                break
+        else:
+            raise IndexError
 
     def elapsed_time(self, units: str = "s") -> float:
         if self.start_time is None:
@@ -141,10 +141,10 @@ class EvolutionarySolver(Solver):
                 except IndexError:
                     sub.call("echo Shoot! There was an IndexError. I'll re-simulate this batch again...", shell=True)
                     pass
-            # time.sleep(7)
+            time.sleep(7)
         to_evaluate = list(filter(lambda x: not x.evaluated, self.pop))
         fitness = self.fitness_func.get_fitness(individuals=to_evaluate, output_file=self.output_dir + "/output{}_{}.xml".format(self.seed, self.pop.gen),
-                                                gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
+                                                log_file=self.log_file, gen=self.pop.gen)  # {"locomotion_score": min(ind.genotype[0] ** 2, 1.0), "sensing_score": min((ind.genotype[1] - 2) ** 2, 1.0)}
         for ind in to_evaluate:
             ind.fitness = fitness[ind.id]
             ind.evaluated = not self.remap
