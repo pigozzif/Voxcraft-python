@@ -82,8 +82,7 @@ class NSGAIIListener(Listener):
 
 class MyFitness(FitnessFunction):
 
-    def __init__(self, fitness, solver, shape, terrain, is_recurrent):
-        self.fitness = fitness
+    def __init__(self, solver, shape, terrain, is_recurrent):
         self.immovable_left = None
         self.immovable_right = None
         self.soft = None
@@ -314,6 +313,98 @@ class MyFitness(FitnessFunction):
                 sub.call("rm {}/*.vxd".format(temp_dir), shell=True)
         sub.call("rm -rf {}".format(temp_dir), shell=True)
 
+    @classmethod
+    def create_fitness(cls, name, **kwargs):
+        if name == "test":
+            return TestFitness(**kwargs)
+        return MyFitness(**kwargs)
+
+
+class TestFitness(MyFitness):
+
+    def __init__(self, solver, shape, terrain, is_recurrent, file_name, k=20):
+        super().__init__(solver, shape, terrain, is_recurrent)
+        last_line = open(file_name).readlines()[-1]
+        self.sensing_genotype = np.array([float(t) for t in last_line.split(";")[-2].split(",")])
+        self.locomotion_genotype = np.array([float(t) for t in last_line.split(";")[-1].split(",")])
+        self.k = k
+
+    def create_objectives_dict(self):
+        self.objective_dict.add_objective(name="locomotion_score_median", maximize=False,
+                                          tag="<{}>".format("locomotion_score"),
+                                          best_value=0.0, worst_value=5.0)
+        self.objective_dict.add_objective(name="sensing_score_median", maximize=True,
+                                          tag="<{}>".format("sensing_score"),
+                                          best_value=1.0, worst_value=0.0)
+        self.objective_dict.add_objective(name="locomotion_score_std", maximize=False,
+                                          tag="<{}>".format("locomotion_score"),
+                                          best_value=0.0, worst_value=5.0)
+        self.objective_dict.add_objective(name="sensing_score_std", maximize=True,
+                                          tag="<{}>".format("sensing_score"),
+                                          best_value=1.0, worst_value=0.0)
+        return self.objective_dict
+
+    def create_vxd(self, ind, directory, record_history):
+        if ind.id == 0:
+            ind.genotype = self.sensing_genotype
+        elif ind.ind == 1:
+            ind.genotype = self.locomotion_genotype
+        else:
+            return
+        for _, r_label in enumerate([self.shape]):
+            for terrain_id, p_label in enumerate(self.terrains):
+                for i in range(self.k):
+                    base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id),
+                                                                           str(i), r_label, p_label))
+                    body_length = self.get_body_length()
+                    world = self._create_world(body_length=body_length, p_label=p_label)
+
+                    if not self.is_recurrent:
+                        vxd = VXD(NeuralWeightsX=ind.genotype, isPassable=p_label != "impassable", terrainID=terrain_id,
+                                  age=ind.age)
+                    else:
+                        vxd = VXD(NeuralWeightsX=ind.genotype[:17 * 6],
+                                  NeuralWeightsH=ind.genotype[17 * 6: 17 * 6 + 6 * 6 + 6],
+                                  NeuralWeightsY=ind.genotype[17 * 6 + 6 * 6 + 6:], isPassable=p_label != "impassable",
+                                  terrainID=terrain_id, age=ind.age)
+                    vxd.set_data(data=world)
+                    vxd.set_tags(RecordVoxel=record_history, RecordFixedVoxels=record_history,
+                                 RecordStepSize=100 if record_history else 0)
+                    vxd.write(filename=base_name + ".vxd")
+
+    def get_fitness(self, individuals, output_file, log_file, gen):
+        fitness = {}
+        root = etree.parse(output_file).getroot()
+        for ind in individuals:
+            values = {obj: [] for obj in self.objective_dict}
+            for _, r_label in enumerate(["b"]):
+                for terrain_id, p_label in enumerate(self.terrains):
+                    for i in range(self.k):
+                        for obj in values:
+                            name = self.objective_dict[obj]["name"]
+                            file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), str(i),
+                                                           self.shape, p_label)
+                            test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
+                                                                worst_value=self.objective_dict[obj][
+                                                                    "worst_value"])
+                            test2 = self.parse_fitness_from_history(log_file,
+                                                                    fitness_tag="-".join(
+                                                                        [str(ind.id), str(terrain_id), str(i),
+                                                                         str(ind.age), name]),
+                                                                    worst_value=self.objective_dict[obj][
+                                                                        "worst_value"])
+                            if test2 == test1:
+                                values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
+                                                   else max(test1, test2))
+                            else:
+                                values[obj].append(self.objective_dict[obj]["worst_value"])
+            fitness[ind.id] = {self.objective_dict[k]["name"]: np.mean(v) if "mean" in self.objective_dict[k]["name"]
+            else np.std(v) for k, v in values.items()}
+        return fitness
+
+    def save_histories(self, individual, input_directory, output_directory, executables_directory):
+        return
+
 
 if __name__ == "__main__":
     arguments = parse_args()
@@ -324,18 +415,23 @@ if __name__ == "__main__":
     sub.call("rm -rf {0}".format(data_dir), shell=True)
 
     seed = arguments.seed
-    number_of_params = ((18 * 3) + 3) if not arguments.rnn else (17 * 6 + 6 * 6 + 6 + 6 * 2 + 2)
+    number_of_params = ((17 * 2) + 2) if not arguments.rnn else (17 * 6 + 6 * 6 + 6 + 6 * 2 + 2)
     if arguments.remap is None:
         arguments.remap = arguments.terrain.startswith("random")
     else:
         arguments.remap = bool(arguments.remap)
+    if arguments.fitness == "test":
+        arguments.gens = 0
+        fitness = TestFitness(arguments.solver, arguments.shape, arguments.terrain, arguments.rnn == 1,
+                              file_name="{0}_{1}.csv".format(arguments.shape, seed))
+    else:
+        fitness = MyFitness(arguments.solver, arguments.shape, arguments.terrain, arguments.rnn == 1)
     if arguments.solver == "ga":
         evolver = Solver.create_solver(name="ga", seed=seed, pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct", survival_selector="worst",
                                        parent_selector="tournament",
-                                       fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.shape,
-                                                              arguments.terrain, arguments.rnn == 1),
+                                       fitness_func=fitness,
                                        remap=arguments.remap, genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2, overlapping=True,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
@@ -352,8 +448,7 @@ if __name__ == "__main__":
         evolver = Solver.create_solver(name="nsgaii", seed=seed, pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct",
-                                       fitness_func=MyFitness(arguments.fitness, arguments.solver, arguments.shape,
-                                                              arguments.terrain, arguments.rnn == 1),
+                                       fitness_func=fitness,
                                        remap=arguments.remap, genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2,
                                        data_dir=data_dir, hist_dir="history{}".format(seed),
