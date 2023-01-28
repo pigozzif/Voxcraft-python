@@ -1,4 +1,5 @@
 import os
+import sys
 
 from PIL import Image, ImageDraw, ImageFont
 import cv2
@@ -74,13 +75,31 @@ def create_video(path, width, height):
     out.release()
 
 
+def get_body_length(shape):
+    if shape == "flatworm":
+        return 4
+    elif shape == "starfish":
+        return 9
+    elif shape == "gecko":
+        return 6
+    raise ValueError("Unknown shape: {}".format(shape))
+
+
+def get_best_sensing_id(directory):
+    bests = {}
+    for file in os.listdir(directory):
+        if file.endswith("csv"):
+            last_line = open(os.path.join(directory, file), "r").readlines()[-1]
+            bests[last_line.split(";")[0]] = last_line.split(";")[3]
+    return bests
+
+
 if __name__ == "__main__":
-    for root, dirs, files in os.walk("state"):
+    directory = sys.argv[1]
+    bests = get_best_sensing_id(directory)
+    for root, dirs, files in os.walk(directory):
         for file in files:
-            if "passable_right" in file or not file.endswith("history") or not (
-                    ("history0" in root and "1791" in file) or
-                    ("history1" in root and "3243" in file) or
-                    ("history2" in root and "3643" in file) or
-                    ("history3" in root and "4040" in file)):
+            if "passable_right" in file or not any([("history" + s in root and b in file) for s, b in bests.items()]):
                 continue
-            create_video(os.path.join(os.getcwd(), root, file), 9, 9)
+            body_length = get_body_length(file.split("-")[2])
+            create_video(os.path.join(os.getcwd(), root, file), body_length, body_length)

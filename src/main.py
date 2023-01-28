@@ -88,6 +88,7 @@ class MyFitness(FitnessFunction):
         self.soft = None
         self.special_passable = None
         self.special_impassable = None
+        self.special_impassable_back = None
         self.wall_left = None
         self.wall_right = None
         self.terrains = ["impassable", "passable_left", "passable_right"] if terrain == "fixed" \
@@ -135,9 +136,11 @@ class MyFitness(FitnessFunction):
                                      CTE=0.01, isMeasured=1)
         self.special_impassable = vxa.add_material(material_id=5, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
                                                    uDynamic=0.5, isFixed=1, isMeasured=0)
-        self.wall_left = vxa.add_material(material_id=6, RGBA=(50, 50, 50, 255), E=10000, RHO=10, P=0.5,
+        self.special_impassable_back = vxa.add_material(material_id=6, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
+                                                   uDynamic=0.5, isFixed=1, isMeasured=0)
+        self.wall_left = vxa.add_material(material_id=7, RGBA=(50, 50, 50, 255), E=10000, RHO=10, P=0.5,
                                           uDynamic=0.5, isFixed=1, isMeasured=0)
-        self.wall_right = vxa.add_material(material_id=7, RGBA=(0, 50, 50, 255), E=10000, RHO=10, P=0.5,
+        self.wall_right = vxa.add_material(material_id=8, RGBA=(0, 50, 50, 255), E=10000, RHO=10, P=0.5,
                                            uDynamic=0.5, isFixed=1, isMeasured=0)
         vxa.write(filename=os.path.join(directory, "base.vxa"))
 
@@ -206,9 +209,10 @@ class MyFitness(FitnessFunction):
             world[half, wall_position + body_length, 0] = self.special_passable
         else:
             world[half, wall_position + 1, 0] = self.special_impassable
+            world[half, 0, 0] = self.special_impassable_back
 
         return world
-
+    # TODO: add special_impassable_back
     def _create_random_world(self, body_length, p_label):
         world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
