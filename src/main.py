@@ -207,7 +207,7 @@ class MyFitness(FitnessFunction):
             world[half, wall_position + body_length, 0] = self.special_passable
         else:
             world[half, wall_position + 1, 0] = self.special_impassable
-        self.back_position = np.array([half, 0.0, 0.0])
+        self.back_position = np.array([half / 100.0, 0.0, 0.0])
 
         return world
 
@@ -268,7 +268,7 @@ class MyFitness(FitnessFunction):
             world[center, wall_position + body_length, 0] = self.special_passable
         else:
             world[center, wall_position + 1, 0] = self.special_impassable
-        self.back_position = np.array([center, 0.0, 0.0])
+        self.back_position = np.array([center / 100.0, 0.0, 0.0])
 
         return world
 
