@@ -267,7 +267,7 @@ class MyFitness(FitnessFunction):
         if p_label != "impassable":
             world[center, wall_position + body_length, 0] = self.special_passable
         else:
-            world[center, wall_position + 1, 0] = self.special_impassable
+            world[center, 0, 0] = self.special_impassable
         self.back_position = np.array([center / 100.0, 0.0, 0.0])
 
         return world
@@ -284,24 +284,10 @@ class MyFitness(FitnessFunction):
                         file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), self.shape,
                                                        p_label)
                         if name == "locomotion_score" and terrain_id == 0:
-                            touched = self.parse_fitness_from_history(log_file,
-                                                                      fitness_tag="-".join(
-                                                                          [str(ind.id), str(terrain_id),
-                                                                           str(ind.age), "touched"]),
-                                                                      worst_value=0)
-                            if touched == 0:
-                                test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
-                                                                    worst_value=self.objective_dict[obj][
-                                                                        "worst_value"])
-                                test2 = self.parse_fitness_from_history(log_file,
-                                                                        fitness_tag="-".join(
-                                                                            [str(ind.id), str(terrain_id),
-                                                                             str(ind.age), name]),
-                                                                        worst_value=self.objective_dict[obj][
-                                                                            "worst_value"])
-                            else:
-                                final_position = self.parse_pos(root, bot_id=file_name, tag="currentCenterOfMass")
-                                test1 = test2 = np.linalg.norm(final_position - self.back_position)
+                            final_position = self.parse_pos(root, bot_id=file_name, tag="currentCenterOfMass")
+                            initial_position = self.parse_pos(root, bot_id=file_name, tag="initialCenterOfMass")
+                            test1 = test2 = min(np.linalg.norm(final_position - self.back_position),
+                                                np.linalg.norm(initial_position - self.back_position))
                         else:
                             test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
                                                                 worst_value=self.objective_dict[obj][
