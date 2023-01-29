@@ -88,7 +88,7 @@ class MyFitness(FitnessFunction):
         self.soft = None
         self.special_passable = None
         self.special_impassable = None
-        self.special_impassable_back = None
+        self.back_position = None
         self.wall_left = None
         self.wall_right = None
         self.terrains = ["impassable", "passable_left", "passable_right"] if terrain == "fixed" \
@@ -135,8 +135,6 @@ class MyFitness(FitnessFunction):
         self.soft = vxa.add_material(material_id=4, RGBA=(255, 0, 0, 255), E=10000, RHO=10, P=0.5, uDynamic=0.5,
                                      CTE=0.01, isMeasured=1)
         self.special_impassable = vxa.add_material(material_id=5, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
-                                                   uDynamic=0.5, isFixed=1, isMeasured=0)
-        self.special_impassable_back = vxa.add_material(material_id=6, RGBA=(255, 255, 255, 255), E=10000, RHO=10, P=0.5,
                                                    uDynamic=0.5, isFixed=1, isMeasured=0)
         self.wall_left = vxa.add_material(material_id=7, RGBA=(50, 50, 50, 255), E=10000, RHO=10, P=0.5,
                                           uDynamic=0.5, isFixed=1, isMeasured=0)
@@ -209,10 +207,10 @@ class MyFitness(FitnessFunction):
             world[half, wall_position + body_length, 0] = self.special_passable
         else:
             world[half, wall_position + 1, 0] = self.special_impassable
-            world[half, 0, 0] = self.special_impassable_back
+        self.back_position = np.array([half, 0.0, 0.0])
 
         return world
-    # TODO: add special_impassable_back
+
     def _create_random_world(self, body_length, p_label):
         world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
 
@@ -270,6 +268,7 @@ class MyFitness(FitnessFunction):
             world[center, wall_position + body_length, 0] = self.special_passable
         else:
             world[center, wall_position + 1, 0] = self.special_impassable
+        self.back_position = np.array([center, 0.0, 0.0])
 
         return world
 
@@ -284,17 +283,40 @@ class MyFitness(FitnessFunction):
                         name = self.objective_dict[obj]["name"]
                         file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), self.shape,
                                                        p_label)
-                        test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
-                                                            worst_value=self.objective_dict[obj][
-                                                                "worst_value"])
-                        test2 = self.parse_fitness_from_history(log_file,
-                                                                fitness_tag="-".join(
-                                                                    [str(ind.id), str(terrain_id),
-                                                                     str(ind.age), name]),
+                        if name == "locomotion_score" and terrain_id == 0:
+                            touched = self.parse_fitness_from_history(log_file,
+                                                                      fitness_tag="-".join(
+                                                                          [str(ind.id), str(terrain_id),
+                                                                           str(ind.age), "touched"]),
+                                                                      worst_value=0)
+                            if touched == 0:
+                                test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
+                                                                    worst_value=self.objective_dict[obj][
+                                                                        "worst_value"])
+                                test2 = self.parse_fitness_from_history(log_file,
+                                                                        fitness_tag="-".join(
+                                                                            [str(ind.id), str(terrain_id),
+                                                                             str(ind.age), name]),
+                                                                        worst_value=self.objective_dict[obj][
+                                                                            "worst_value"])
+                            else:
+                                final_position = self.parse_pos(root, bot_id=file_name, tag="currentCenterOfMass")
+                                test1 = test2 = np.linalg.norm(final_position - self.back_position)
+                        else:
+                            test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
                                                                 worst_value=self.objective_dict[obj][
                                                                     "worst_value"])
-                        values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
-                                           else max(test1, test2))
+                            test2 = self.parse_fitness_from_history(log_file,
+                                                                    fitness_tag="-".join(
+                                                                        [str(ind.id), str(terrain_id),
+                                                                         str(ind.age), name]),
+                                                                    worst_value=self.objective_dict[obj][
+                                                                        "worst_value"])
+                        if test2 == test1:
+                            values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
+                                               else max(test1, test2))
+                        else:
+                            values[obj].append(self.objective_dict[obj]["worst_value"])
             fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
                                for k, v in values.items()}
         return fitness

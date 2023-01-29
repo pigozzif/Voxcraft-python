@@ -1,6 +1,8 @@
 import abc
 from typing import Tuple, List
 
+import numpy as np
+
 from voxcraftevo.evo.objectives import ObjectiveDict
 from voxcraftevo.representations.population import Individual
 
@@ -27,13 +29,13 @@ class FitnessFunction(object):
         return worst_value
 
     @staticmethod
-    def parse_pos(root, bot_id: str, tag: str) -> Tuple[float, float, float]:
+    def parse_pos(root, bot_id: str, tag: str):
         detail = root.findall("detail/")
         for d in detail:
             if d.tag == bot_id:
                 center = d.findall(tag)[0]
-                return float(center.findall("x")[0].text), float(center.findall("y")[0].text), float(
-                    center.findall("z")[0].text)
+                return np.array([float(center.findall("x")[0].text), float(center.findall("y")[0].text), float(
+                    center.findall("z")[0].text)])
         raise IndexError
 
     @abc.abstractmethod
