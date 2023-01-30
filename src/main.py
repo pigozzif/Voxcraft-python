@@ -298,11 +298,8 @@ class MyFitness(FitnessFunction):
                                                                          str(ind.age), name]),
                                                                     worst_value=self.objective_dict[obj][
                                                                         "worst_value"])
-                        if test2 == test1:
-                            values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
-                                               else max(test1, test2))
-                        else:
-                            values[obj].append(self.objective_dict[obj]["worst_value"])
+                        values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
+                                           else max(test1, test2))
             fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
                                for k, v in values.items()}
         return fitness
