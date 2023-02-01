@@ -88,7 +88,6 @@ class MyFitness(FitnessFunction):
         self.soft = None
         self.special_passable = None
         self.special_impassable = None
-        self.back_position = None
         self.wall_left = None
         self.wall_right = None
         self.terrains = ["impassable", "passable_left", "passable_right"] if terrain == "fixed" \
@@ -207,7 +206,6 @@ class MyFitness(FitnessFunction):
             world[half, wall_position + body_length, 0] = self.special_passable
         else:
             world[half, wall_position + 1, 0] = self.special_impassable
-        self.back_position = np.array([half / 100.0, 0.0, 0.0])
 
         return world
 
@@ -234,8 +232,8 @@ class MyFitness(FitnessFunction):
             world[start - 3: start + 3, distance_from_wall + start + 1, 0] = self.soft
 
         center = random.choice([start + i - 2 for i in range(body_length // 2 + 1)])
-        aperture_size = random.choice([0, 1, 3]) if p_label == "impassable" else random.choice(
-            [body_length + 2, body_length - 2, body_length])
+        aperture_size = random.choice(np.arange(body_length // 2 + 1)) if p_label == "impassable" else random.choice(
+            [body_length + 1, body_length + 2, body_length + 3])
 
         world[:center, wall_position, :2] = self.immovable_left
         world[center:, wall_position, :2] = self.immovable_right
@@ -267,8 +265,7 @@ class MyFitness(FitnessFunction):
         if p_label != "impassable":
             world[center, wall_position + body_length, 0] = self.special_passable
         else:
-            world[center, 0, 0] = self.special_impassable
-        self.back_position = np.array([center / 100.0, 0.0, 0.0])
+            world[center, wall_position + 1, 0] = self.special_impassable
 
         return world
 
@@ -283,21 +280,15 @@ class MyFitness(FitnessFunction):
                         name = self.objective_dict[obj]["name"]
                         file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), self.shape,
                                                        p_label)
-                        if name == "locomotion_score" and terrain_id == 0:
-                            final_position = self.parse_pos(root, bot_id=file_name, tag="currentCenterOfMass")
-                            initial_position = self.parse_pos(root, bot_id=file_name, tag="initialCenterOfMass")
-                            test1 = test2 = min(np.linalg.norm(final_position - self.back_position),
-                                                np.linalg.norm(initial_position - self.back_position))
-                        else:
-                            test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
+                        test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
+                                                            worst_value=self.objective_dict[obj][
+                                                                "worst_value"])
+                        test2 = self.parse_fitness_from_history(log_file,
+                                                                fitness_tag="-".join(
+                                                                    [str(ind.id), str(terrain_id),
+                                                                     str(ind.age), name]),
                                                                 worst_value=self.objective_dict[obj][
                                                                     "worst_value"])
-                            test2 = self.parse_fitness_from_history(log_file,
-                                                                    fitness_tag="-".join(
-                                                                        [str(ind.id), str(terrain_id),
-                                                                         str(ind.age), name]),
-                                                                    worst_value=self.objective_dict[obj][
-                                                                        "worst_value"])
                         values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
                                            else max(test1, test2))
             fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
