@@ -47,7 +47,7 @@ class FitnessFunction(object):
         pass
 
     @abc.abstractmethod
-    def create_vxd(self, ind: Individual, directory: str, record_history: bool) -> None:
+    def create_vxd(self, ind: Individual, directory: str, record_history: bool, world_name: str) -> None:
         pass
 
     @abc.abstractmethod

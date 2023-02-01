@@ -90,6 +90,7 @@ class MyFitness(FitnessFunction):
         self.special_impassable = None
         self.wall_left = None
         self.wall_right = None
+        self.world = terrain
         self.terrains = ["impassable", "passable_left", "passable_right"] if terrain == "fixed" \
             else ["passable", "impassable"] * int(terrain.split("-")[1])
         self.solver = solver
@@ -141,13 +142,14 @@ class MyFitness(FitnessFunction):
                                            uDynamic=0.5, isFixed=1, isMeasured=0)
         vxa.write(filename=os.path.join(directory, "base.vxa"))
 
-    def create_vxd(self, ind, directory, record_history):
+    def create_vxd(self, ind, directory, record_history, world_name=None):
         for _, r_label in enumerate([self.shape]):
             for terrain_id, p_label in enumerate(self.terrains):
                 base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id),
                                                                        r_label, p_label))
                 body_length = self.get_body_length()
-                world = self._create_world(body_length=body_length, p_label=p_label)
+                world = self._create_world(body_length=body_length, p_label=p_label, world_name=self.world
+                if world_name is None else world_name)
 
                 if not self.is_recurrent:
                     vxd = VXD(NeuralWeightsX=ind.genotype, isPassable=p_label != "impassable", terrainID=terrain_id,
@@ -162,9 +164,11 @@ class MyFitness(FitnessFunction):
                              RecordStepSize=100 if record_history else 0)
                 vxd.write(filename=base_name + ".vxd")
 
-    def _create_world(self, body_length, p_label):
-        return self._create_fixed_world(body_length=body_length, p_label=p_label) if "passable_left" in self.terrains \
-            else self._create_random_world(body_length=body_length, p_label=p_label)
+    def _create_world(self, body_length, p_label, world_name):
+        if world_name == "fixed":
+            return self._create_fixed_world(body_length=body_length, p_label=p_label)
+        else:
+            return self._create_random_world(body_length=body_length, p_label=p_label)
 
     def _create_fixed_world(self, body_length, p_label):
         world = np.zeros((body_length * 3, body_length * 5, int(body_length / 3) + 1))
@@ -297,7 +301,7 @@ class MyFitness(FitnessFunction):
 
     def save_histories(self, individual, input_directory, output_directory, executables_directory):
         sub.call("rm {}/*vxd".format(input_directory), shell=True)
-        self.create_vxd(ind=individual, directory=input_directory, record_history=True)
+        self.create_vxd(ind=individual, directory=input_directory, record_history=True, world_name="fixed")
         temp_dir = input_directory.replace("data", "temp")
         sub.call("mkdir {}".format(temp_dir), shell=True)
         self.create_vxa(directory=temp_dir)
@@ -344,7 +348,7 @@ class TestFitness(MyFitness):
                                           best_value=1.0, worst_value=0.0)
         return self.objective_dict
 
-    def create_vxd(self, ind, directory, record_history):
+    def create_vxd(self, ind, directory, record_history, world_name=None):
         if ind.id == 0:
             ind.genotype = self.sensing_genotype
         elif ind.ind == 1:
@@ -357,7 +361,7 @@ class TestFitness(MyFitness):
                     base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id),
                                                                            str(i), r_label, p_label))
                     body_length = self.get_body_length()
-                    world = self._create_world(body_length=body_length, p_label=p_label)
+                    world = self._create_world(body_length=body_length, p_label=p_label, world_name=self.world)
 
                     if not self.is_recurrent:
                         vxd = VXD(NeuralWeightsX=ind.genotype, isPassable=p_label != "impassable", terrainID=terrain_id,
