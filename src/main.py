@@ -418,7 +418,8 @@ class TestFitness(MyFitness):
                     i = name.split("_")[3]
                     file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), str(i), r_label,
                                                    p_label)
-                    test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag="_".join(name.split("_")[:2]),
+                    test1 = self.parse_fitness_from_xml(root, bot_id=file_name,
+                                                        fitness_tag="_".join(name.split("_")[:2]),
                                                         worst_value=self.objective_dict[obj]["worst_value"])
                     test2 = test1
                     values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
@@ -449,8 +450,19 @@ if __name__ == "__main__":
         arguments.gens = 0
         fitness = TestFitness(arguments.solver, arguments.shape, arguments.terrain, arguments.rnn == 1,
                               file_name="{0}_{1}.csv".format(arguments.shape, seed))
+        listener = TestListener(file_path="test_{0}_{1}.csv".format(arguments.shape, seed))
+    elif arguments.solver == "ga":
+        fitness = MyFitness(arguments.solver, arguments.shape, arguments.terrain, arguments.rnn == 1)
+        listener = NSGAIIListener(file_path="{0}_{1}.csv".format(arguments.shape, seed),
+                                  header=["seed", "gen", "elapsed.time", "best.sensing", "best.locomotion",
+                                          "knee.locomotion", "knee.sensing", "locomotions", "sensings",
+                                          "pareto.locomotions", "pareto.sensings", "best.sensing.g",
+                                          "best.locomotion.g"])
     else:
         fitness = MyFitness(arguments.solver, arguments.shape, arguments.terrain, arguments.rnn == 1)
+        listener = MyListener(file_path="{0}_{1}.csv".format(arguments.shape, seed),
+                              header=["seed", "gen", "elapsed.time", "best.locomotion_score",
+                                      "median.locomotion_score", "min.locomotion_score"])
     if arguments.solver == "ga":
         evolver = Solver.create_solver(name="ga", seed=seed,
                                        pop_size=arguments.popsize,
@@ -469,10 +481,7 @@ if __name__ == "__main__":
                                        output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
                                        logs_dir=arguments.logs,
-                                       listener=MyListener(file_path="{0}_{1}.csv".format(
-                                           arguments.shape, seed),
-                                           header=["seed", "gen", "elapsed.time", "best.locomotion_score",
-                                                   "median.locomotion_score", "min.locomotion_score"]),
+                                       listener=listener,
                                        tournament_size=5,
                                        mu=0.0,
                                        sigma=0.35,
@@ -496,12 +505,7 @@ if __name__ == "__main__":
                                        output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
                                        logs_dir=arguments.logs,
-                                       listener=NSGAIIListener(file_path="{0}_{1}.csv".format(
-                                           arguments.shape, seed),
-                                           header=["seed", "gen", "elapsed.time", "best.sensing", "best.locomotion",
-                                                   "knee.locomotion", "knee.sensing", "locomotions", "sensings",
-                                                   "pareto.locomotions", "pareto.sensings", "best.sensing.g",
-                                                   "best.locomotion.g"]),
+                                       listener=listener,
                                        tournament_size=2,
                                        mu=0.0,
                                        sigma=0.35,
