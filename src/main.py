@@ -87,25 +87,25 @@ class TestListener(Listener):
 
     def listen(self, solver):
         with open(self._file, "a") as file:
-            header = ["seed", "elapsed.time"]
+            header = ["seed", "elapsed.time", "shape", "k", "sensing.best.locomotion_score", "locomotion.best.locomotion_score",
+                      "sensing.best.sensing_score", "locomotion.best.sensing_score"]
+            file.write(self._delimiter.join(header) + "\n")
             best_locomotion = min([float(ind) for ind in solver.fitness_func.last_line.split(";")[9].split("/")])
             best_sensing = max([float(ind) for ind in solver.fitness_func.last_line.split(";")[10].split("/")])
-            values = [str(solver.seed), str(solver.elapsed_time())]
             for shape in solver.fitness_func.__SHAPES__:
                 if shape == solver.fitness_func.shape:
                     continue
                 for i in range(solver.fitness_func.k):
+                    values = [str(solver.seed), str(solver.elapsed_time()), shape + "<-" + solver.fitness_func.shape,
+                              str(i)]
                     for obj in ["locomotion_score", "sensing_score"]:
-                        for ind in solver.pop:
+                        for ind in sorted(solver.pop, key=lambda x: x.id):
                             fit = ind.fitness["_".join([obj, shape, str(i)])]
                             if ind.id == 0:
                                 values.append(str((fit - best_sensing) / best_sensing))
-                                header.append("sensing.best." + "_".join([obj, shape, str(i)]))
                             elif ind.id == 1:
                                 values.append(str((fit - best_locomotion) / best_locomotion))
-                                header.append("locomotion.best." + "_".join([obj, shape, str(i)]))
-            file.write(self._delimiter.join(header) + "\n")
-            file.write(self._delimiter.join(values) + "\n")
+                    file.write(self._delimiter.join(values) + "\n")
 
 
 class MyFitness(FitnessFunction):
