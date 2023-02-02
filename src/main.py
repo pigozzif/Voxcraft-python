@@ -86,7 +86,6 @@ class TestListener(Listener):
         super().__init__(file_path, [], delimiter)
 
     def listen(self, solver):
-        self._file = "test_" + self._file
         with open(self._file, "a") as file:
             header = ["seed", "elapsed.time"]
             best_locomotion = min([float(ind) for ind in solver.fitness_func.last_line.split(";")[9].split("/")])
