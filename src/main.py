@@ -98,8 +98,8 @@ class TestListener(Listener):
             #best_locomotion = min([float(ind) for ind in solver.fitness_func.last_line.split(";")[9].split("/")])
             #best_sensing = max([float(ind) for ind in solver.fitness_func.last_line.split(";")[10].split("/")])
             for shape in solver.fitness_func.__SHAPES__:
-                #if shape == solver.fitness_func.shape:
-                #    continue
+                if shape == solver.fitness_func.shape:
+                    continue
                 for i in range(solver.fitness_func.k):
                     values = [str(solver.seed), str(solver.elapsed_time()), shape + "<-" + solver.fitness_func.shape,
                               str(i)]
@@ -107,9 +107,9 @@ class TestListener(Listener):
                         for ind in sorted(solver.pop, key=lambda x: x.id):
                             fit = ind.fitness["_".join([obj, shape, str(i)])]
                             if ind.id == 0:
-                                values.append(str(fit))#str((fit - best_sensing) / best_sensing))
+                                values.append(str(fit))
                             elif ind.id == 1:
-                                values.append(str(fit))#str((fit - best_locomotion) / best_locomotion))
+                                values.append(str(fit))
                     file.write(self._delimiter.join(values) + "\n")
 
 
@@ -378,7 +378,7 @@ class TestFitness(MyFitness):
 
     def create_objectives_dict(self):
         for shape in self.__SHAPES__:
-            if shape != self.shape:
+            if shape == self.shape:
                 continue
             for i in range(self.k):
                 self.objective_dict.add_objective(name="locomotion_score_{}_{}".format(shape, i), maximize=False,
@@ -397,7 +397,7 @@ class TestFitness(MyFitness):
         else:
             return
         for _, r_label in enumerate(self.__SHAPES__):
-            if r_label != self.shape:
+            if r_label == self.shape:
                 continue
             for terrain_id, p_label in enumerate(self.terrains):
                 for i in range(self.k):
