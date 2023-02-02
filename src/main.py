@@ -101,10 +101,10 @@ class TestListener(Listener):
                             fit = ind.fitness["_".join([obj, shape, str(i)])]
                             if ind.id == 0:
                                 values.append((fit - best_sensing) / best_sensing)
-                                header.append("sensing.best." + "_".join([obj, shape, i]))
+                                header.append("sensing.best." + "_".join([obj, shape, str(i)]))
                             elif ind.id == 1:
                                 values.append((fit - best_locomotion) / best_locomotion)
-                                header.append("locomotion.best." + "_".join([obj, shape, i]))
+                                header.append("locomotion.best." + "_".join([obj, shape, str(i)]))
             file.write(self._delimiter.join(header))
             file.write(self._delimiter.join(values) + "\n")
 
