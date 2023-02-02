@@ -80,6 +80,34 @@ class NSGAIIListener(Listener):
                                              gen_sensing, gen_locomotion]) + "\n")
 
 
+class TestListener(Listener):
+
+    def __init__(self, file_path, delimiter=";"):
+        super().__init__(file_path, [], delimiter)
+
+    def listen(self, solver):
+        with open(self._file, "a") as file:
+            header = ["seed", "elapsed.time"]
+            best_locomotion = min([float(ind) for ind in solver.fitness_func.last_line.split(";")[9].split("/")])
+            best_sensing = max([float(ind) for ind in solver.fitness_func.last_line.split(";")[10].split("/")])
+            values = [str(solver.seed), str(solver.elapsed_time())]
+            for shape in solver.fitness_func.__SHAPES__:
+                if shape == solver.fitness_func.shape:
+                    continue
+                for i in range(solver.fitness_func.k):
+                    for obj in ["locomotion_score", "sensing_score"]:
+                        fit = ind.fitness["_".join([obj, str(i), shape])]
+                        for ind in solver.pop:
+                            if ind.id == 0:
+                                values.append((fit - best_sensing) / best_sensing)
+                                header.append("sensing.best." + "_".join([obj, shape, i]))
+                            elif ind.id == 1:
+                                values.append((fit - best_locomotion) / best_locomotion)
+                                header.append("locomotion.best." + "_".join([obj, shape, i]))
+            file.write(self._delimiter.join(header))
+            file.write(self._delimiter.join(values) + "\n")
+
+
 class MyFitness(FitnessFunction):
 
     def __init__(self, solver, shape, terrain, is_recurrent):
@@ -325,27 +353,26 @@ class MyFitness(FitnessFunction):
 
 
 class TestFitness(MyFitness):
+    __SHAPES__ = ["flatworm", "starfish", "gecko"]
 
-    def __init__(self, solver, shape, terrain, is_recurrent, file_name, k=20):
+    def __init__(self, solver, shape, terrain, is_recurrent, file_name, k=1):
         super().__init__(solver, shape, terrain, is_recurrent)
-        last_line = open(file_name).readlines()[-1]
-        self.sensing_genotype = np.array([float(t) for t in last_line.split(";")[-2].split(",")])
-        self.locomotion_genotype = np.array([float(t) for t in last_line.split(";")[-1].split(",")])
+        self.last_line = open(file_name).readlines()[-1]
+        self.sensing_genotype = np.array([float(t) for t in self.last_line.split(";")[-2].split(",")])
+        self.locomotion_genotype = np.array([float(t) for t in self.last_line.split(";")[-1].split(",")])
         self.k = k
 
     def create_objectives_dict(self):
-        self.objective_dict.add_objective(name="locomotion_score_median", maximize=False,
-                                          tag="<{}>".format("locomotion_score"),
-                                          best_value=0.0, worst_value=5.0)
-        self.objective_dict.add_objective(name="sensing_score_median", maximize=True,
-                                          tag="<{}>".format("sensing_score"),
-                                          best_value=1.0, worst_value=0.0)
-        self.objective_dict.add_objective(name="locomotion_score_std", maximize=False,
-                                          tag="<{}>".format("locomotion_score"),
-                                          best_value=0.0, worst_value=5.0)
-        self.objective_dict.add_objective(name="sensing_score_std", maximize=True,
-                                          tag="<{}>".format("sensing_score"),
-                                          best_value=1.0, worst_value=0.0)
+        for shape in self.__SHAPES__:
+            if shape == self.shape:
+                continue
+            for i in range(self.k):
+                self.objective_dict.add_objective(name="locomotion_score_{}_{}".format(shape, i), maximize=False,
+                                                  tag="<{}>".format("locomotion_score"),
+                                                  best_value=0.0, worst_value=5.0)
+                self.objective_dict.add_objective(name="sensing_score_{}_{}".format(shape, i), maximize=True,
+                                                  tag="<{}>".format("sensing_score"),
+                                                  best_value=1.0, worst_value=0.0)
         return self.objective_dict
 
     def create_vxd(self, ind, directory, record_history, world_name=None):
@@ -355,10 +382,12 @@ class TestFitness(MyFitness):
             ind.genotype = self.locomotion_genotype
         else:
             return
-        for _, r_label in enumerate([self.shape]):
+        for _, r_label in enumerate([self.__SHAPES__]):
+            if r_label == self.shape:
+                continue
             for terrain_id, p_label in enumerate(self.terrains):
                 for i in range(self.k):
-                    base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id),
+                    base_name = os.path.join(directory, self.get_file_name("bot_{:05d}".format(ind.id), str(terrain_id),
                                                                            str(i), r_label, p_label))
                     body_length = self.get_body_length()
                     world = self._create_world(body_length=body_length, p_label=p_label, world_name=self.world)
@@ -381,29 +410,20 @@ class TestFitness(MyFitness):
         root = etree.parse(output_file).getroot()
         for ind in individuals:
             values = {obj: [] for obj in self.objective_dict}
-            for _, r_label in enumerate(["b"]):
-                for terrain_id, p_label in enumerate(self.terrains):
-                    for i in range(self.k):
-                        for obj in values:
-                            name = self.objective_dict[obj]["name"]
-                            file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), str(i),
-                                                           self.shape, p_label)
-                            test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
-                                                                worst_value=self.objective_dict[obj][
-                                                                    "worst_value"])
-                            test2 = self.parse_fitness_from_history(log_file,
-                                                                    fitness_tag="-".join(
-                                                                        [str(ind.id), str(terrain_id), str(i),
-                                                                         str(ind.age), name]),
-                                                                    worst_value=self.objective_dict[obj][
-                                                                        "worst_value"])
-                            if test2 == test1:
-                                values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
-                                                   else max(test1, test2))
-                            else:
-                                values[obj].append(self.objective_dict[obj]["worst_value"])
-            fitness[ind.id] = {self.objective_dict[k]["name"]: np.mean(v) if "mean" in self.objective_dict[k]["name"]
-            else np.std(v) for k, v in values.items()}
+            for terrain_id, p_label in enumerate(self.terrains):
+                for obj in values:
+                    name = self.objective_dict[obj]["name"]
+                    r_label = name.split("_")[2]
+                    i = name.split("_")[3]
+                    file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), str(i), r_label,
+                                                   p_label)
+                    test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
+                                                        worst_value=self.objective_dict[obj]["worst_value"])
+                    test2 = test1
+                    values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
+                                       else max(test1, test2))
+            fitness[ind.id] = {self.objective_dict[k]["name"]: min(v) if self.objective_dict[k]["maximize"] else max(v)
+                               for k, v in values.items()}
         return fitness
 
     def save_histories(self, individual, input_directory, output_directory, executables_directory):
@@ -431,32 +451,48 @@ if __name__ == "__main__":
     else:
         fitness = MyFitness(arguments.solver, arguments.shape, arguments.terrain, arguments.rnn == 1)
     if arguments.solver == "ga":
-        evolver = Solver.create_solver(name="ga", seed=seed, pop_size=arguments.popsize,
+        evolver = Solver.create_solver(name="ga", seed=seed,
+                                       pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
-                                       solution_mapper="direct", survival_selector="worst",
+                                       solution_mapper="direct",
+                                       survival_selector="worst",
                                        parent_selector="tournament",
                                        fitness_func=fitness,
-                                       remap=arguments.remap, genetic_operators={"gaussian_mut": 1.0},
-                                       offspring_size=arguments.popsize // 2, overlapping=True,
-                                       data_dir=data_dir, hist_dir="history{}".format(seed),
-                                       pickle_dir=pickle_dir, output_dir=arguments.output_dir,
+                                       remap=arguments.remap,
+                                       genetic_operators={"gaussian_mut": 1.0},
+                                       offspring_size=arguments.popsize // 2,
+                                       overlapping=True,
+                                       data_dir=data_dir,
+                                       hist_dir="history{}".format(seed),
+                                       pickle_dir=pickle_dir,
+                                       output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
                                        logs_dir=arguments.logs,
                                        listener=MyListener(file_path="{0}_{1}.csv".format(
                                            arguments.shape, seed),
                                            header=["seed", "gen", "elapsed.time", "best.locomotion_score",
                                                    "median.locomotion_score", "min.locomotion_score"]),
-                                       tournament_size=5, mu=0.0, sigma=0.35, n=number_of_params,
-                                       range=(-1, 1), upper=2.0, lower=-1.0)
+                                       tournament_size=5,
+                                       mu=0.0,
+                                       sigma=0.35,
+                                       n=number_of_params,
+                                       range=(-1, 1),
+                                       upper=2.0,
+                                       lower=-1.0)
     elif arguments.solver == "nsgaii":
-        evolver = Solver.create_solver(name="nsgaii", seed=seed, pop_size=arguments.popsize,
+        evolver = Solver.create_solver(name="nsgaii",
+                                       seed=seed,
+                                       pop_size=arguments.popsize,
                                        genotype_factory="uniform_float",
                                        solution_mapper="direct",
                                        fitness_func=fitness,
-                                       remap=arguments.remap, genetic_operators={"gaussian_mut": 1.0},
+                                       remap=arguments.remap,
+                                       genetic_operators={"gaussian_mut": 1.0},
                                        offspring_size=arguments.popsize // 2,
-                                       data_dir=data_dir, hist_dir="history{}".format(seed),
-                                       pickle_dir=pickle_dir, output_dir=arguments.output_dir,
+                                       data_dir=data_dir,
+                                       hist_dir="history{}".format(seed),
+                                       pickle_dir=pickle_dir,
+                                       output_dir=arguments.output_dir,
                                        executables_dir=arguments.execs,
                                        logs_dir=arguments.logs,
                                        listener=NSGAIIListener(file_path="{0}_{1}.csv".format(
@@ -465,8 +501,13 @@ if __name__ == "__main__":
                                                    "knee.locomotion", "knee.sensing", "locomotions", "sensings",
                                                    "pareto.locomotions", "pareto.sensings", "best.sensing.g",
                                                    "best.locomotion.g"]),
-                                       tournament_size=2, mu=0.0, sigma=0.35, n=number_of_params,
-                                       range=(-1, 1), upper=2.0, lower=-1.0)
+                                       tournament_size=2,
+                                       mu=0.0,
+                                       sigma=0.35,
+                                       n=number_of_params,
+                                       range=(-1, 1),
+                                       upper=2.0,
+                                       lower=-1.0)
     else:
         raise ValueError("Invalid solver name: {}".format(arguments.solver))
 
