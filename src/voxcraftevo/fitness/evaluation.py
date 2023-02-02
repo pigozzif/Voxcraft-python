@@ -14,7 +14,7 @@ class FitnessFunction(object):
         detail = root.findall("detail/")
         for d in detail:
             if d.tag == bot_id:
-                print(d)
+                print(d.findall(fitness_tag))
                 return float(d.findall(fitness_tag)[0].text)
         return worst_value
 
