@@ -90,13 +90,13 @@ class TestListener(Listener):
             header = ["seed", "elapsed.time", "shape", "k", "sensing.best.locomotion_score", "locomotion.best.locomotion_score",
                       "sensing.best.sensing_score", "locomotion.best.sensing_score"]
             file.write(self._delimiter.join(header) + "\n")
-            for ind in sorted(solver.pop, key=lambda x: x.id):
-                if ind.id == 0:
-                    best_sensing = ind.fitness["_".join(["sensing_score", solver.fitness_func.shape, str(0)])]
-                elif ind.id == 1:
-                    best_locomotion = ind.fitness["_".join(["locomotion_score", solver.fitness_func.shape, str(0)])]
-            # best_locomotion = min([float(ind) for ind in solver.fitness_func.last_line.split(";")[9].split("/")])
-            # best_sensing = max([float(ind) for ind in solver.fitness_func.last_line.split(";")[10].split("/")])
+            #for ind in sorted(solver.pop, key=lambda x: x.id):
+            #    if ind.id == 0:
+            #        best_sensing = ind.fitness["_".join(["sensing_score", solver.fitness_func.shape, str(0)])]
+            #    elif ind.id == 1:
+            #        best_locomotion = ind.fitness["_".join(["locomotion_score", solver.fitness_func.shape, str(0)])]
+            best_locomotion = min([float(ind) for ind in solver.fitness_func.last_line.split(";")[9].split("/")])
+            best_sensing = max([float(ind) for ind in solver.fitness_func.last_line.split(";")[10].split("/")])
             for shape in solver.fitness_func.__SHAPES__:
                 if shape == solver.fitness_func.shape:
                     continue
@@ -369,8 +369,8 @@ class TestFitness(MyFitness):
 
     def create_objectives_dict(self):
         for shape in self.__SHAPES__:
-#            if shape == self.shape:
-#                continue
+            if shape == self.shape:
+                continue
             for i in range(self.k):
                 self.objective_dict.add_objective(name="locomotion_score_{}_{}".format(shape, i), maximize=False,
                                                   tag="<{}>".format("locomotion_score"),
@@ -388,8 +388,8 @@ class TestFitness(MyFitness):
         else:
             return
         for _, r_label in enumerate(self.__SHAPES__):
-#            if r_label == self.shape:
-#                continue
+            if r_label == self.shape:
+                continue
             for terrain_id, p_label in enumerate(self.terrains):
                 for i in range(self.k):
                     base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id),
