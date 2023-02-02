@@ -418,7 +418,7 @@ class TestFitness(MyFitness):
                     i = name.split("_")[3]
                     file_name = self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id), str(i), r_label,
                                                    p_label)
-                    test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name,
+                    test1 = self.parse_fitness_from_xml(root, bot_id=file_name, fitness_tag=name.split("_")[0],
                                                         worst_value=self.objective_dict[obj]["worst_value"])
                     test2 = test1
                     values[obj].append(min(test1, test2) if self.objective_dict[obj]["maximize"]
