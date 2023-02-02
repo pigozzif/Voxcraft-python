@@ -104,7 +104,7 @@ class TestListener(Listener):
                             elif ind.id == 1:
                                 values.append(str((fit - best_locomotion) / best_locomotion))
                                 header.append("locomotion.best." + "_".join([obj, shape, str(i)]))
-            file.write(self._delimiter.join(header))
+            file.write(self._delimiter.join(header) + "\n")
             file.write(self._delimiter.join(values) + "\n")
 
 
