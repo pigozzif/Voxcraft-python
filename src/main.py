@@ -387,8 +387,8 @@ class TestFitness(MyFitness):
                 continue
             for terrain_id, p_label in enumerate(self.terrains):
                 for i in range(self.k):
-                    base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id),
-                                                                           str(i), r_label, p_label))
+                    base_name = os.path.join(directory, "-".join(["bot_{:04d}".format(ind.id), str(terrain_id),
+                                                                  str(i), r_label, p_label]))
                     body_length = self.get_body_length()
                     world = self._create_world(body_length=body_length, p_label=p_label, world_name=self.world)
 
