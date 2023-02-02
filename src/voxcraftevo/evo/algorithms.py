@@ -126,7 +126,7 @@ class EvolutionarySolver(Solver):
         sub.call("echo Launching {0} voxelyze individuals to-be-evaluated, out of {1} individuals".
                  format(num_evaluated, len(self.pop)), shell=True)
         output_file = os.path.join(self.output_dir, "output{0}_{1}.xml".format(self.seed, self.pop.gen))
-        if num_evaluated > 10:
+        if num_evaluated > 0:
             while True:
                 try:
                     sub.call("cd {0}; ./voxcraft-sim -i {1} -o {2}".format(self.executables_dir,
