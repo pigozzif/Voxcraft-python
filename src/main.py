@@ -97,8 +97,8 @@ class TestListener(Listener):
                     continue
                 for i in range(solver.fitness_func.k):
                     for obj in ["locomotion_score", "sensing_score"]:
-                        fit = ind.fitness["_".join([obj, str(i), shape])]
                         for ind in solver.pop:
+                            fit = ind.fitness["_".join([obj, str(i), shape])]
                             if ind.id == 0:
                                 values.append((fit - best_sensing) / best_sensing)
                                 header.append("sensing.best." + "_".join([obj, shape, i]))
