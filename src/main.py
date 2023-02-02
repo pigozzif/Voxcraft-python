@@ -378,7 +378,7 @@ class TestFitness(MyFitness):
     def create_vxd(self, ind, directory, record_history, world_name=None):
         if ind.id == 0:
             ind.genotype = self.sensing_genotype
-        elif ind.ind == 1:
+        elif ind.id == 1:
             ind.genotype = self.locomotion_genotype
         else:
             return
