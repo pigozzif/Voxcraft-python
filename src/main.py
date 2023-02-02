@@ -367,6 +367,15 @@ class TestFitness(MyFitness):
         self.locomotion_genotype = np.array([float(t) for t in self.last_line.split(";")[-1].split(",")])
         self.k = k
 
+    def get_body_length(self, shape):
+        if shape == "flatworm":
+            return 4
+        elif shape == "starfish":
+            return 9
+        elif shape == "gecko":
+            return 6
+        raise ValueError("Unknown shape: {}".format(shape))
+
     def create_objectives_dict(self):
         for shape in self.__SHAPES__:
             if shape != self.shape:
@@ -394,7 +403,7 @@ class TestFitness(MyFitness):
                 for i in range(self.k):
                     base_name = os.path.join(directory, self.get_file_name("bot_{:04d}".format(ind.id), str(terrain_id),
                                                                            str(i), r_label, p_label))
-                    body_length = self.get_body_length()
+                    body_length = self.get_body_length(r_label)
                     world = self._create_world(body_length=body_length, p_label=p_label, world_name=self.world)
 
                     if not self.is_recurrent:
