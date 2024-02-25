@@ -43,9 +43,11 @@ if __name__ == "__main__":
             else:
                 color = "green"
             plt.plot([p[0] for p in points], [p[1] for p in points],
+                     linewidth=1.5,
                      color=color,
                      label="impassable" if "impassable" in file else "passable")
-    plt.xlim(0.0, 0.25)
-    plt.ylim(0.10, 0.50)
+    plt.xlim(0.09, 0.175)
+    plt.ylim(0.15, 0.35)
+    plt.axis("off")
     plt.savefig(os.path.join(os.getcwd(), directory, "trajectories.png"))
     os.system("rm -rf frames")

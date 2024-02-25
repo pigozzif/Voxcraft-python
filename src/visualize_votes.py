@@ -12,9 +12,9 @@ def draw_robot(data, width, height, touch, is_passable):
     image = Image.new("RGB", ((width + 2) * VOXEL_SIZE, (height + 2) * VOXEL_SIZE), color="white")
     draw = ImageDraw.Draw(image)
     step_count, voxels = tuple(data.split(":"))
-    draw.text((0, 0), str(step_count) + "  truth", fill="black")
-    draw.rectangle((((width + 2) * VOXEL_SIZE / 2 - VOXEL_SIZE / 4, 0),
-                    ((width + 2) * VOXEL_SIZE / 2 + VOXEL_SIZE / 4, VOXEL_SIZE / 2)),
+    draw.text((0, 0), "truth", fill="black")
+    draw.rectangle((((width - 10) * VOXEL_SIZE / 2 - VOXEL_SIZE / 4, 0),
+                    ((width - 10) * VOXEL_SIZE / 2 + VOXEL_SIZE / 4, VOXEL_SIZE / 2)),
                    outline="white", fill="blue" if is_passable else "red")
     new_voxels = []
     for voxel in voxels.split("/")[:-1]:
@@ -39,12 +39,24 @@ def draw_robot(data, width, height, touch, is_passable):
         else:
             fill = "red"
         draw.rectangle([x0y0, x1y1], outline="black" if not t else "yellow", fill=fill, width=2)
-    draw.text(((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, 0), "  majority", fill="black")
+    draw.text(((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, 0), "  not solvable", fill="black")
+    draw.text(((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, VOXEL_SIZE), "  solvable", fill="black")
+    draw.text(((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, VOXEL_SIZE * 2), "  majority", fill="black")
+    draw.text(((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, VOXEL_SIZE * 3), "  touching", fill="black")
     majority = 1 if len(list(filter(lambda x: x[0] >= 0.0, new_voxels))) > len(
         list(filter(lambda x: x[0] < 0.0, new_voxels))) else 0
     draw.rectangle((((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, 0),
                     ((width + 2) * VOXEL_SIZE * 0.66 + VOXEL_SIZE / 4, VOXEL_SIZE / 2)),
+                   outline="white", fill="red")
+    draw.rectangle((((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, VOXEL_SIZE),
+                    ((width + 2) * VOXEL_SIZE * 0.66 + VOXEL_SIZE / 4, VOXEL_SIZE + VOXEL_SIZE / 2)),
+                   outline="white", fill="blue")
+    draw.rectangle((((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, VOXEL_SIZE * 2),
+                    ((width + 2) * VOXEL_SIZE * 0.66 + VOXEL_SIZE / 4, VOXEL_SIZE * 2 + VOXEL_SIZE / 2)),
                    outline="white", fill="blue" if majority else "red")
+    draw.rectangle((((width + 2) * VOXEL_SIZE * 0.66 - VOXEL_SIZE / 4, VOXEL_SIZE * 3),
+                    ((width + 2) * VOXEL_SIZE * 0.66 + VOXEL_SIZE / 4, VOXEL_SIZE * 3 + VOXEL_SIZE / 2)),
+                   outline="yellow", fill="white")
     return image
 
 
@@ -53,7 +65,7 @@ def create_video(path, width, height):
     images = []
     for line in open(path, "r"):
         frame_count += 1
-        if ("/" not in line) or "vx3_node_worker" in line or "setting" in line or frame_count % 5 == 0 \
+        if ("/" not in line) or "vx3_node_worker" in line or "setting" in line or frame_count % 2 == 0 \
                 or line.startswith("?"):
             continue
         try:
@@ -78,7 +90,7 @@ def create_video(path, width, height):
 def get_body_length(shape):
     if shape == "flatworm":
         return 4
-    elif shape == "starfish":
+    elif shape == "starfish" or shape == "b":
         return 9
     elif shape == "gecko":
         return 6
@@ -99,7 +111,7 @@ if __name__ == "__main__":
     bests = get_best_sensing_id(directory)
     for root, dirs, files in os.walk(directory):
         for file in files:
-            if "passable_right" in file or not any([("history" + s in root and b in file) for s, b in bests.items()]):
+            if not any([("history" + s in root and b in file) for s, b in bests.items()]):
                 continue
             body_length = get_body_length(file.split("-")[2])
-            create_video(os.path.join(os.getcwd(), root, file), body_length, body_length)
+            create_video(os.path.join(os.getcwd(), root, file), body_length + 6, body_length)
