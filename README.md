@@ -12,6 +12,13 @@ Hosting all the code for replication. More videos are available at this [link](h
 <img src="teaser.gif"></img>
 </div>
 
+## Usage
+To run an experiment, run:
+```
+python src/main.py {args}
+```
+where {args} stands for the arguments. Please ensure you have an `executables` folder containing the executables of [Voxcraft](https://github.com/pigozzif/voxcraft-sim/tree/master), the GPU-accelerated voxel-based physics engine.
+
 ## Bibliography
 Please cite as:
 ```
